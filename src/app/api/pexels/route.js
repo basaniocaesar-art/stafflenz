@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
 
 const QUERIES = {
-  factory:      'workers industrial factory floor machinery',
-  hotel:        'hotel staff reception lobby service',
-  school:       'teachers classroom school students learning',
-  retail:       'retail store staff customers shopping floor',
-  hospital:     'hospital nurses doctors medical ward staff',
-  construction: 'construction workers building site hard hat',
-  warehouse:    'warehouse workers logistics loading forklift',
-  restaurant:   'restaurant kitchen chef cooking staff service',
-  security:     'security guard patrol building entrance night',
+  factory:      'factory manufacturing production',
+  hotel:        'hotel lobby reception',
+  school:       'classroom students education',
+  retail:       'shopping mall store',
+  hospital:     'hospital medical staff',
+  construction: 'construction site workers',
+  warehouse:    'warehouse logistics',
+  restaurant:   'restaurant kitchen cooking',
+  security:     'security guard office',
 };
 
 export async function GET(request) {
@@ -18,10 +18,10 @@ export async function GET(request) {
   const query = QUERIES[industry] || QUERIES.factory;
 
   const res = await fetch(
-    `https://api.pexels.com/videos/search?query=${encodeURIComponent(query)}&per_page=5&orientation=landscape&size=medium`,
+    `https://api.pexels.com/videos/search?query=${encodeURIComponent(query)}&per_page=10&orientation=landscape`,
     {
       headers: { Authorization: process.env.PEXELS_API_KEY },
-      next: { revalidate: 86400 }, // cache for 24 hours
+      cache: 'no-store',
     }
   );
 
@@ -31,10 +31,10 @@ export async function GET(request) {
   const video = data.videos?.[0];
   if (!video) return NextResponse.json({ url: null });
 
-  // Pick HD file, max 1280 wide so it loads fast
+  // Pick best available file
   const files = video.video_files || [];
   const file =
-    files.find(f => f.quality === 'hd' && f.width <= 1280 && f.width >= 720) ||
+    files.find(f => f.width <= 1280 && f.width >= 720) ||
     files.find(f => f.quality === 'hd') ||
     files.find(f => f.quality === 'sd') ||
     files[0];
