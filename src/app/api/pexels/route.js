@@ -13,6 +13,19 @@ const QUERIES = {
   security:     'security guard office',
 };
 
+// 8 different queries per industry for camera grid variety
+const GRID_QUERIES = {
+  factory:      ['factory floor workers','industrial machinery','manufacturing assembly','factory safety equipment','warehouse forklift','production line','factory workers','industrial plant'],
+  hotel:        ['hotel lobby','hotel reception desk','hotel corridor','hotel room service','hotel restaurant','hotel pool','hotel staff','hotel entrance'],
+  school:       ['classroom teaching','school hallway','school library','school cafeteria','school sports','school entrance','students studying','school playground'],
+  retail:       ['shopping store interior','retail cashier','shopping mall','store shelves','retail staff','shopping customers','store entrance','clothing store'],
+  hospital:     ['hospital corridor','hospital reception','hospital ward','hospital surgery','hospital pharmacy','hospital waiting room','medical staff','hospital entrance'],
+  construction: ['construction site','building workers','construction machinery','scaffolding workers','construction safety','building foundation','crane construction','construction team'],
+  warehouse:    ['warehouse shelves','forklift warehouse','warehouse workers','loading dock','warehouse inventory','logistics workers','shipping warehouse','warehouse interior'],
+  restaurant:   ['restaurant kitchen','restaurant dining','restaurant bar','restaurant staff','food preparation','restaurant service','restaurant entrance','chef cooking'],
+  security:     ['security guard','office building entrance','security checkpoint','parking lot surveillance','security patrol','building lobby security','night security','access control'],
+};
+
 function pickFile(video) {
   const files = video.video_files || [];
   return (
@@ -43,8 +56,22 @@ export async function GET(request) {
   const videos = data.videos || [];
 
   if (count > 1) {
-    const urls = videos.slice(0, count).map(v => pickFile(v)?.link || null);
-    return NextResponse.json({ urls });
+    // Fetch a different video for each camera using unique queries
+    const gridQueries = GRID_QUERIES[industry] || Array(8).fill(query);
+    const results = await Promise.all(
+      gridQueries.slice(0, count).map(async (q) => {
+        try {
+          const r = await fetch(
+            `https://api.pexels.com/videos/search?query=${encodeURIComponent(q)}&per_page=5&orientation=landscape`,
+            { headers: { Authorization: process.env.PEXELS_API_KEY }, cache: 'no-store' }
+          );
+          const d = await r.json();
+          const v = d.videos?.[0];
+          return v ? (pickFile(v)?.link || null) : null;
+        } catch { return null; }
+      })
+    );
+    return NextResponse.json({ urls: results });
   }
 
   const video = videos[0];
