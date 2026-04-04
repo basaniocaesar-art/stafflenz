@@ -42,13 +42,13 @@ function ZoneModal({ zone, onClose, onSave }) {
           <div className="text-4xl mb-3">🔑</div>
           <h2 className="text-lg font-bold text-gray-900 mb-2">Zone Created!</h2>
           <p className="text-sm text-gray-600 mb-4">
-            Copy this Camera Key to your Raspberry Pi config. It will not be shown again.
+            Copy this Camera Key to your StaffLenz Edge Node config. It will not be shown again.
           </p>
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 font-mono text-xs text-gray-700 break-all select-all mb-4">
             {cameraKey}
           </div>
           <p className="text-xs text-gray-500 mb-4">
-            In your Pi script, set:<br />
+            In your Edge Node, set:<br />
             <code className="bg-gray-100 px-1 rounded">CAMERA_KEY = &quot;{cameraKey}&quot;</code>
           </p>
           <button onClick={() => onSave()} className="btn-primary w-full">Done</button>
@@ -146,9 +146,9 @@ export default function ZonesPage() {
 
       {/* Pi integration guide */}
       <div className="card p-4 mb-6 bg-blue-50 border-blue-200">
-        <h3 className="font-medium text-blue-900 mb-1 text-sm">📡 Raspberry Pi Integration</h3>
+        <h3 className="font-medium text-blue-900 mb-1 text-sm">📡 Edge Node Integration</h3>
         <p className="text-xs text-blue-700">
-          Each zone gets a unique Camera Key. Your Pi script uses this key to post detections to{' '}
+          Each zone gets a unique Camera Key. Your Edge Node uses this key to post detections to{' '}
           <code className="bg-blue-100 px-1 rounded">POST /api/events</code> with the{' '}
           <code className="bg-blue-100 px-1 rounded">Authorization: Bearer {'<camera_key>'}</code> header.
         </p>
@@ -160,7 +160,7 @@ export default function ZonesPage() {
         <div className="card p-12 text-center">
           <div className="text-4xl mb-3">📹</div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">No camera zones yet</h3>
-          <p className="text-gray-500 text-sm mb-4">Add a zone for each camera location your Raspberry Pi monitors.</p>
+          <p className="text-gray-500 text-sm mb-4">Add a zone for each camera location your StaffLenz Edge Node monitors.</p>
           <button onClick={() => setModalOpen(true)} className="btn-primary">Add First Zone</button>
         </div>
       ) : (

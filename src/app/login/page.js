@@ -109,7 +109,7 @@ function LoginForm() {
         </div>
 
         <p className="mt-6 text-center text-xs text-gray-400">
-          © {new Date().getFullYear()} StaffLenz · Kerala, India
+          © {new Date().getFullYear()} StaffLenz · AI-Powered Workforce Intelligence
         </p>
       </div>
     </div>

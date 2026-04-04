@@ -4,10 +4,15 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 
 const industryConfig = {
-  factory: { label: 'Factory', icon: '🏭', color: 'bg-orange-600', accent: 'text-orange-600 bg-orange-50' },
-  hotel:   { label: 'Hotel',   icon: '🏨', color: 'bg-purple-600', accent: 'text-purple-600 bg-purple-50' },
-  school:  { label: 'School',  icon: '🏫', color: 'bg-green-600',  accent: 'text-green-600 bg-green-50' },
-  retail:  { label: 'Retail',  icon: '🛍️', color: 'bg-pink-600',   accent: 'text-pink-600 bg-pink-50' },
+  factory:      { label: 'Factory',      icon: '🏭', color: 'bg-orange-600',  accent: 'text-orange-600 bg-orange-50' },
+  hotel:        { label: 'Hotel',        icon: '🏨', color: 'bg-purple-600',  accent: 'text-purple-600 bg-purple-50' },
+  school:       { label: 'School',       icon: '🏫', color: 'bg-green-600',   accent: 'text-green-600 bg-green-50' },
+  retail:       { label: 'Retail',       icon: '🛍️', color: 'bg-pink-600',    accent: 'text-pink-600 bg-pink-50' },
+  restaurant:   { label: 'Restaurant',   icon: '🍽️', color: 'bg-amber-600',   accent: 'text-amber-600 bg-amber-50' },
+  warehouse:    { label: 'Warehouse',    icon: '📦', color: 'bg-indigo-600',  accent: 'text-indigo-600 bg-indigo-50' },
+  construction: { label: 'Construction', icon: '🏗️', color: 'bg-yellow-600',  accent: 'text-yellow-700 bg-yellow-50' },
+  hospital:     { label: 'Hospital',     icon: '🏥', color: 'bg-cyan-600',    accent: 'text-cyan-600 bg-cyan-50' },
+  security:     { label: 'Security',     icon: '🔒', color: 'bg-slate-600',   accent: 'text-slate-600 bg-slate-100' },
 };
 
 export default function DashboardLayout({ children, industry, clientName, userName }) {
@@ -20,6 +25,7 @@ export default function DashboardLayout({ children, industry, clientName, userNa
 
   const navItems = [
     { href: `/${industry}`, label: 'Dashboard', icon: '📊' },
+    { href: '/attendance', label: 'Attendance', icon: '🕐' },
     { href: '/workers', label: 'Workers', icon: '👷' },
     { href: '/zones', label: 'Camera Zones', icon: '📹' },
   ];

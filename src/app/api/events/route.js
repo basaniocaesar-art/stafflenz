@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAdminClient } from '@/lib/supabase';
 
-// CORS headers for Raspberry Pi (not a browser)
+// CORS headers for StaffLenz Edge Node (not a browser)
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -13,7 +13,7 @@ export async function OPTIONS() {
 }
 
 export async function POST(request) {
-  // Auth: Raspberry Pi sends Authorization: Bearer <camera_key>
+  // Auth: StaffLenz Edge Node sends Authorization: Bearer <camera_key>
   const authHeader = request.headers.get('authorization') || '';
   const cameraKey = authHeader.replace('Bearer ', '').trim();
 
@@ -63,9 +63,15 @@ export async function POST(request) {
     } = detection;
 
     // Determine event type
+    const explicitTypes = ['check_in', 'check_out', 'break_start', 'break_end'];
     let event_type = 'detected';
-    if (zone_violation) event_type = 'zone_violation';
-    else if (ppe_compliant === false) event_type = 'ppe_violation';
+    if (detection.event_type && explicitTypes.includes(detection.event_type)) {
+      event_type = detection.event_type;
+    } else if (zone_violation) {
+      event_type = 'zone_violation';
+    } else if (ppe_compliant === false) {
+      event_type = 'ppe_violation';
+    }
 
     const uniqueId = piEventId || (device_event_id ? `${device_event_id}_${worker_id}` : null);
 

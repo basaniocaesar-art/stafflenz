@@ -24,6 +24,83 @@ export async function GET(request) {
     return NextResponse.json({ leads });
   }
 
+  if (view === 'partners') {
+    const { data: applications } = await db
+      .from('partner_applications')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(200);
+    return NextResponse.json({ applications: applications || [] });
+  }
+
+  if (view === 'affiliates') {
+    const { data: affiliates } = await db
+      .from('affiliates')
+      .select('id, code, name, email, company, partner_type, commission_rate, status, total_clicks, total_conversions, total_earnings, created_at')
+      .order('created_at', { ascending: false });
+    const { data: conversions } = await db
+      .from('affiliate_conversions')
+      .select('id, affiliate_code, lead_name, lead_email, conversion_type, commission_amount, status, created_at')
+      .order('created_at', { ascending: false })
+      .limit(200);
+    return NextResponse.json({ affiliates: affiliates || [], conversions: conversions || [] });
+  }
+
+  if (view === 'white_labels') {
+    const { data: wlUsers } = await db
+      .from('users')
+      .select('id, full_name, email, is_active, created_at')
+      .eq('role', 'white_label_admin')
+      .order('created_at', { ascending: false });
+    const wlIds = (wlUsers || []).map((u) => u.id);
+    let subClientCounts = {};
+    if (wlIds.length > 0) {
+      const { data: subClients } = await db
+        .from('clients')
+        .select('white_label_owner_id')
+        .in('white_label_owner_id', wlIds);
+      (subClients || []).forEach((c) => {
+        subClientCounts[c.white_label_owner_id] = (subClientCounts[c.white_label_owner_id] || 0) + 1;
+      });
+    }
+    const enriched = (wlUsers || []).map((u) => ({ ...u, sub_client_count: subClientCounts[u.id] || 0 }));
+    return NextResponse.json({ white_labels: enriched });
+  }
+
+  if (view === 'revenue') {
+    const PLAN_PRICES = { starter: 79, professional: 149, enterprise: 299 };
+    const { data: activeClients } = await db
+      .from('clients')
+      .select('id, name, industry, plan, created_at')
+      .eq('is_active', true);
+    const mrr = (activeClients || []).reduce((sum, c) => sum + (PLAN_PRICES[c.plan] || 0), 0);
+    const byPlan = {};
+    const byIndustry = {};
+    (activeClients || []).forEach((c) => {
+      byPlan[c.plan] = (byPlan[c.plan] || 0) + 1;
+      byIndustry[c.industry] = (byIndustry[c.industry] || 0) + 1;
+    });
+    const { data: paidConversions } = await db
+      .from('affiliate_conversions')
+      .select('commission_amount')
+      .eq('status', 'paid');
+    const totalAffiliatePaid = (paidConversions || []).reduce((s, c) => s + parseFloat(c.commission_amount || 0), 0);
+    const { data: pendingConversions } = await db
+      .from('affiliate_conversions')
+      .select('id, affiliate_code, lead_name, lead_email, commission_amount, created_at, status')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+    return NextResponse.json({
+      mrr,
+      arr: mrr * 12,
+      active_clients: activeClients?.length || 0,
+      by_plan: byPlan,
+      by_industry: byIndustry,
+      affiliate_paid: totalAffiliatePaid.toFixed(2),
+      pending_conversions: pendingConversions || [],
+    });
+  }
+
   const today = new Date().toISOString().slice(0, 10);
 
   const [
@@ -134,6 +211,74 @@ export async function POST(request) {
     const { client_id, plan } = body;
     await db.from('clients').update({ plan }).eq('id', client_id);
     return NextResponse.json({ success: true });
+  }
+
+  if (action === 'create_affiliate') {
+    const { name, email, company, partner_type, commission_rate, affiliate_code, password } = body;
+    if (!name || !email || !affiliate_code || !password) {
+      return NextResponse.json({ error: 'name, email, affiliate_code and password required' }, { status: 400 });
+    }
+    const passwordHash = await bcrypt.hash(password, 12);
+    const { data, error } = await db.from('affiliates').insert({
+      name, email: email.toLowerCase().trim(),
+      company: company || null,
+      partner_type: partner_type || 'referral',
+      commission_rate: parseFloat(commission_rate) || 20,
+      code: affiliate_code.toUpperCase().trim(),
+      password_hash: passwordHash,
+      status: 'active',
+    }).select().single();
+    if (error) {
+      if (error.code === '23505') return NextResponse.json({ error: 'Code or email already exists' }, { status: 409 });
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ affiliate: data }, { status: 201 });
+  }
+
+  if (action === 'update_affiliate') {
+    const { affiliate_id, status, commission_rate } = body;
+    if (!affiliate_id) return NextResponse.json({ error: 'affiliate_id required' }, { status: 400 });
+    const updates = {};
+    if (status) updates.status = status;
+    if (commission_rate !== undefined) updates.commission_rate = parseFloat(commission_rate);
+    await db.from('affiliates').update(updates).eq('id', affiliate_id);
+    return NextResponse.json({ success: true });
+  }
+
+  if (action === 'update_application') {
+    const { application_id, status } = body;
+    if (!application_id || !status) return NextResponse.json({ error: 'application_id and status required' }, { status: 400 });
+    await db.from('partner_applications').update({ status }).eq('id', application_id);
+    return NextResponse.json({ success: true });
+  }
+
+  if (action === 'mark_conversion_paid') {
+    const { conversion_id, commission_amount } = body;
+    if (!conversion_id) return NextResponse.json({ error: 'conversion_id required' }, { status: 400 });
+    await db.from('affiliate_conversions').update({
+      status: 'paid',
+      commission_amount: parseFloat(commission_amount) || 0,
+    }).eq('id', conversion_id);
+    return NextResponse.json({ success: true });
+  }
+
+  if (action === 'create_white_label_admin') {
+    const { name, email, password } = body;
+    if (!name || !email || !password) return NextResponse.json({ error: 'name, email and password required' }, { status: 400 });
+    if (password.length < 8) return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 });
+    const passwordHash = await bcrypt.hash(password, 12);
+    const { data, error } = await db.from('users').insert({
+      email: email.toLowerCase().trim(),
+      password_hash: passwordHash,
+      role: 'white_label_admin',
+      full_name: name,
+      is_active: true,
+    }).select('id, email, full_name, role').single();
+    if (error) {
+      if (error.code === '23505') return NextResponse.json({ error: 'Email already exists' }, { status: 409 });
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ user: data }, { status: 201 });
   }
 
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 });

@@ -32,7 +32,7 @@ function EventRow({ event }) {
     ppe_violation: 'text-yellow-600',
     detected: 'text-blue-600',
   };
-  const time = new Date(event.occurred_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+  const time = new Date(event.occurred_at).toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
   return (
     <div className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0">
       <div className="w-16 text-xs text-gray-400 flex-shrink-0 pt-0.5">{time}</div>
@@ -129,8 +129,8 @@ export default function DashboardPage({ industry }) {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Workforce Dashboard</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            {new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-            {lastRefresh && ` · Updated ${lastRefresh.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`}
+            {new Date().toLocaleDateString('en', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            {lastRefresh && ` · Updated ${lastRefresh.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' })}`}
           </p>
         </div>
         <button onClick={fetchData} className="btn-secondary text-sm">
@@ -223,7 +223,7 @@ export default function DashboardPage({ industry }) {
                       <AlertBadge type={alert.alert_type} />
                       <p className="text-sm text-gray-800 mt-1">{alert.message}</p>
                       <p className="text-xs text-gray-400 mt-1">
-                        {new Date(alert.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(alert.created_at).toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                     <button
@@ -260,7 +260,7 @@ export default function DashboardPage({ industry }) {
                 {week_chart.map((row) => (
                   <tr key={row.summary_date} className="border-b border-gray-50">
                     <td className="py-2 text-gray-700">
-                      {new Date(row.summary_date).toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' })}
+                      {new Date(row.summary_date).toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' })}
                     </td>
                     <td className="py-2 text-right text-green-600 font-medium">{row.present_count}</td>
                     <td className="py-2 text-right text-gray-500">{row.absent_count}</td>

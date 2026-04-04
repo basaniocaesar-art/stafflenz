@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAdminClient } from '@/lib/supabase';
+import { sendEmail, emailDemoRequestConfirmation, emailDemoRequestInternal } from '@/lib/email';
 
 const attempts = new Map();
 function checkRateLimit(ip) {
@@ -31,7 +32,7 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  const { name, email, phone, company, industry, message } = body;
+  const { name, email, phone, company, industry, message, affiliate_code, affiliate_click_id } = body;
   if (!name || !email) {
     return NextResponse.json({ error: 'Name and email required' }, { status: 400 });
   }
@@ -51,11 +52,43 @@ export async function POST(request) {
     industry: industry || null,
     message: message?.slice(0, 2000) || null,
     ip_address: ip,
+    affiliate_code: affiliate_code?.toUpperCase().trim().slice(0, 50) || null,
   });
 
   if (error) {
     console.error('Lead insert error:', error.message);
-    // Return success anyway — don't expose DB errors
+  }
+
+  // Send emails (non-blocking — don't await, don't let failure affect response)
+  sendEmail({
+    to: email,
+    subject: "We've received your demo request — StaffLenz",
+    html: emailDemoRequestConfirmation({ name, industry: industry || 'your industry' }),
+  }).catch(() => {});
+
+  sendEmail({
+    to: process.env.INTERNAL_NOTIFY_EMAIL || 'team@stafflenz.com',
+    subject: `🔔 New Demo Request — ${name} (${industry || 'Unknown'})`,
+    html: emailDemoRequestInternal({ name, email, company, industry, phone, message, affiliate_code }),
+  }).catch(() => {});
+
+  // Record affiliate conversion if code present
+  if (affiliate_code) {
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/affiliate/convert`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: affiliate_code,
+          lead_email: email,
+          lead_name: name,
+          conversion_type: 'lead',
+          click_id: affiliate_click_id || null,
+        }),
+      });
+    } catch (e) {
+      console.error('Affiliate conversion error:', e.message);
+    }
   }
 
   return NextResponse.json({ success: true, message: 'Thank you! We will contact you within 24 hours.' });
