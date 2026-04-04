@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import PipelineDemoSection from '@/components/PipelineDemoSection';
+import CameraGrid from '@/components/CameraGrid';
 import IndustryPricing from '@/components/IndustryPricing';
 
 const PRICING = [
@@ -377,6 +378,7 @@ export default function HospitalPage() {
       </section>
 
       <IndustryPricing plans={PRICING} accentColor="#06b6d4" industryLabel="Hospital & Healthcare" />
+      <CameraGrid industry="hospital" />
       <PipelineDemoSection frames={FRAMES} accentColor="#06b6d4" industry="hospital" />
 
       {/* CTA */}

@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import PipelineDemoSection from '@/components/PipelineDemoSection';
+import CameraGrid from '@/components/CameraGrid';
 import IndustryPricing from '@/components/IndustryPricing';
 
 const PRICING = [
@@ -379,6 +380,7 @@ export default function RestaurantPage() {
 
       {/* CTA */}
       <IndustryPricing plans={PRICING} accentColor="#f97316" industryLabel="Restaurant & Food Service" />
+      <CameraGrid industry="restaurant" />
       <PipelineDemoSection frames={FRAMES} accentColor="#f97316" industry="restaurant" />
 
       <section id="demo" className="py-20 px-4 bg-gradient-to-br from-orange-600 to-red-700">

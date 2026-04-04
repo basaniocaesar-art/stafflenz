@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import PipelineDemoSection from '@/components/PipelineDemoSection';
+import CameraGrid from '@/components/CameraGrid';
 import IndustryPricing from '@/components/IndustryPricing';
 
 const PRICING = [
@@ -376,6 +377,7 @@ export default function SecurityPage() {
 
       {/* CTA */}
       <IndustryPricing plans={PRICING} accentColor="#94a3b8" industryLabel="Security & Guard Services" />
+      <CameraGrid industry="security" />
       <PipelineDemoSection frames={FRAMES} accentColor="#94a3b8" industry="security" />
 
       <section id="demo" className="py-20 px-4 bg-gradient-to-br from-slate-700 to-gray-900">

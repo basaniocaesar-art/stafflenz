@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import PipelineDemoSection from '@/components/PipelineDemoSection';
+import CameraGrid from '@/components/CameraGrid';
 import IndustryPricing from '@/components/IndustryPricing';
 
 const PRICING = [
@@ -374,6 +375,7 @@ export default function SchoolPage() {
         </div>
       </section>
 
+      <CameraGrid industry="school" />
       <PipelineDemoSection frames={FRAMES} accentColor="#10b981" industry="school" />
 
       <section id="demo" className="py-20 px-4 bg-gradient-to-br from-emerald-700 to-teal-800">

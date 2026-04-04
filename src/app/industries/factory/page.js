@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import PipelineDemoSection from '@/components/PipelineDemoSection';
+import CameraGrid from '@/components/CameraGrid';
 import IndustryPricing from '@/components/IndustryPricing';
 
 const PRICING = [
@@ -387,6 +388,7 @@ export default function FactoryPage() {
 
       <IndustryPricing plans={PRICING} accentColor="#f59e0b" industryLabel="Factory & Manufacturing" />
 
+      <CameraGrid industry="factory" />
       <PipelineDemoSection frames={FRAMES} accentColor="#f59e0b" industry="factory" />
 
       {/* CTA */}
