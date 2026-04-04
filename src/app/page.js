@@ -296,21 +296,18 @@ export default function HomePage() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', company: '', industry: '', message: '' });
   const [status, setStatus] = useState('idle');
 
-  // Fetch all 4 industry videos from Pexels on mount
+  // Fetch industry videos from Pexels sequentially to avoid rate limiting
   useEffect(() => {
     async function fetchVideos() {
-      const results = await Promise.all(
-        INDUSTRIES.map(async (ind) => {
-          try {
-            const res = await fetch(`/api/pexels?industry=${ind.id}`);
-            const data = await res.json();
-            return [ind.id, data.url];
-          } catch {
-            return [ind.id, null];
-          }
-        })
-      );
-      setVideos(Object.fromEntries(results));
+      for (const ind of INDUSTRIES) {
+        try {
+          const res = await fetch(`/api/pexels?industry=${ind.id}`);
+          const data = await res.json();
+          setVideos(prev => ({ ...prev, [ind.id]: data.url }));
+        } catch {
+          setVideos(prev => ({ ...prev, [ind.id]: null }));
+        }
+      }
     }
     fetchVideos();
   }, []);
