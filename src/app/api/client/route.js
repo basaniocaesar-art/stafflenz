@@ -69,11 +69,17 @@ export async function PATCH(request) {
 
   const { client } = session;
   const body = await request.json();
-  const { alert_id } = body;
+  const { alert_id, whatsapp_notify } = body;
+  const db = getAdminClient();
+
+  // Save WhatsApp number
+  if (whatsapp_notify !== undefined) {
+    await db.from('clients').update({ whatsapp_notify }).eq('id', client?.id);
+    return NextResponse.json({ success: true });
+  }
 
   if (!alert_id) return NextResponse.json({ error: 'alert_id required' }, { status: 400 });
 
-  const db = getAdminClient();
   const { data: alert } = await db.from('alerts').select('client_id').eq('id', alert_id).single();
   if (!alert || alert.client_id !== client?.id) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });

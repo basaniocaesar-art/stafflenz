@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import DashboardLayout from './DashboardLayout';
 
 function StatCard({ label, value, sub, color }) {
@@ -53,6 +53,9 @@ export default function DashboardPage({ industry }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastRefresh, setLastRefresh] = useState(null);
+  const [waNumber, setWaNumber] = useState('');
+  const [waSaving, setWaSaving] = useState(false);
+  const [waStatus, setWaStatus] = useState(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -66,8 +69,8 @@ export default function DashboardPage({ industry }) {
         setData(json);
         setLastRefresh(new Date());
         setError(null);
-        // Store user info from cookie would need another endpoint; use client data instead
         setUser({ full_name: json.client?.name || 'User' });
+        if (json.client?.whatsapp_notify) setWaNumber(json.client.whatsapp_notify);
       } else {
         setError(json.error);
       }
@@ -83,6 +86,19 @@ export default function DashboardPage({ industry }) {
     const interval = setInterval(fetchData, 60 * 1000); // Auto-refresh every minute
     return () => clearInterval(interval);
   }, [fetchData]);
+
+  async function saveWhatsApp() {
+    setWaSaving(true);
+    setWaStatus(null);
+    const res = await fetch('/api/client', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ whatsapp_notify: waNumber }),
+    });
+    setWaSaving(false);
+    setWaStatus(res.ok ? 'saved' : 'error');
+    setTimeout(() => setWaStatus(null), 3000);
+  }
 
   async function resolveAlert(alertId) {
     await fetch('/api/client', {
@@ -295,6 +311,30 @@ export default function DashboardPage({ industry }) {
           </div>
         </div>
       )}
+      {/* WhatsApp Alerts Settings */}
+      <div className="card p-5 mt-6">
+        <h2 className="font-semibold text-gray-900 mb-1">WhatsApp Alert Number</h2>
+        <p className="text-xs text-gray-500 mb-3">Violations detected by cameras will be sent to this number instantly.</p>
+        <div className="flex gap-2">
+          <input
+            type="tel"
+            placeholder="+91XXXXXXXXXX"
+            value={waNumber}
+            onChange={e => setWaNumber(e.target.value)}
+            className="input flex-1 text-sm"
+          />
+          <button
+            onClick={saveWhatsApp}
+            disabled={waSaving}
+            className="btn-primary text-sm px-4 disabled:opacity-50"
+          >
+            {waSaving ? 'Saving...' : 'Save'}
+          </button>
+        </div>
+        {waStatus === 'saved' && <p className="text-xs text-green-600 mt-2">Saved! Alerts will be sent to this number.</p>}
+        {waStatus === 'error' && <p className="text-xs text-red-600 mt-2">Failed to save. Please try again.</p>}
+      </div>
+
     </DashboardLayout>
   );
 }
