@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAdminClient } from '@/lib/supabase';
+import { sendWhatsApp, alertMessage } from '@/lib/whatsapp';
 
 // CORS headers for StaffLenz Edge Node (not a browser)
 const corsHeaders = {
@@ -127,7 +128,26 @@ export async function POST(request) {
         .select('id')
         .single();
 
-      if (alert) insertedAlerts.push(alert.id);
+      if (alert) {
+        insertedAlerts.push(alert.id);
+
+        // Send WhatsApp alert to client's notify number
+        const { data: client } = await db
+          .from('clients')
+          .select('whatsapp_notify')
+          .eq('id', clientId)
+          .single();
+
+        if (client?.whatsapp_notify) {
+          const waMessage = alertMessage(alertType, {
+            zone: zoneName || zone.name,
+            camera: zone.name,
+            name: worker_name || 'Unknown',
+            violation: message,
+          });
+          sendWhatsApp(client.whatsapp_notify, waMessage).catch(console.error);
+        }
+      }
     }
   }
 
