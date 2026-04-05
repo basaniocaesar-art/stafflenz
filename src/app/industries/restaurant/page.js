@@ -187,6 +187,11 @@ export default function RestaurantPage() {
         </div>
       </section>
 
+      <CameraGrid industry="restaurant" />
+
+      <PipelineDemoSection frames={FRAMES} accentColor="#f97316" industry="restaurant" />
+
+
       {/* What's unique */}
       <section className="py-20 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
@@ -380,8 +385,6 @@ export default function RestaurantPage() {
 
       {/* CTA */}
       <IndustryPricing plans={PRICING} accentColor="#f97316" industryLabel="Restaurant & Food Service" />
-      <CameraGrid industry="restaurant" />
-      <PipelineDemoSection frames={FRAMES} accentColor="#f97316" industry="restaurant" />
 
       <section id="demo" className="py-20 px-4 bg-gradient-to-br from-orange-600 to-red-700">
         <div className="max-w-4xl mx-auto text-center text-white">

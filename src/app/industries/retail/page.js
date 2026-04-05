@@ -186,6 +186,11 @@ export default function RetailPage() {
         </div>
       </section>
 
+      <CameraGrid industry="retail" />
+
+      <PipelineDemoSection frames={FRAMES} accentColor="#f43f5e" industry="retail" />
+
+
       {/* Retail-specific solutions */}
       <section className="py-20 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
@@ -386,8 +391,6 @@ export default function RetailPage() {
       </section>
 
       <IndustryPricing plans={PRICING} accentColor="#f43f5e" industryLabel="Retail & Stores" />
-      <CameraGrid industry="retail" />
-      <PipelineDemoSection frames={FRAMES} accentColor="#f43f5e" industry="retail" />
 
       <section id="demo" className="py-20 px-4 bg-gradient-to-br from-rose-600 to-pink-700">
         <div className="max-w-4xl mx-auto text-center text-white">

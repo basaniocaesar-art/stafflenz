@@ -188,6 +188,12 @@ export default function HotelPage() {
         </div>
       </section>
 
+
+      <CameraGrid industry="hotel" />
+
+      <PipelineDemoSection frames={FRAMES} accentColor="#8b5cf6" industry="hotel" />
+
+
       {/* Hotel-specific solutions */}
       <section className="py-20 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
@@ -381,9 +387,6 @@ export default function HotelPage() {
       </section>
 
       <IndustryPricing plans={PRICING} accentColor="#8b5cf6" industryLabel="Hotel & Hospitality" />
-
-      <CameraGrid industry="hotel" />
-      <PipelineDemoSection frames={FRAMES} accentColor="#8b5cf6" industry="hotel" />
 
       <section id="demo" className="py-20 px-4 bg-gradient-to-br from-violet-700 to-purple-800">
         <div className="max-w-4xl mx-auto text-center text-white">

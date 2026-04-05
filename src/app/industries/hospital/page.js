@@ -185,6 +185,11 @@ export default function HospitalPage() {
         </div>
       </section>
 
+      <CameraGrid industry="hospital" />
+
+      <PipelineDemoSection frames={FRAMES} accentColor="#06b6d4" industry="hospital" />
+
+
       {/* What's unique */}
       <section className="py-20 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
@@ -378,8 +383,6 @@ export default function HospitalPage() {
       </section>
 
       <IndustryPricing plans={PRICING} accentColor="#06b6d4" industryLabel="Hospital & Healthcare" />
-      <CameraGrid industry="hospital" />
-      <PipelineDemoSection frames={FRAMES} accentColor="#06b6d4" industry="hospital" />
 
       {/* CTA */}
       <section id="demo" className="py-20 px-4 bg-gradient-to-br from-cyan-600 to-teal-700">

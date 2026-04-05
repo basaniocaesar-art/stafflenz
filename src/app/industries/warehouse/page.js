@@ -184,6 +184,11 @@ export default function WarehousePage() {
         </div>
       </section>
 
+      <CameraGrid industry="warehouse" />
+
+      <PipelineDemoSection frames={FRAMES} accentColor="#6366f1" industry="warehouse" />
+
+
       {/* What's unique */}
       <section className="py-20 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
@@ -378,8 +383,6 @@ export default function WarehousePage() {
 
       {/* CTA */}
       <IndustryPricing plans={PRICING} accentColor="#6366f1" industryLabel="Warehouse & Logistics" />
-      <CameraGrid industry="warehouse" />
-      <PipelineDemoSection frames={FRAMES} accentColor="#6366f1" industry="warehouse" />
 
       <section id="demo" className="py-20 px-4 bg-gradient-to-br from-indigo-600 to-blue-700">
         <div className="max-w-4xl mx-auto text-center text-white">

@@ -181,6 +181,12 @@ export default function FactoryPage() {
         </div>
       </section>
 
+
+      <CameraGrid industry="factory" />
+
+      <PipelineDemoSection frames={FRAMES} accentColor="#f59e0b" industry="factory" />
+
+
       {/* What's unique */}
       <section className="py-20 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
@@ -387,9 +393,6 @@ export default function FactoryPage() {
       </section>
 
       <IndustryPricing plans={PRICING} accentColor="#f59e0b" industryLabel="Factory & Manufacturing" />
-
-      <CameraGrid industry="factory" />
-      <PipelineDemoSection frames={FRAMES} accentColor="#f59e0b" industry="factory" />
 
       {/* CTA */}
       <section id="demo" className="py-20 px-4 bg-gradient-to-br from-amber-600 to-orange-700">

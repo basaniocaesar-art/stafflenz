@@ -184,6 +184,11 @@ export default function SecurityPage() {
         </div>
       </section>
 
+      <CameraGrid industry="security" />
+
+      <PipelineDemoSection frames={FRAMES} accentColor="#94a3b8" industry="security" />
+
+
       {/* What's unique */}
       <section className="py-20 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
@@ -377,8 +382,6 @@ export default function SecurityPage() {
 
       {/* CTA */}
       <IndustryPricing plans={PRICING} accentColor="#94a3b8" industryLabel="Security & Guard Services" />
-      <CameraGrid industry="security" />
-      <PipelineDemoSection frames={FRAMES} accentColor="#94a3b8" industry="security" />
 
       <section id="demo" className="py-20 px-4 bg-gradient-to-br from-slate-700 to-gray-900">
         <div className="max-w-4xl mx-auto text-center text-white">

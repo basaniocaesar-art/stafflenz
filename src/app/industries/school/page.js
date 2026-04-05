@@ -186,6 +186,12 @@ export default function SchoolPage() {
         </div>
       </section>
 
+
+      <CameraGrid industry="school" />
+
+      <PipelineDemoSection frames={FRAMES} accentColor="#10b981" industry="school" />
+
+
       {/* School-specific solutions */}
       <section className="py-20 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
@@ -373,10 +379,7 @@ export default function SchoolPage() {
             </div>
           </div>
         </div>
-      </section>
-
-      <CameraGrid industry="school" />
-      <PipelineDemoSection frames={FRAMES} accentColor="#10b981" industry="school" />
+      </section>      <PipelineDemoSection frames={FRAMES} accentColor="#10b981" industry="school" />
 
       <section id="demo" className="py-20 px-4 bg-gradient-to-br from-emerald-700 to-teal-800">
         <div className="max-w-4xl mx-auto text-center text-white">

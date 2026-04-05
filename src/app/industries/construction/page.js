@@ -187,6 +187,11 @@ export default function ConstructionPage() {
         </div>
       </section>
 
+      <CameraGrid industry="construction" />
+
+      <PipelineDemoSection frames={FRAMES} accentColor="#eab308" industry="construction" />
+
+
       {/* What's unique */}
       <section className="py-20 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
@@ -380,8 +385,6 @@ export default function ConstructionPage() {
 
       {/* CTA */}
       <IndustryPricing plans={PRICING} accentColor="#eab308" industryLabel="Construction & Infrastructure" />
-      <CameraGrid industry="construction" />
-      <PipelineDemoSection frames={FRAMES} accentColor="#eab308" industry="construction" />
 
       <section id="demo" className="py-20 px-4 bg-gradient-to-br from-yellow-500 to-amber-600">
         <div className="max-w-4xl mx-auto text-center text-white">
