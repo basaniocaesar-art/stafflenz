@@ -458,6 +458,31 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* Explainer Video */}
+      <section className="py-20 px-4 bg-white">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="section-label mb-4">See It In Action</div>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4 tracking-tight">
+            60 seconds. That's all it takes to understand StaffLenz.
+          </h2>
+          <p className="text-gray-500 mb-10 max-w-xl mx-auto">Watch how StaffLenz turns your existing CCTV into a live workforce intelligence system — no new cameras, no new hardware.</p>
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-100 bg-gray-950" style={{aspectRatio:'16/9'}}>
+            {/* Video placeholder — replace src with real YouTube embed when ready */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-gradient-to-br from-gray-900 to-blue-950">
+              <div className="w-20 h-20 bg-white/10 border-2 border-white/30 rounded-full flex items-center justify-center backdrop-blur cursor-pointer hover:bg-white/20 transition-all group">
+                <svg className="w-8 h-8 text-white ml-1 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              </div>
+              <div className="text-white font-bold text-lg">Watch Product Demo</div>
+              <div className="text-gray-400 text-sm">How StaffLenz works — 60 second overview</div>
+              <div className="absolute bottom-4 right-4 bg-black/60 px-3 py-1 rounded-lg text-xs text-gray-400 font-mono">1:02</div>
+            </div>
+          </div>
+          <p className="mt-4 text-xs text-gray-400">No sign-up required to watch · Full demo available on request</p>
+        </div>
+      </section>
+
       {/* What is StaffLenz */}
       <section id="platform" className="py-24 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
@@ -597,6 +622,80 @@ export default function HomePage() {
                 <div className="w-16 h-16 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">{w.icon}</div>
                 <h3 className="font-extrabold text-gray-900 mb-2 text-base">{w.title}</h3>
                 <p className="text-sm text-gray-500 leading-relaxed">{w.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-24 px-4 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-14">
+            <div className="section-label mb-4">Client Stories</div>
+            <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight">
+              What our clients say
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              {
+                quote: "We had 3 ghost workers on payroll for over 6 months. StaffLenz flagged the discrepancy in the first week. The ROI paid for 2 years of subscription in one payroll cycle.",
+                name: "Rajesh Nair",
+                role: "Operations Manager",
+                company: "Precision Auto Parts, Pune",
+                industry: "🏭",
+                stars: 5,
+              },
+              {
+                quote: "Our housekeeping director used to do floor walks every 2 hours. Now StaffLenz does it continuously. We caught a floor going unattended for 40 minutes — something that would never have shown up in a manual check.",
+                name: "Anita Sharma",
+                role: "General Manager",
+                company: "The Grand Residency, Bengaluru",
+                industry: "🏨",
+                stars: 5,
+              },
+              {
+                quote: "After a parent complaint about an unattended classroom, our trustees asked for a monitoring solution. StaffLenz gave us a live dashboard that shows every class period — covered or not. No more blind spots.",
+                name: "Fr. Thomas Kuriakose",
+                role: "Principal",
+                company: "St. Joseph's Academy, Kochi",
+                industry: "🏫",
+                stars: 5,
+              },
+            ].map((t, i) => (
+              <div key={i} className="bg-gray-50 border border-gray-100 rounded-2xl p-7 flex flex-col">
+                <div className="flex gap-0.5 mb-4">
+                  {Array.from({length: t.stars}).map((_, s) => (
+                    <span key={s} className="text-yellow-400 text-lg">★</span>
+                  ))}
+                </div>
+                <p className="text-gray-700 text-sm leading-relaxed flex-1 mb-6">"{t.quote}"</p>
+                <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-violet-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                    {t.name[0]}
+                  </div>
+                  <div>
+                    <div className="font-bold text-gray-900 text-sm">{t.name}</div>
+                    <div className="text-xs text-gray-500">{t.role} · {t.company}</div>
+                  </div>
+                  <span className="ml-auto text-2xl">{t.industry}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Social proof bar */}
+          <div className="mt-14 grid grid-cols-2 md:grid-cols-4 gap-6 py-10 border-t border-b border-gray-100">
+            {[
+              { value: '500+', label: 'Shifts Monitored Daily' },
+              { value: '9', label: 'Industry Verticals' },
+              { value: '99.9%', label: 'Uptime SLA' },
+              { value: '<30s', label: 'Alert to WhatsApp' },
+            ].map(s => (
+              <div key={s.label} className="text-center">
+                <div className="text-3xl font-extrabold text-blue-600 mb-1">{s.value}</div>
+                <div className="text-sm text-gray-500">{s.label}</div>
               </div>
             ))}
           </div>
