@@ -2,6 +2,8 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 
+const CAM_QUERIES = ['factory floor workers', 'warehouse logistics', 'security guard office'];
+
 /* ── Mock Data ─────────────────────────────────────────────────────────────── */
 const EMPLOYEES = [
   { id: 1, name: 'Ravi Kumar',    role: 'Supervisor',  zone: 'Zone A',   status: 'active',  score: 94, idle: 4  },
@@ -43,9 +45,17 @@ const CAM_BOXES = [
 ];
 
 /* ── Camera Feed ───────────────────────────────────────────────────────────── */
-function CamFeed({ index, label, hasAlert }) {
+function CamFeed({ index, label, hasAlert, videoUrl }) {
   const [scan, setScan] = useState(0);
   const [tick, setTick] = useState(0);
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    if (videoRef.current && videoUrl) {
+      videoRef.current.src = videoUrl;
+      videoRef.current.play().catch(() => {});
+    }
+  }, [videoUrl]);
 
   useEffect(() => {
     let pos = 0;
@@ -66,12 +76,16 @@ function CamFeed({ index, label, hasAlert }) {
 
   return (
     <div className="relative bg-gray-950 rounded-xl overflow-hidden" style={{ aspectRatio:'16/9', border: hasAlert ? '1.5px solid #ef4444' : '1px solid #1f2937' }}>
+      {/* Video background */}
+      {videoUrl && (
+        <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" autoPlay muted loop playsInline style={{opacity:0.45,filter:'brightness(0.8) contrast(1.1)'}} />
+      )}
       {/* scanlines */}
       <div className="absolute inset-0 pointer-events-none" style={{background:'repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.1) 2px,rgba(0,0,0,0.1) 4px)'}} />
       {/* grid */}
       <div className="absolute inset-0 opacity-[0.04]" style={{backgroundImage:'linear-gradient(#3b82f6,transparent 1px),linear-gradient(90deg,#3b82f6,transparent 1px)',backgroundSize:'30px 30px'}} />
       {/* noise bg */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-black" />
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-black" style={{opacity: videoUrl ? 0.4 : 1}} />
 
       {/* scan line */}
       <div className="absolute left-0 right-0 h-px pointer-events-none" style={{ top:`${scan}%`, background:'rgba(59,130,246,0.35)', boxShadow:'0 0 10px rgba(59,130,246,0.5)', transition:'top 0.05s linear' }} />
@@ -180,6 +194,23 @@ export default function DemoPage() {
   const [activeNav, setActiveNav] = useState('dashboard');
   const [time, setTime] = useState(new Date());
   const [liveAlerts, setLiveAlerts] = useState(ALERTS);
+  const [camVideos, setCamVideos] = useState([null, null, null]);
+
+  useEffect(() => {
+    async function fetchVideos() {
+      const urls = await Promise.all(
+        CAM_QUERIES.map(async (q) => {
+          try {
+            const r = await fetch(`/api/pexels?industry=${q === 'factory floor workers' ? 'factory' : q === 'warehouse logistics' ? 'warehouse' : 'security'}`);
+            const d = await r.json();
+            return d.url || null;
+          } catch { return null; }
+        })
+      );
+      setCamVideos(urls);
+    }
+    fetchVideos();
+  }, []);
 
   useEffect(() => {
     const iv = setInterval(() => setTime(new Date()), 1000);
@@ -317,9 +348,9 @@ export default function DemoPage() {
                 <span className="text-[11px] text-gray-500">LenzAI scanning every 5 min</span>
               </div>
               <div className="grid grid-cols-3 gap-2">
-                <CamFeed index={0} label="CAM-01 · Zone A" hasAlert={false} />
-                <CamFeed index={1} label="CAM-03 · Zone C" hasAlert={true}  />
-                <CamFeed index={2} label="CAM-07 · Gate 2" hasAlert={true}  />
+                <CamFeed index={0} label="CAM-01 · Zone A" hasAlert={false} videoUrl={camVideos[0]} />
+                <CamFeed index={1} label="CAM-03 · Zone C" hasAlert={true}  videoUrl={camVideos[1]} />
+                <CamFeed index={2} label="CAM-07 · Gate 2" hasAlert={true}  videoUrl={camVideos[2]} />
               </div>
             </div>
 
