@@ -467,17 +467,14 @@ export default function HomePage() {
           </h2>
           <p className="text-gray-500 mb-10 max-w-xl mx-auto">Watch how StaffLenz turns your existing CCTV into a live workforce intelligence system — no new cameras, no new hardware.</p>
           <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-100 bg-gray-950" style={{aspectRatio:'16/9'}}>
-            {/* Video placeholder — replace src with real YouTube embed when ready */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-gradient-to-br from-gray-900 to-blue-950">
-              <div className="w-20 h-20 bg-white/10 border-2 border-white/30 rounded-full flex items-center justify-center backdrop-blur cursor-pointer hover:bg-white/20 transition-all group">
-                <svg className="w-8 h-8 text-white ml-1 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z"/>
-                </svg>
-              </div>
-              <div className="text-white font-bold text-lg">Watch Product Demo</div>
-              <div className="text-gray-400 text-sm">How StaffLenz works — 60 second overview</div>
-              <div className="absolute bottom-4 right-4 bg-black/60 px-3 py-1 rounded-lg text-xs text-gray-400 font-mono">1:02</div>
-            </div>
+            <iframe
+              src="https://www.youtube.com/embed/YFoiPUUBlqI?rel=0&modestbranding=1"
+              title="StaffLenz Product Demo"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="absolute inset-0 w-full h-full"
+              style={{border:0}}
+            />
           </div>
           <p className="mt-4 text-xs text-gray-400">No sign-up required to watch · Full demo available on request</p>
           <div className="mt-6">
