@@ -7,7 +7,7 @@ const ALL_INDUSTRIES = ['factory','hotel','school','retail','hospital','construc
 const INDUSTRY_ICONS = {factory:'🏭',hotel:'🏨',school:'🏫',retail:'🛍️',hospital:'🏥',construction:'🏗️',warehouse:'📦',restaurant:'🍽️',security:'🔒'};
 const PLANS = ['starter','professional','enterprise'];
 const PLAN_COLORS = {starter:'bg-gray-100 text-gray-700',professional:'bg-blue-100 text-blue-700',enterprise:'bg-violet-100 text-violet-700'};
-const ALL_TABS = ['overview','clients','leads','partners','affiliates','white labels','revenue','system'];
+const ALL_TABS = ['overview','clients','leads','partners','affiliates','white labels','revenue','system','demo view'];
 
 /* ─── Shared helpers ─────────────────────────────────────────────────────── */
 function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
@@ -1031,7 +1031,7 @@ function SystemTab() {
   const info = [
     { label: 'Platform Version', value: 'StaffLenz v1.0 · Next.js 14', icon: '🚀' },
     { label: 'Database',         value: 'Supabase PostgreSQL',          icon: '🗄️' },
-    { label: 'AI Engine',        value: 'Claude Vision API',            icon: '🤖' },
+    { label: 'AI Engine',        value: 'LenzAI',                       icon: '🤖' },
     { label: 'Cache',            value: '24h Pexels video cache',        icon: '⚡' },
     { label: 'Auth',             value: 'Session-based, bcrypt passwords', icon: '🔒' },
   ];
@@ -1071,6 +1071,26 @@ function SystemTab() {
         ))}
       </div>
     </>
+  );
+}
+
+/* ─── Tab: Demo View ─────────────────────────────────────────────────────── */
+function DemoViewTab() {
+  return (
+    <div className="bg-[#05061A] -mx-4 sm:-mx-6 -my-8 min-h-screen p-6 text-white">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Platform Demo View</h1>
+          <p className="text-sm text-gray-500 mt-1">This is what clients see — the cinematic workforce dashboard</p>
+        </div>
+        <a href="/demo" target="_blank" className="text-sm font-semibold text-blue-400 border border-blue-500/30 px-4 py-2 rounded-xl hover:bg-blue-500/10 transition-all">
+          Open Full Demo →
+        </a>
+      </div>
+      <div className="bg-gray-900/50 border border-white/5 rounded-2xl overflow-hidden" style={{height:'80vh'}}>
+        <iframe src="/demo" className="w-full h-full border-0" title="StaffLenz Demo" />
+      </div>
+    </div>
   );
 }
 
@@ -1189,6 +1209,7 @@ export default function AdminPage() {
         {tab === 'white labels' && <WhiteLabelsTab />}
         {tab === 'revenue'      && <RevenueTab />}
         {tab === 'system'       && <SystemTab />}
+        {tab === 'demo view'    && <DemoViewTab />}
       </main>
 
       {/* Global Modals */}

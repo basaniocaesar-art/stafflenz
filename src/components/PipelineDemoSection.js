@@ -66,10 +66,10 @@ export default function PipelineDemoSection({ frames, accentColor = '#3b82f6', s
             How It Works — Live Demo
           </div>
           <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-            Camera Captures → Claude AI Detects → WhatsApp Alert Sent
+            Camera Captures → LenzAI Detects → WhatsApp Alert Sent
           </h2>
           <p className="mt-3 text-gray-400 max-w-xl mx-auto text-sm leading-relaxed">
-            Watch the full pipeline — from CCTV frame capture, through Claude Vision AI analysis, to the real-time WhatsApp alert on your phone. Under 30 seconds, every time.
+            Watch the full pipeline — from CCTV frame capture, through LenzAI analysis, to the real-time WhatsApp alert on your phone. Under 30 seconds, every time.
           </p>
         </div>
 
@@ -236,7 +236,7 @@ export default function PipelineDemoSection({ frames, accentColor = '#3b82f6', s
                     {phase >= 2 ? '✓' : phase === 1 ? '⚙' : '2'}
                   </div>
                   <div>
-                    <div className="text-sm font-bold text-white">Claude Vision AI</div>
+                    <div className="text-sm font-bold text-white">LenzAI</div>
                     <div className="text-xs text-gray-500">claude-opus-4-6 · Vision API</div>
                   </div>
                 </div>

@@ -154,7 +154,7 @@ const INDUSTRIES = [
 const TICKER = [
   '🔌 No Hardware Replacement',
   '📷 Works With Any IP Camera',
-  '🤖 Claude AI Vision Engine',
+  '🤖 LenzAI',
   '⚡ 5-Minute Scan Interval',
   '🔒 Privacy-First — No Video Stored',
   '📱 WhatsApp Alerts',
@@ -171,7 +171,7 @@ const COMPLIANCE = [
 
 const WHY = [
   { icon: '📷', title: 'Works With Existing IP Cameras', desc: 'Plug the StaffLenz Edge Node into your current DVR/NVR. No new cameras, no rewiring, no downtime.' },
-  { icon: '🎯', title: '95%+ Detection Accuracy', desc: 'Claude Vision AI delivers industry-leading accuracy. You can act on every alert with confidence.' },
+  { icon: '🎯', title: '95%+ Detection Accuracy', desc: 'LenzAI delivers industry-leading accuracy. You can act on every alert with confidence.' },
   { icon: '⚡', title: 'Real-Time Alerts in Seconds', desc: 'From camera scan to WhatsApp alert in under 30 seconds. No delay, no batch processing.' },
   { icon: '👁️', title: 'Central Visibility', desc: 'One dashboard for all your sites, all cameras, all industries — with drill-down to individual zones.' },
   { icon: '💰', title: 'Flexible Pricing', desc: 'Plans for every scale — from small sites to enterprise chains. No long-term lock-in required.' },
@@ -480,6 +480,11 @@ export default function HomePage() {
             </div>
           </div>
           <p className="mt-4 text-xs text-gray-400">No sign-up required to watch · Full demo available on request</p>
+          <div className="mt-6">
+            <Link href="/demo" className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold px-8 py-3 rounded-xl hover:opacity-90 transition-all shadow-xl shadow-blue-900/20">
+              Try Live Platform Demo →
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -491,7 +496,7 @@ export default function HomePage() {
               What is <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-violet-600">StaffLenz</span> AI Video Analytics?
             </h2>
             <p className="text-gray-600 text-lg max-w-3xl mx-auto leading-relaxed">
-              StaffLenz is an AI-powered workforce intelligence platform that helps your business transform CCTV footage into actionable insights for attendance, safety, and operational compliance. Our StaffLenz Edge Node integrates seamlessly with existing IP cameras and uses Claude Vision AI to analyse feeds in real time — detecting violations, tracking presence, and triggering instant alerts without any manual monitoring.
+              StaffLenz is an AI-powered workforce intelligence platform that helps your business transform CCTV footage into actionable insights for attendance, safety, and operational compliance. Our StaffLenz Edge Node integrates seamlessly with existing IP cameras and uses LenzAI to analyse feeds in real time — detecting violations, tracking presence, and triggering instant alerts without any manual monitoring.
             </p>
             <p className="text-gray-500 text-base max-w-3xl mx-auto leading-relaxed mt-4">
               Through real-time video analysis, organisations can reduce compliance risks, prevent safety incidents, and maintain operational excellence by automating workforce monitoring across every site.
@@ -806,7 +811,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="mt-6 pt-6 border-t border-gray-900 text-center text-xs text-gray-600">
-            Built for the world · AI-Powered by Claude Vision · Privacy-first workforce intelligence
+            Built for the world · AI-Powered by LenzAI · Privacy-first workforce intelligence
           </div>
         </div>
       </footer>
