@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/monitor/ftp-receiver",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/monitor/orchestrator",
+      "schedule": "*/5 * * * *"
+    }
+  ]
+}

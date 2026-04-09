@@ -135,7 +135,7 @@ CREATE TABLE IF NOT EXISTS alerts (
   client_id   uuid NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
   worker_id   uuid REFERENCES workers(id) ON DELETE CASCADE,
   event_id    uuid REFERENCES worker_events(id) ON DELETE CASCADE,
-  alert_type  text NOT NULL CHECK (alert_type IN ('absent','late','zone_violation','ppe_violation','unauthorized','low_confidence')),
+  alert_type  text NOT NULL CHECK (alert_type IN ('absent','late','zone_violation','ppe_violation','unauthorized','low_confidence','behaviour','safety','staffing','general')),
   message     text,
   worker_name text,
   zone_name   text,
