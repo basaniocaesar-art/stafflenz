@@ -163,18 +163,37 @@ export async function POST(request) {
 
   const db = getAdminClient();
 
-  // Get all active clients
-  const { data: clients, error } = await db
-    .from('clients')
-    .select('id, name')
-    .eq('is_active', true);
+  // Support per-client cron: ?client_id=xxx or in POST body
+  const url = new URL(request.url);
+  const queryClientId = url.searchParams.get('client_id');
+  let bodyClientId = null;
+  try {
+    const body = await request.clone().json();
+    bodyClientId = body?.client_id;
+  } catch { /* no body or not JSON */ }
+  const targetClientId = queryClientId || bodyClientId;
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  // Get clients — single client if specified, otherwise all active
+  let clients;
+  if (targetClientId) {
+    const { data, error } = await db
+      .from('clients')
+      .select('id, name')
+      .eq('id', targetClientId)
+      .eq('is_active', true);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    clients = data;
+  } else {
+    const { data, error } = await db
+      .from('clients')
+      .select('id, name')
+      .eq('is_active', true);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    clients = data;
   }
 
   if (!clients || clients.length === 0) {
-    return NextResponse.json({ message: 'No active clients found', ran: 0 });
+    return NextResponse.json({ message: targetClientId ? 'Client not found or inactive' : 'No active clients found', ran: 0 });
   }
 
   // Fire all client workers in parallel
