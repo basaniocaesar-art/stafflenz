@@ -107,16 +107,25 @@ export async function POST(request) {
   const workersWithPhotos = await Promise.all(
     (workers || []).map(async (w) => {
       const photoBase64s = [];
+      const storagePrefix = `${client_id}/${w.id}/`;
 
-      // Prefer photo_paths array (multi-photo)
-      if (Array.isArray(w.photo_paths) && w.photo_paths.some(Boolean)) {
-        const results = await Promise.all(
-          w.photo_paths.filter(Boolean).map(path => downloadPhotoBase64(path))
-        );
-        photoBase64s.push(...results.filter(Boolean));
-      }
+      // Discover all photos from storage for this worker
+      try {
+        const { data: files } = await db.storage
+          .from('worker-photos')
+          .list(`${client_id}/${w.id}`, { sortBy: { column: 'name', order: 'asc' } });
 
-      // Fallback to single photo_path if no multi-photos found
+        if (files && files.length > 0) {
+          const results = await Promise.all(
+            files.filter(f => f.name.match(/\.(jpg|jpeg|png|webp)$/i)).map(f =>
+              downloadPhotoBase64(`${storagePrefix}${f.name}`)
+            )
+          );
+          photoBase64s.push(...results.filter(Boolean));
+        }
+      } catch { /* storage listing failed */ }
+
+      // Fallback to single photo_path if storage listing found nothing
       if (photoBase64s.length === 0 && w.photo_path) {
         const b64 = await downloadPhotoBase64(w.photo_path);
         if (b64) photoBase64s.push(b64);
@@ -129,11 +138,11 @@ export async function POST(request) {
   // ── Step 4: Build the Claude message content array ───────────────────────
   const content = [];
 
-  // Reference photos — send up to 2 per worker to stay within Vercel timeout
+  // Reference photos — send up to 4 per worker for better face matching
   const photoLabels = ['front view', 'left profile', 'right profile', 'from above', 'alternate 1', 'alternate 2'];
   for (const w of workersWithPhotos) {
     if (!w.photoBase64s || w.photoBase64s.length === 0) continue;
-    const maxPhotos = Math.min(w.photoBase64s.length, 2);
+    const maxPhotos = Math.min(w.photoBase64s.length, 4);
     for (let pi = 0; pi < maxPhotos; pi++) {
       content.push({
         type: 'image',
