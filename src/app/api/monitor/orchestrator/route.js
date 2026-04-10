@@ -4,6 +4,7 @@ import { getAdminClient } from '@/lib/supabase';
 export const dynamic = 'force-dynamic';
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://stafflenz.com';
+const ANALYSIS_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes between Claude calls
 
 // Vercel Cron calls this with: Authorization: Bearer CRON_SECRET
 // Internal callers use: X-Internal-Secret
@@ -22,9 +23,12 @@ function internalHeaders() {
 }
 
 // ── Per-client worker ─────────────────────────────────────────────────────────
+// Phase 1: Capture + motion check (runs every 5 min, FREE)
+// Phase 2: Claude analysis (runs every 15 min IF motion was detected, PAID)
 
 async function runClientWorker(clientId) {
   const log = [];
+  const db = getAdminClient();
 
   try {
     // 1. Capture latest frame
@@ -44,7 +48,6 @@ async function runClientWorker(clientId) {
     log.push(`captured: ${captureData.timestamp}`);
 
     // 2. Get the previous frame URL from Supabase Storage to compare
-    const db = getAdminClient();
     const { data: storedFiles } = await db.storage
       .from('frames')
       .list(clientId, { sortBy: { column: 'created_at', order: 'desc' } });
@@ -52,7 +55,6 @@ async function runClientWorker(clientId) {
     // storedFiles[0] is the newest (just captured), [1] is the one before it
     const prevFile = storedFiles?.[1];
     if (!prevFile) {
-      // First ever frame — nothing to compare, skip analysis
       return { client_id: clientId, status: 'first_frame', log };
     }
 
@@ -66,7 +68,7 @@ async function runClientWorker(clientId) {
       return { client_id: clientId, status: 'prev_frame_url_failed', log };
     }
 
-    // 3. Motion detection — skip Claude if nothing changed
+    // 3. Motion detection (FREE — pixel comparison only)
     const motionRes = await fetch(`${BASE_URL}/api/monitor/motion`, {
       method: 'POST',
       headers: internalHeaders(),
@@ -80,11 +82,37 @@ async function runClientWorker(clientId) {
       return { client_id: clientId, status: 'no_motion', change_percentage: motionData.change_percentage, log };
     }
 
-    // 4. Collect up to 3 most recent frames for analysis (oldest → current)
+    // 4. CHECK: Has 15 minutes passed since last Claude analysis?
+    const { data: lastAnalysis } = await db
+      .from('monitoring_results')
+      .select('created_at')
+      .eq('client_id', clientId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    const lastAnalysisTime = lastAnalysis?.created_at ? new Date(lastAnalysis.created_at).getTime() : 0;
+    const timeSinceLastAnalysis = Date.now() - lastAnalysisTime;
+
+    if (timeSinceLastAnalysis < ANALYSIS_INTERVAL_MS) {
+      const minutesLeft = Math.ceil((ANALYSIS_INTERVAL_MS - timeSinceLastAnalysis) / 60000);
+      log.push(`batch_waiting: ${minutesLeft}min until next analysis`);
+      return {
+        client_id: clientId,
+        status: 'batch_waiting',
+        motion_detected: true,
+        change_percentage: motionData.change_percentage,
+        minutes_until_analysis: minutesLeft,
+        log,
+      };
+    }
+
+    // 5. TIME FOR ANALYSIS — collect up to 3 best frames (oldest → current)
+    log.push('batch_analysis: running Claude Vision');
     const recentFiles = (storedFiles || []).slice(0, 3).reverse(); // oldest first
     const frameUrls = await Promise.all(
       recentFiles.map(async (f) => {
-        if (f.name === storedFiles[0].name) return frameUrl; // use already-signed URL for newest
+        if (f.name === storedFiles[0].name) return frameUrl;
         const { data: s } = await db.storage
           .from('frames')
           .createSignedUrl(`${clientId}/${f.name}`, 3600);
@@ -94,7 +122,7 @@ async function runClientWorker(clientId) {
 
     const validFrameUrls = frameUrls.filter(Boolean);
 
-    // 5. Claude Vision analysis
+    // 6. Claude Vision analysis (PAID — only runs every 15 min)
     const analyzeRes = await fetch(`${BASE_URL}/api/monitor/analyze`, {
       method: 'POST',
       headers: internalHeaders(),
@@ -135,7 +163,7 @@ export async function POST(request) {
 
   const db = getAdminClient();
 
-  // Get all active clients that have at least one camera zone configured
+  // Get all active clients
   const { data: clients, error } = await db
     .from('clients')
     .select('id, name')
@@ -162,6 +190,7 @@ export async function POST(request) {
     total: clients.length,
     analysed: summary.filter((r) => r.status === 'analysed').length,
     no_motion: summary.filter((r) => r.status === 'no_motion').length,
+    batch_waiting: summary.filter((r) => r.status === 'batch_waiting').length,
     failed: summary.filter((r) => ['error', 'capture_failed', 'analyze_failed'].includes(r.status)).length,
   };
 
@@ -189,7 +218,7 @@ export async function POST(request) {
           .gte('occurred_at', `${today}T00:00:00`)
           .lt('occurred_at', `${today}T23:59:59.999`);
 
-        // Count violations (ppe + zone violations)
+        // Count violations
         const { count: violationCount } = await db
           .from('alerts')
           .select('id', { count: 'exact', head: true })
