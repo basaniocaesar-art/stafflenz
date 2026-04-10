@@ -31,6 +31,7 @@ export async function GET(request) {
     { data: summary },
     { data: recentEvents },
     { data: openAlerts },
+    { count: totalOpenAlerts },
     { count: totalWorkers },
     { data: weekSummary },
     { data: planLimit },
@@ -45,12 +46,16 @@ export async function GET(request) {
       .eq('client_id', clientId)
       .order('occurred_at', { ascending: false })
       .limit(50),
-    // Open alerts count
+    // Open alerts (latest 20 for display)
     db.from('alerts').select('id, alert_type, message, worker_name, zone_name, created_at')
       .eq('client_id', clientId)
       .eq('is_resolved', false)
       .order('created_at', { ascending: false })
       .limit(20),
+    // Total open alerts count
+    db.from('alerts').select('id', { count: 'exact', head: true })
+      .eq('client_id', clientId)
+      .eq('is_resolved', false),
     // Total active workers
     db.from('workers').select('*', { count: 'exact', head: true })
       .eq('client_id', clientId).is('deleted_at', null).eq('is_active', true),
@@ -72,6 +77,7 @@ export async function GET(request) {
     today: summary || { present_count: 0, absent_count: 0, late_count: 0, violation_count: 0, total_events: 0 },
     recent_events: recentEvents || [],
     open_alerts: openAlerts || [],
+    open_alerts_count: totalOpenAlerts || 0,
     week_chart: weekSummary || [],
     plan_limit: planLimit || {},
     zones: zonesData || [],

@@ -344,7 +344,8 @@ export default function DashboardPage({ industry }) {
     </DashboardLayout>
   );
 
-  const { client, today, recent_events, open_alerts, week_chart, plan_limit, zones, workers } = data || {};
+  const { client, today, recent_events, open_alerts, open_alerts_count, week_chart, plan_limit, zones, workers } = data || {};
+  const alertCount = open_alerts_count ?? open_alerts?.length ?? 0;
 
   // Compute real AI stats from data
   const detections = today?.total_events ?? recent_events?.length ?? 0;
@@ -384,7 +385,7 @@ export default function DashboardPage({ industry }) {
   const tabs = [
     { id:'overview',   label:'Dashboard'   },
     { id:'cameras',    label:'Cameras'     },
-    { id:'alerts',     label:'Alerts', badge: open_alerts?.length },
+    { id:'alerts',     label:'Alerts', badge: alertCount },
     { id:'analytics',  label:'Analytics'  },
   ];
 
@@ -427,7 +428,7 @@ export default function DashboardPage({ industry }) {
             workersCount={client?.total_workers || 0}
             zonesCount={zones?.length || 0}
             hasFrames={detections > 0}
-            alertsCount={open_alerts?.length || 0}
+            alertsCount={alertCount}
           />
 
           {/* KPI cards */}
@@ -435,7 +436,7 @@ export default function DashboardPage({ industry }) {
             {[
               { label:'Total Employees', value: client?.total_workers??0,       sub:`${today?.present_count??0} present today`,   color:'#60a5fa' },
               { label:'Hours Logged',    value:`${hoursLogged}h`,               sub:'Today\'s shift activity', color:'#22d3ee' },
-              { label:'Open Alerts',     value: open_alerts?.length??0,          sub:`${detections} detections today`,    color: open_alerts?.length?'#f87171':'#22c55e' },
+              { label:'Open Alerts',     value: alertCount,          sub:`${detections} detections today`,    color: alertCount?'#f87171':'#22c55e' },
               { label:'Scan Interval',   value:'5 min',                           sub:`${frames.toLocaleString()} frames`, color:'#a78bfa' },
             ].map(k=>(
               <div key={k.label} className="rounded-2xl p-4 border" style={{background:S.card,borderColor:S.border}}>
