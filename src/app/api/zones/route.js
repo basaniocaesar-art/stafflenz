@@ -3,13 +3,15 @@ import { requireAuth } from '@/lib/auth';
 import { canAddCamera } from '@/lib/planLimits';
 import { getAdminClient } from '@/lib/supabase';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request) {
   const session = await requireAuth(request);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const { user, client } = session;
   const clientId = user.role === 'super_admin'
-    ? new URL(request.url).searchParams.get('client_id')
+    ? (new URL(request.url).searchParams.get('client_id') || client?.id)
     : client?.id;
   if (!clientId) return NextResponse.json({ error: 'client_id required' }, { status: 400 });
 
@@ -38,13 +40,15 @@ export async function POST(request) {
   }
 
   const body = await request.json();
-  const { name, camera_ip, location_label, zone_type } = body;
+  const { name, camera_ip, location_label, zone_type, device_type } = body;
   if (!name) return NextResponse.json({ error: 'Zone name required' }, { status: 400 });
 
   const db = getAdminClient();
+  const row = { client_id: clientId, name, camera_ip, location_label, zone_type: zone_type || 'floor' };
+  if (device_type) row.device_type = device_type;
   const { data: zone, error } = await db
     .from('camera_zones')
-    .insert({ client_id: clientId, name, camera_ip, location_label, zone_type: zone_type || 'floor' })
+    .insert(row)
     .select()
     .single();
 

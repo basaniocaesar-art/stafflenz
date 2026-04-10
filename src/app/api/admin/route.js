@@ -3,6 +3,8 @@ import bcrypt from 'bcryptjs';
 import { requireAuth } from '@/lib/auth';
 import { getAdminClient } from '@/lib/supabase';
 
+export const dynamic = 'force-dynamic';
+
 async function requireSuperAdmin(request) {
   const session = await requireAuth(request);
   if (!session) return null;

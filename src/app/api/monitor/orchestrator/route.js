@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getAdminClient } from '@/lib/supabase';
 
+export const dynamic = 'force-dynamic';
+
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://stafflenz.com';
 
 // Vercel Cron calls this with: Authorization: Bearer CRON_SECRET

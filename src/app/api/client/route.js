@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth';
 import { getAdminClient } from '@/lib/supabase';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request) {
   const session = await requireAuth(request);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -13,6 +15,17 @@ export async function GET(request) {
   const db = getAdminClient();
   const today = new Date().toISOString().slice(0, 10);
 
+  // Progressive fetch of onboarding_completed flag (column may not exist yet)
+  let onboardingCompleted = true; // default: assume completed so existing users aren't blocked
+  try {
+    const { data: oc, error: ocErr } = await db
+      .from('clients')
+      .select('onboarding_completed')
+      .eq('id', clientId)
+      .single();
+    if (!ocErr && oc && oc.onboarding_completed === false) onboardingCompleted = false;
+  } catch { /* column missing — leave default */ }
+
   // Run queries in parallel for performance
   const [
     { data: summary },
@@ -22,6 +35,7 @@ export async function GET(request) {
     { data: weekSummary },
     { data: planLimit },
     { data: zonesData },
+    { data: workersData },
   ] = await Promise.all([
     // Today's summary
     db.from('daily_summary').select('*').eq('client_id', clientId).eq('summary_date', today).single(),
@@ -49,16 +63,20 @@ export async function GET(request) {
     db.from('plan_limits').select('max_workers, max_cameras').eq('plan', client.plan).single(),
     // Active zones
     db.from('camera_zones').select('id, name, zone_type, location_label').eq('client_id', clientId).eq('is_active', true),
+    // Active workers list
+    db.from('workers').select('id, full_name, department, shift').eq('client_id', clientId).eq('is_active', true).is('deleted_at', null),
   ]);
 
   return NextResponse.json({
-    client: { ...client, total_workers: totalWorkers || 0 },
+    client: { ...client, total_workers: totalWorkers || 0, onboarding_completed: onboardingCompleted },
     today: summary || { present_count: 0, absent_count: 0, late_count: 0, violation_count: 0, total_events: 0 },
     recent_events: recentEvents || [],
     open_alerts: openAlerts || [],
     week_chart: weekSummary || [],
     plan_limit: planLimit || {},
     zones: zonesData || [],
+    workers: workersData || [],
+    onboarding_completed: onboardingCompleted,
   });
 }
 
