@@ -38,13 +38,19 @@ const INDUSTRY_PROMPTS = {
 - Check customer service desk is staffed.`,
 
   gym: `GYM/FITNESS-SPECIFIC ANALYSIS:
-- Check reception desk coverage at all times during operating hours.
-- Verify trainer/instructor presence on gym floor.
-- Monitor equipment room access — staff only areas.
-- Track cleaner presence during scheduled cleaning times.
-- Check pool area has supervision if applicable.
-- Alert if gym floor is unattended (no staff visible).
-- Monitor for unsafe equipment usage.`,
+BEHAVIOUR MONITORING (PRIORITY):
+- Is each worker ACTIVELY working or just standing around/sitting idle?
+- Is anyone on their PHONE during shift hours? Flag immediately.
+- Are workers at their ASSIGNED ZONE or hanging around reception/chatting?
+- Compare worker positions across frames — if same idle position, flag as idle.
+- Status must be: "working" (actively helping members/cleaning/supervising), "idle" (standing/sitting doing nothing), "on_phone" (looking at phone), "chatting" (talking to other staff instead of working), "on_break" (in break area).
+
+ZONE COVERAGE:
+- Reception desk must be staffed at all times during operating hours.
+- At least one trainer/instructor must be on the gym floor at all times.
+- Pool area requires supervision when members are present.
+- Alert if gym floor has members but no staff visible.
+- Check equipment room access — staff only areas.`,
 
   hospital: `HOSPITAL-SPECIFIC ANALYSIS:
 - Verify PPE compliance per ward type (ICU requires full PPE).
@@ -108,8 +114,8 @@ const INDUSTRY_OUTPUT_FIELDS = {
   gym: `"reception_staffed": true,
     "trainer_on_floor": true,
     "pool_supervised": true,
-    "equipment_room_status": "secure|accessed",
-    "cleaner_present": false`,
+    "idle_workers": [{"name": "worker name", "zone": "where they are", "behaviour": "idle|on_phone|chatting", "duration_estimate": "how long"}],
+    "workers_out_of_zone": [{"name": "worker name", "assigned_zone": "where they should be", "actual_zone": "where they are"}]`,
 
   hospital: `"ward_coverage": [{"ward": "name", "nurses_visible": 0, "minimum_required": 0, "ppe_compliant": true}],
     "ppe_violations_by_zone": [{"zone": "name", "violations": 0}],
