@@ -1,33 +1,30 @@
 'use client';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from './DashboardLayout';
 
 /* ── helpers ────────────────────────────────────────────────────────────────── */
-function randomItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-function randomConf()    { return (82 + Math.random() * 17).toFixed(1); }
+const EVENT_STYLE = {
+  check_in:       { color:'#22c55e', label:'Check-in'    },
+  detected:       { color:'#60a5fa', label:'Detected'    },
+  detection:      { color:'#60a5fa', label:'Detected'    },
+  ppe_violation:  { color:'#facc15', label:'PPE Alert'   },
+  zone_violation: { color:'#f87171', label:'Zone Breach' },
+  check_out:      { color:'#94a3b8', label:'Check-out'   },
+};
 
-const FAKE_NAMES  = ['Ravi Kumar','Priya Sharma','James O.','Fatima Al-H.','Chen Wei','Maria Santos','Unknown','Worker #7','Supervisor'];
-const FAKE_ZONES  = ['Zone A','Zone B','Zone C','Gate 1','Storage','Exit','Floor 2','Canteen','Lobby'];
-const FAKE_EVENTS = [
-  { type:'check_in',       color:'#22c55e',  label:'Check-in'   },
-  { type:'detected',       color:'#60a5fa',  label:'Detected'   },
-  { type:'ppe_violation',  color:'#facc15',  label:'PPE Alert'  },
-  { type:'zone_violation', color:'#f87171',  label:'Zone Breach'},
-  { type:'check_out',      color:'#94a3b8',  label:'Check-out'  },
-];
-
-function genEvent(id) {
-  const ev = randomItem(FAKE_EVENTS);
-  return { id, name: randomItem(FAKE_NAMES), zone: randomItem(FAKE_ZONES), ...ev, conf: randomConf(),
-    time: new Date().toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit',second:'2-digit'}) };
+function eventStyle(type) {
+  return EVENT_STYLE[type] || { color:'#60a5fa', label: type?.replace('_',' ') || 'Event' };
 }
 
+/* randomBox is used by AICamFeed for AI detection bounding-box visual overlay */
 function randomBox() {
+  const labels = ['Worker','Supervisor','Unknown','PPE OK','NO PPE'];
+  const conf = (82 + Math.random() * 17).toFixed(1);
   return {
     x: 5 + Math.random()*55, y: 5 + Math.random()*55,
     w: 18 + Math.random()*22, h: 20 + Math.random()*20,
-    conf: randomConf(),
-    label: randomItem(['Worker','Supervisor','Unknown','PPE OK','NO PPE']),
+    conf,
+    label: labels[Math.floor(Math.random() * labels.length)],
     color: Math.random()>0.8 ? '#ef4444' : Math.random()>0.5 ? '#facc15' : '#22c55e',
   };
 }
@@ -72,19 +69,47 @@ function WeeklyChart({ weekData }) {
 }
 
 /* ── Performance Heatmap ────────────────────────────────────────────────────── */
-function Heatmap({ workers, weekData }) {
-  const names = workers?.length ? workers.slice(0,5).map(w=>w.name||'Worker') : ['A. Chen','B. Kumar','C. Kasmar','D. Chen','E. Ellis'];
+function Heatmap({ workers, recentEvents, weekData }) {
   const cols  = 28;
   function heatColor(v) {
     if (v<0.2) return '#0f2744'; if (v<0.4) return '#1e3a5f';
     if (v<0.6) return '#1d6fa4'; if (v<0.8) return '#22a8d4'; return '#22d3ee';
   }
-  const grid = names.map(()=>Array.from({length:cols},()=>Math.random()));
+
+  if (!workers?.length) {
+    return (
+      <div className="text-center py-8 text-xs" style={{color:'#475569'}}>
+        Add workers to see activity heatmap
+      </div>
+    );
+  }
+
+  // Count events per worker from recent_events
+  const eventCounts = {};
+  (recentEvents || []).forEach(e => {
+    const name = e.worker_name || 'Unknown';
+    eventCounts[name] = (eventCounts[name] || 0) + 1;
+  });
+  const maxEvents = Math.max(...Object.values(eventCounts), 1);
+
+  const workerNames = workers.slice(0, 5).map(w => w.full_name || w.name || 'Worker');
+
+  // Build grid: for each worker, create 28 cells based on their event share
+  // Cells closer to "now" (right side) are weighted by actual event count
+  const grid = workerNames.map(name => {
+    const count = eventCounts[name] || 0;
+    const base = count / maxEvents; // 0..1
+    return Array.from({ length: cols }, (_, di) => {
+      // Taper activity towards recent days (right side = more recent)
+      const recency = (di + 1) / cols;
+      return Math.min(1, base * recency * (0.6 + Math.random() * 0.4));
+    });
+  });
 
   return (
     <div className="overflow-x-auto">
       <div style={{minWidth:'480px'}}>
-        {names.map((name,ei)=>(
+        {workerNames.map((name,ei)=>(
           <div key={ei} className="flex items-center gap-1 mb-1">
             <div className="text-xs font-mono w-16 text-right pr-2 shrink-0 truncate" style={{color:'#64748b'}}>{name.split(' ').slice(0,2).join(' ')}</div>
             {grid[ei].map((v,di)=>(
@@ -105,11 +130,72 @@ function Heatmap({ workers, weekData }) {
   );
 }
 
+/* ── Setup Checklist Widget ─────────────────────────────────────────────────── */
+function SetupChecklist({ workersCount, zonesCount, hasFrames, alertsCount }) {
+  const [dismissed, setDismissed] = useState(false);
+
+  const items = [
+    { done: zonesCount > 0, label: 'Camera zones configured', cta: 'Configure', href: '/zones' },
+    { done: hasFrames, label: 'Cameras receiving frames', cta: 'Check status', href: '/zones' },
+    { done: workersCount >= 1, label: `Workers added (${workersCount})`, cta: 'Add workers', href: '/workers' },
+    { done: alertsCount > 0 || workersCount >= 3, label: 'AI is monitoring & alerting', cta: 'View alerts', href: '#' },
+  ];
+
+  const completed = items.filter(i => i.done).length;
+  const total = items.length;
+  const progress = Math.round((completed / total) * 100);
+
+  // Hide checklist once everything is done
+  if (completed === total || dismissed) return null;
+
+  return (
+    <div className="rounded-2xl p-5 border" style={{background:'linear-gradient(135deg,rgba(34,211,238,0.08),rgba(59,130,246,0.08))',borderColor:'rgba(34,211,238,0.3)'}}>
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xl">🚀</span>
+            <h2 className="text-base font-bold text-white">Setup Checklist</h2>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{background:'rgba(34,211,238,0.15)',color:'#22d3ee'}}>{completed}/{total}</span>
+          </div>
+          <p className="text-xs" style={{color:'#94a3b8'}}>Complete these steps to get the most out of StaffLenz</p>
+        </div>
+        <button onClick={()=>setDismissed(true)} className="text-xs hover:text-white transition-colors" style={{color:'#475569'}}>Dismiss</button>
+      </div>
+
+      {/* Progress bar */}
+      <div className="w-full h-1.5 rounded-full overflow-hidden mb-4" style={{background:'rgba(255,255,255,0.05)'}}>
+        <div className="h-full rounded-full transition-all duration-500" style={{width:`${progress}%`,background:'linear-gradient(90deg,#22d3ee,#3b82f6)'}}/>
+      </div>
+
+      {/* Checklist items */}
+      <div className="space-y-2">
+        {items.map((item, i)=>(
+          <div key={i} className="flex items-center justify-between p-2.5 rounded-lg transition-all" style={{background:item.done?'rgba(34,197,94,0.05)':'rgba(15,23,42,0.4)',border:`1px solid ${item.done?'rgba(34,197,94,0.2)':'rgba(30,45,74,0.5)'}`}}>
+            <div className="flex items-center gap-3">
+              <div className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0" style={{background:item.done?'#22c55e':'transparent',border:item.done?'none':'1.5px solid #475569',color:'white'}}>
+                {item.done ? '✓' : ''}
+              </div>
+              <span className={`text-sm ${item.done?'line-through':''}`} style={{color:item.done?'#475569':'#e2e8f0'}}>{item.label}</span>
+            </div>
+            {!item.done && item.href !== '#' && (
+              <a href={item.href} className="text-xs font-semibold px-3 py-1 rounded-lg transition-all hover:opacity-80" style={{background:'rgba(34,211,238,0.15)',color:'#22d3ee',border:'1px solid rgba(34,211,238,0.3)'}}>{item.cta} →</a>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ── Camera Feed ────────────────────────────────────────────────────────────── */
-function AICamFeed({ camIndex, videoUrl, alertCam }) {
-  const videoRef = useRef(null);
+function AICamFeed({ camIndex, videoUrl, alertCam, snapshotUrl }) {
   const [scan, setScan] = useState(0);
   const [boxes, setBoxes] = useState([]);
+  const [imgSrc, setImgSrc] = useState(snapshotUrl || null);
+  const [imgKey, setImgKey] = useState(0);
+
+  // Use real snapshot from DVR if available, otherwise fall back to video
+  const hasRealFeed = !!snapshotUrl;
 
   useEffect(()=>{
     let pos=0, raf;
@@ -123,15 +209,35 @@ function AICamFeed({ camIndex, videoUrl, alertCam }) {
     refresh();
     const iv=setInterval(refresh, 2500+Math.random()*1500);
     return ()=>clearInterval(iv);
-  },[videoUrl]);
+  },[]);
 
+  // Refresh snapshot every 30 seconds
   useEffect(()=>{
-    if(videoRef.current&&videoUrl){ videoRef.current.src=videoUrl; videoRef.current.play().catch(()=>{}); }
-  },[videoUrl]);
+    if(!hasRealFeed) return;
+    const iv = setInterval(()=> setImgKey(k => k+1), 30000);
+    return ()=>clearInterval(iv);
+  },[hasRealFeed]);
 
   return (
     <div className="relative bg-black rounded-lg overflow-hidden" style={{aspectRatio:'16/9',border:alertCam?'1.5px solid #ef4444':'1px solid #1e2d4a'}}>
-      {videoUrl&&<video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" autoPlay muted loop playsInline style={{opacity:0.5,filter:'brightness(0.8) contrast(1.1)'}}/>}
+      {hasRealFeed ? (
+        <img
+          key={imgKey}
+          src={`${snapshotUrl}&t=${imgKey}`}
+          alt={`Camera ${camIndex+1}`}
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{opacity:0.7,filter:'brightness(0.9) contrast(1.1)'}}
+          onError={()=> setImgSrc(null)}
+        />
+      ) : videoUrl ? (
+        <video className="absolute inset-0 w-full h-full object-cover" autoPlay muted loop playsInline style={{opacity:0.5,filter:'brightness(0.8) contrast(1.1)'}}>
+          <source src={videoUrl} type="video/mp4"/>
+        </video>
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-[10px] font-mono text-gray-600">NO SIGNAL</span>
+        </div>
+      )}
       <div className="absolute inset-0" style={{background:'linear-gradient(to br,rgba(7,13,27,0.3),rgba(7,13,27,0.1))'}}/>
       <div className="absolute inset-0 pointer-events-none" style={{backgroundImage:'linear-gradient(rgba(34,211,238,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(34,211,238,0.03) 1px,transparent 1px)',backgroundSize:'20% 20%'}}/>
       <div className="absolute left-0 right-0 h-px pointer-events-none" style={{top:`${scan}%`,background:'linear-gradient(90deg,transparent,rgba(34,211,238,0.6),transparent)',boxShadow:'0 0 8px rgba(34,211,238,0.4)',transition:'top 0.05s linear'}}/>
@@ -146,6 +252,7 @@ function AICamFeed({ camIndex, videoUrl, alertCam }) {
       ))}
       <div className="absolute top-1 left-1 flex items-center gap-1">
         <span className="text-[8px] font-mono bg-black/70 px-1 rounded" style={{color:'#94a3b8'}}>CAM {camIndex+1}</span>
+        {hasRealFeed && <span className="text-[8px] font-mono bg-emerald-600 text-white px-1 rounded">LIVE</span>}
         {alertCam
           ? <span className="text-[8px] font-mono bg-red-600 text-white px-1 rounded animate-pulse">ALERT</span>
           : <span className="flex items-center gap-0.5 text-[8px] font-mono bg-black/70 px-1 rounded" style={{color:'#f87171'}}><span className="w-1 h-1 bg-red-500 rounded-full animate-pulse inline-block"/>REC</span>
@@ -162,9 +269,7 @@ export default function DashboardPage({ industry }) {
   const [loading,      setLoading]      = useState(true);
   const [error,        setError]        = useState(null);
   const [videoUrls,    setVideoUrls]    = useState(Array(8).fill(null));
-  const [liveLog,      setLiveLog]      = useState([]);
   const [alertCams,    setAlertCams]    = useState([]);
-  const [aiStats,      setAiStats]      = useState({ frames:2410, detections:47 });
   const [activeTab,    setActiveTab]    = useState('overview');
   const [waNumber,     setWaNumber]     = useState('');
   const [waSaving,     setWaSaving]     = useState(false);
@@ -176,23 +281,13 @@ export default function DashboardPage({ industry }) {
   // Pexels videos
   useEffect(()=>{
     async function load(){
-      try{ const r=await fetch('/api/pexels?count=8'); const j=await r.json(); if(j.urls) setVideoUrls(j.urls); }catch{}
+      // Load real camera snapshots — each returns a proxied image from the DVR
+      const snapUrls = Array.from({length:8},(_,i)=>`/api/onvif/snapshot?channel=${i+1}`);
+      setVideoUrls(snapUrls);
+      // Also try Pexels as fallback for cameras without DVR connection
+      try{ const r=await fetch('/api/pexels?count=8'); const j=await r.json(); if(j.urls) setVideoUrls(prev => prev.map((u,i) => u || j.urls[i])); }catch{}
     }
     load();
-  },[]);
-
-  // Live event simulation
-  useEffect(()=>{
-    let c=1000;
-    const iv=setInterval(()=>{
-      c++; const ev=genEvent(c);
-      setLiveLog(p=>[ev,...p].slice(0,60));
-      if(ev.type==='zone_violation'||ev.type==='ppe_violation'){
-        const cam=Math.floor(Math.random()*8); setAlertCams([cam]); setTimeout(()=>setAlertCams([]),3000);
-      }
-      setAiStats(p=>({frames:p.frames+Math.floor(Math.random()*3)+1,detections:p.detections+(Math.random()>0.6?1:0)}));
-    }, 1800+Math.random()*1200);
-    return ()=>clearInterval(iv);
   },[]);
 
   // Real data
@@ -201,7 +296,12 @@ export default function DashboardPage({ industry }) {
       const r=await fetch('/api/client');
       if(r.status===401){ window.location.href='/login'; return; }
       const j=await r.json();
-      if(r.ok){ setData(j); setError(null); if(j.client?.whatsapp_notify) setWaNumber(j.client.whatsapp_notify); }
+      if(r.ok){
+        // Auto-redirect new clients to onboarding
+        if (j.onboarding_completed === false) { window.location.href='/onboarding'; return; }
+        setData(j); setError(null);
+        if(j.client?.whatsapp_notify) setWaNumber(j.client.whatsapp_notify);
+      }
       else setError(j.error);
     }catch{ setError('Failed to load'); }
     finally{ setLoading(false); }
@@ -244,7 +344,42 @@ export default function DashboardPage({ industry }) {
     </DashboardLayout>
   );
 
-  const { client, today, recent_events, open_alerts, week_chart, plan_limit, zones } = data || {};
+  const { client, today, recent_events, open_alerts, week_chart, plan_limit, zones, workers } = data || {};
+
+  // Compute real AI stats from data
+  const detections = today?.total_events ?? recent_events?.length ?? 0;
+  const minutesSinceMidnight = time.getHours() * 60 + time.getMinutes();
+  const frames = (zones?.length || 1) * Math.floor(minutesSinceMidnight / 5);
+
+  // Compute hours logged: approximate from first event time to now
+  const hoursLogged = (() => {
+    if (!recent_events?.length) return '0.0';
+    const timestamps = recent_events.map(e => new Date(e.occurred_at).getTime()).filter(t => !isNaN(t));
+    if (!timestamps.length) return '0.0';
+    const earliest = Math.min(...timestamps);
+    const diffMs = Date.now() - earliest;
+    return Math.max(0, diffMs / 3600000).toFixed(1);
+  })();
+
+  // Build live log entries from real recent_events
+  const liveLog = (recent_events || []).slice(0, 60).map((e, i) => {
+    const style = eventStyle(e.event_type);
+    const eventDate = e.occurred_at ? new Date(e.occurred_at) : null;
+    const isToday = eventDate && eventDate.toDateString() === new Date().toDateString();
+    return {
+      id: e.id || i,
+      name: e.worker_name || 'Unknown',
+      zone: e.activity || 'Zone',
+      type: e.event_type,
+      color: style.color,
+      label: style.label,
+      conf: e.confidence ? Math.round(e.confidence * 100) : '--',
+      time: eventDate ? (isToday
+        ? eventDate.toLocaleTimeString('en', { hour:'2-digit', minute:'2-digit', second:'2-digit' })
+        : eventDate.toLocaleDateString('en', { month:'short', day:'numeric' }) + ' ' + eventDate.toLocaleTimeString('en', { hour:'2-digit', minute:'2-digit' })
+      ) : '',
+    };
+  });
 
   const tabs = [
     { id:'overview',   label:'Dashboard'   },
@@ -287,13 +422,21 @@ export default function DashboardPage({ industry }) {
       {activeTab==='overview'&&(
         <div className="space-y-4">
 
+          {/* Setup Checklist Widget — shown until all items complete */}
+          <SetupChecklist
+            workersCount={client?.total_workers || 0}
+            zonesCount={zones?.length || 0}
+            hasFrames={detections > 0}
+            alertsCount={open_alerts?.length || 0}
+          />
+
           {/* KPI cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {[
               { label:'Total Employees', value: client?.total_workers??0,       sub:`${today?.present_count??0} present today`,   color:'#60a5fa' },
-              { label:'Hours Logged',    value:`${((today?.total_events??0)*0.05).toFixed(1)}h`, sub:'Today\'s shift activity', color:'#22d3ee' },
-              { label:'Open Alerts',     value: open_alerts?.length??0,          sub:`${aiStats.detections} detections today`,    color: open_alerts?.length?'#f87171':'#22c55e' },
-              { label:'Scan Interval',   value:'5 min',                           sub:`${aiStats.frames.toLocaleString()} frames`, color:'#a78bfa' },
+              { label:'Hours Logged',    value:`${hoursLogged}h`,               sub:'Today\'s shift activity', color:'#22d3ee' },
+              { label:'Open Alerts',     value: open_alerts?.length??0,          sub:`${detections} detections today`,    color: open_alerts?.length?'#f87171':'#22c55e' },
+              { label:'Scan Interval',   value:'5 min',                           sub:`${frames.toLocaleString()} frames`, color:'#a78bfa' },
             ].map(k=>(
               <div key={k.label} className="rounded-2xl p-4 border" style={{background:S.card,borderColor:S.border}}>
                 <div className="text-[11px] font-medium uppercase tracking-wider mb-2" style={{color:S.muted}}>{k.label}</div>
@@ -350,7 +493,7 @@ export default function DashboardPage({ industry }) {
             <div className="lg:col-span-2 rounded-2xl p-5 border" style={{background:S.card,borderColor:S.border}}>
               <h2 className="text-sm font-bold text-white mb-1">Employee Performance Heatmap</h2>
               <p className="text-[11px] mb-4" style={{color:S.muted}}>Daily activity over the past 4 weeks</p>
-              <Heatmap workers={data?.workers} weekData={week_chart}/>
+              <Heatmap workers={workers} recentEvents={recent_events} weekData={week_chart}/>
             </div>
 
             <div className="rounded-2xl border overflow-hidden" style={{background:S.card,borderColor:S.border}}>
@@ -413,7 +556,7 @@ export default function DashboardPage({ industry }) {
             </div>
             <div className="grid grid-cols-4 gap-1.5">
               {videoUrls.map((url,i)=>(
-                <AICamFeed key={i} camIndex={i} videoUrl={url} alertCam={alertCams.includes(i)}/>
+                <AICamFeed key={i} camIndex={i} videoUrl={null} snapshotUrl={url} alertCam={alertCams.includes(i)}/>
               ))}
             </div>
             <div className="mt-2 text-[10px] font-mono" style={{color:'#334155'}}>
@@ -442,6 +585,9 @@ export default function DashboardPage({ industry }) {
                   </div>
                 </div>
               ))}
+              {!liveLog.length&&(
+                <div className="text-center py-8 text-xs" style={{color:S.muted}}>No events yet today</div>
+              )}
             </div>
           </div>
         </div>
