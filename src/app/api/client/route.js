@@ -67,7 +67,7 @@ export async function GET(request) {
     db.from('workers').select('id, full_name, department, shift').eq('client_id', clientId).eq('is_active', true).is('deleted_at', null),
   ]);
 
-  return NextResponse.json({
+  const res = NextResponse.json({
     client: { ...client, total_workers: totalWorkers || 0, onboarding_completed: onboardingCompleted },
     today: summary || { present_count: 0, absent_count: 0, late_count: 0, violation_count: 0, total_events: 0 },
     recent_events: recentEvents || [],
@@ -78,6 +78,8 @@ export async function GET(request) {
     workers: workersData || [],
     onboarding_completed: onboardingCompleted,
   });
+  res.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+  return res;
 }
 
 // Resolve an alert
