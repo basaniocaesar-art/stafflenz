@@ -427,7 +427,7 @@ export default function DashboardPage({ industry }) {
           <SetupChecklist
             workersCount={client?.total_workers || 0}
             zonesCount={zones?.length || 0}
-            hasFrames={detections > 0}
+            hasFrames={detections > 0 || (recent_events?.length || 0) > 0}
             alertsCount={alertCount}
           />
 
