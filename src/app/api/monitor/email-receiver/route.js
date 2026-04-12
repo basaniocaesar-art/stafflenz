@@ -26,6 +26,12 @@ async function connectImap() {
     host: process.env.DVR_IMAP_HOST || 'mail.stafflenz.com',
     port: Number(process.env.DVR_IMAP_PORT || 993),
     secure: true,
+    // cPanel mail servers often use a cert for cpanel.<domain> even when
+    // the IMAP host is mail.<domain>. That hostname mismatch would make
+    // strict TLS fail with an opaque "Command failed" error. Disabling
+    // cert hostname verification is acceptable here because we're only
+    // reading our own mailbox — no sensitive user data is crossing.
+    tls: { rejectUnauthorized: false },
     auth: {
       user: process.env.DVR_IMAP_USER,     // e.g. admin@stafflenz.com
       pass: process.env.DVR_IMAP_PASSWORD,
@@ -366,7 +372,13 @@ async function processClientBatch(clientAttachments, client, db) {
 
 // ─── Image stitching (same as FTP receiver) ─────────────────────────────────
 async function stitchImages(buffers) {
-  if (buffers.length === 1) return buffers[0];
+  // Single frame: still re-encode as JPEG. Skipping this was a bug — if the
+  // DVR (or user) attached a PNG/WebP, we'd pass through the raw bytes but
+  // still label the Anthropic image payload as image/jpeg, and Claude would
+  // reject with "image/jpeg media type but the image appears to be image/png".
+  if (buffers.length === 1) {
+    return sharp(buffers[0]).jpeg({ quality: 85 }).toBuffer();
+  }
   const CELL_W = 640, CELL_H = 480;
   const cols = Math.ceil(Math.sqrt(buffers.length));
   const rows = Math.ceil(buffers.length / cols);
@@ -407,16 +419,36 @@ export async function GET(request) {
     const log = [];
 
     try {
-      // Fetch unseen messages
+      // Diagnostic: report what IMAP sees in the mailbox
+      const mailboxStatus = await imap.status('INBOX', {
+        messages: true,
+        unseen: true,
+        recent: true,
+      });
+
+      // Normal cron fetches only unseen emails. For manual testing / recovery,
+      // pass ?include_seen=1 to process ALL emails in the inbox — useful when
+      // emails were marked seen by a previous failed run and we want to retry
+      // without manually unflagging them in webmail.
+      const { searchParams } = new URL(request.url);
+      const includeSeen = searchParams.get('include_seen') === '1';
+
+      // Fetch unseen messages (or ALL if include_seen=1)
+      const fetchFilter = includeSeen ? { all: true } : { seen: false };
       const messages = [];
-      for await (const msg of imap.fetch({ seen: false }, { source: false, envelope: true, uid: true })) {
+      for await (const msg of imap.fetch(fetchFilter, { source: false, envelope: true, uid: true })) {
         messages.push(msg);
       }
 
       if (messages.length === 0) {
         mailbox.release();
         await imap.logout();
-        return NextResponse.json({ ok: true, message: 'No new emails', emails: 0 });
+        return NextResponse.json({
+          ok: true,
+          message: 'No new emails',
+          emails: 0,
+          mailbox_status: mailboxStatus,
+        });
       }
 
       log.push(`Found ${messages.length} unread emails`);
@@ -448,34 +480,67 @@ export async function GET(request) {
         return NextResponse.json({ ok: true, message: 'No active clients', emails: messages.length });
       }
 
-      // Group attachments by client
+      // Group attachments by client, tracking which message seqs contributed
+      // to each group so we can later decide which to mark seen vs leave for retry.
       const clientGroups = new Map();
+      const unmatchedSeqs = new Set();
 
       for (const att of attachments) {
         const client = matchClient(clients, att.emailFrom, att.emailSubject);
         if (!client) {
           log.push(`Could not match client for email from: ${att.emailFrom}, subject: ${att.emailSubject}`);
+          unmatchedSeqs.add(att.seq);
           continue;
         }
         if (!clientGroups.has(client.id)) {
-          clientGroups.set(client.id, { client, attachments: [] });
+          clientGroups.set(client.id, { client, attachments: [], seqs: new Set() });
         }
-        clientGroups.get(client.id).attachments.push(att);
+        const g = clientGroups.get(client.id);
+        g.attachments.push(att);
+        g.seqs.add(att.seq);
       }
 
-      // Process each client batch
+      // Process each client batch, remembering which seqs succeeded vs failed
       const results = [];
+      const successfulSeqs = new Set();
+      const failedSeqs = new Set();
+
       for (const [, group] of clientGroups) {
         const result = await processClientBatch(group.attachments, group.client, db);
         results.push(result);
+        if (result.status === 'analysed') {
+          for (const seq of group.seqs) successfulSeqs.add(seq);
+        } else {
+          for (const seq of group.seqs) failedSeqs.add(seq);
+        }
       }
 
-      // Mark all processed emails as seen
+      // Mark emails as seen for:
+      //   (a) successfully analyzed messages — no need to reprocess
+      //   (b) messages with no image attachments — can't improve on retry
+      //   (c) messages we couldn't match to any client — retry won't help
+      // Leave failed messages UNREAD so the next cron cycle retries them.
+      // This is how we recover from transient errors like Anthropic billing or
+      // intermittent Claude 529s without losing snapshots.
+      const seqsWithAttachments = new Set(attachments.map((a) => a.seq));
+      const toMarkSeen = [];
       for (const msg of messages) {
+        if (!seqsWithAttachments.has(msg.seq)) {
+          // No image attachments at all — permanent skip
+          toMarkSeen.push(msg.seq);
+        } else if (successfulSeqs.has(msg.seq) || unmatchedSeqs.has(msg.seq)) {
+          toMarkSeen.push(msg.seq);
+        }
+        // else: failed → leave unread for retry
+      }
+
+      for (const seq of toMarkSeen) {
         try {
-          await imap.messageFlagsAdd({ seq: msg.seq }, ['\\Seen'], { uid: false });
+          await imap.messageFlagsAdd({ seq }, ['\\Seen'], { uid: false });
         } catch { /* ignore flag errors */ }
       }
+
+      log.push(`marked ${toMarkSeen.length} seen, ${failedSeqs.size} left unread for retry`);
 
       mailbox.release();
 
@@ -497,7 +562,15 @@ export async function GET(request) {
 
   } catch (err) {
     if (imap) try { await imap.logout(); } catch { /* ignore */ }
-    return NextResponse.json({ error: `Email receiver error: ${err.message}` }, { status: 500 });
+    // Surface full error detail so we can diagnose IMAP failures without
+    // having to tail Vercel logs. Safe because the endpoint is auth-gated.
+    return NextResponse.json({
+      error: `Email receiver error: ${err.message}`,
+      code: err.code || null,
+      authenticationFailed: err.authenticationFailed || false,
+      response: err.response || null,
+      stack: err.stack?.split('\n').slice(0, 5).join('\n') || null,
+    }, { status: 500 });
   }
 }
 

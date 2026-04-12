@@ -376,7 +376,12 @@ async function processClientFolder(ftp, folderName, db) {
 
 // ─── Image stitching ─────────────────────────────────────────────────────────
 async function stitchImages(buffers) {
-  if (buffers.length === 1) return buffers[0];
+  // Always re-encode to JPEG — even for a single frame — so the Anthropic
+  // image payload's media_type (image/jpeg) always matches the actual bytes.
+  // Raw pass-through with a PNG buffer gets rejected by Claude.
+  if (buffers.length === 1) {
+    return sharp(buffers[0]).jpeg({ quality: 85 }).toBuffer();
+  }
   const CELL_W = 640, CELL_H = 480;
   const cols = Math.ceil(Math.sqrt(buffers.length));
   const rows = Math.ceil(buffers.length / cols);
