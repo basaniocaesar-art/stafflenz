@@ -7,7 +7,7 @@ const ALL_INDUSTRIES = ['factory','hotel','school','retail','hospital','construc
 const INDUSTRY_ICONS = {factory:'🏭',hotel:'🏨',school:'🏫',retail:'🛍️',hospital:'🏥',construction:'🏗️',warehouse:'📦',restaurant:'🍽️',security:'🔒'};
 const PLANS = ['starter','professional','enterprise'];
 const PLAN_COLORS = {starter:'bg-gray-100 text-gray-700',professional:'bg-blue-100 text-blue-700',enterprise:'bg-violet-100 text-violet-700'};
-const ALL_TABS = ['overview','clients','leads','partners','affiliates','white labels','revenue','system','demo view'];
+const ALL_TABS = ['overview','clients','leads','partners','affiliates','white labels','revenue','monitoring','edge agents','system','demo view'];
 
 /* ─── Shared helpers ─────────────────────────────────────────────────────── */
 function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
@@ -1026,6 +1026,1038 @@ function RevenueTab() {
   );
 }
 
+/* ─── Tab: Monitoring ───────────────────────────────────────────────────── */
+const ALL_PPE_OPTIONS = ['helmet', 'safety vest', 'gloves', 'safety boots', 'goggles', 'harness', 'hair net', 'apron', 'face mask'];
+const AI_INDUSTRIES = ['factory', 'hotel', 'school', 'retail', 'gym', 'hospital', 'construction', 'warehouse', 'restaurant', 'security'];
+const FREQUENCY_OPTIONS = [1, 2, 5, 10, 15, 30];
+const SEVERITY_OPTIONS = ['low', 'medium', 'high'];
+
+function MonitoringTab() {
+  const [clients, setClients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [editingZoneId, setEditingZoneId] = useState(null);
+  const [zoneForm, setZoneForm] = useState({});
+  const [clientForm, setClientForm] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [testResult, setTestResult] = useState(null);
+  const [testingClientId, setTestingClientId] = useState(null);
+  const [showPassword, setShowPassword] = useState({});
+
+  // AI Analysis Config state
+  const [aiConfigClientId, setAiConfigClientId] = useState(null);
+  const [aiConfig, setAiConfig] = useState({});
+  const [aiConfigSaving, setAiConfigSaving] = useState(false);
+  const [aiConfigError, setAiConfigError] = useState('');
+  const [promptPreview, setPromptPreview] = useState('');
+  const [loadingPreview, setLoadingPreview] = useState(false);
+
+  // Cost & Analytics state
+  const [monitorStats, setMonitorStats] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(false);
+
+  function reload() {
+    fetch('/api/monitor/config')
+      .then(r => r.json())
+      .then(d => { setClients(d.clients || []); setLoading(false); })
+      .catch(() => setLoading(false));
+  }
+
+  function loadStats() {
+    setLoadingStats(true);
+    fetch('/api/monitor/stats')
+      .then(r => r.json())
+      .then(d => { setMonitorStats(d.clients || []); setLoadingStats(false); })
+      .catch(() => setLoadingStats(false));
+  }
+
+  useEffect(() => { reload(); loadStats(); }, []);
+
+  function startEditZone(zone, client) {
+    setEditingZoneId(zone.id);
+    setZoneForm({
+      camera_ip:       zone.camera_ip       || '',
+      camera_username: zone.camera_username || '',
+      camera_password: '',
+    });
+    setClientForm({
+      site_name:             client.site_name             || '',
+      industry:              client.industry              || '',
+      camera_source:         client.camera_source         || 'onvif',
+      hikconnect_account_id: client.hikconnect_account_id || '',
+      dvr_host:              client.dvr_host              || '',
+      dvr_port:              client.dvr_port              || 80,
+      dvr_username:          client.dvr_username          || '',
+      dvr_password:          '',
+    });
+    setError('');
+    setTestResult(null);
+  }
+
+  async function handleSaveZone(zoneId, clientId) {
+    setSaving(true);
+    setError('');
+    const res = await fetch('/api/monitor/config', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ zone_id: zoneId, client_id: clientId, ...zoneForm, ...clientForm }),
+    });
+    const data = await res.json();
+    setSaving(false);
+    if (!res.ok) { setError(data.error || 'Save failed'); return; }
+    setEditingZoneId(null);
+    reload();
+  }
+
+  async function handleTest(clientId, source = 'ip') {
+    setTestingClientId(clientId);
+    setTestResult(null);
+    const url = source === 'hik' ? '/api/hik/capture' : '/api/monitor/test';
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ client_id: clientId }),
+    });
+    const data = await res.json();
+    setTestingClientId(null);
+    setTestResult({ clientId, text: JSON.stringify(data, null, 2) });
+  }
+
+  function openAiConfig(client) {
+    const cfg = client.analysis_config || {};
+    setAiConfigClientId(client.id);
+    setAiConfig({
+      industry: cfg.industry || client.industry || 'factory',
+      shift_start: cfg.shift_start || '06:00',
+      shift_end: cfg.shift_end || '22:00',
+      ppe_requirements: cfg.ppe_requirements || [],
+      alert_rules: cfg.alert_rules || [],
+      alert_severity_threshold: cfg.alert_severity_threshold || 'medium',
+      whatsapp_number: cfg.whatsapp_number || '',
+      analysis_frequency_minutes: cfg.analysis_frequency_minutes || 5,
+      zones: cfg.zones || [],
+    });
+    setAiConfigError('');
+    setPromptPreview('');
+  }
+
+  function updateAiConfig(key, value) {
+    setAiConfig(prev => ({ ...prev, [key]: value }));
+  }
+
+  function togglePPE(item) {
+    setAiConfig(prev => {
+      const list = prev.ppe_requirements || [];
+      return { ...prev, ppe_requirements: list.includes(item) ? list.filter(x => x !== item) : [...list, item] };
+    });
+  }
+
+  function addAlertRule() {
+    setAiConfig(prev => ({ ...prev, alert_rules: [...(prev.alert_rules || []), ''] }));
+  }
+
+  function updateAlertRule(idx, val) {
+    setAiConfig(prev => {
+      const rules = [...(prev.alert_rules || [])];
+      rules[idx] = val;
+      return { ...prev, alert_rules: rules };
+    });
+  }
+
+  function removeAlertRule(idx) {
+    setAiConfig(prev => {
+      const rules = [...(prev.alert_rules || [])];
+      rules.splice(idx, 1);
+      return { ...prev, alert_rules: rules };
+    });
+  }
+
+  function addZoneRule() {
+    setAiConfig(prev => ({
+      ...prev,
+      zones: [...(prev.zones || []), { name: '', min_staff: 0, max_staff: 10, restricted: false, ppe_requirements: [], rules: [] }],
+    }));
+  }
+
+  function updateZoneRule(idx, key, val) {
+    setAiConfig(prev => {
+      const zones = [...(prev.zones || [])];
+      zones[idx] = { ...zones[idx], [key]: val };
+      return { ...prev, zones };
+    });
+  }
+
+  function removeZoneRule(idx) {
+    setAiConfig(prev => {
+      const zones = [...(prev.zones || [])];
+      zones.splice(idx, 1);
+      return { ...prev, zones };
+    });
+  }
+
+  function toggleZonePPE(zoneIdx, item) {
+    setAiConfig(prev => {
+      const zones = [...(prev.zones || [])];
+      const ppe = zones[zoneIdx].ppe_requirements || [];
+      zones[zoneIdx] = { ...zones[zoneIdx], ppe_requirements: ppe.includes(item) ? ppe.filter(x => x !== item) : [...ppe, item] };
+      return { ...prev, zones };
+    });
+  }
+
+  function addZoneCustomRule(zoneIdx) {
+    setAiConfig(prev => {
+      const zones = [...(prev.zones || [])];
+      zones[zoneIdx] = { ...zones[zoneIdx], rules: [...(zones[zoneIdx].rules || []), ''] };
+      return { ...prev, zones };
+    });
+  }
+
+  function updateZoneCustomRule(zoneIdx, ruleIdx, val) {
+    setAiConfig(prev => {
+      const zones = [...(prev.zones || [])];
+      const rules = [...(zones[zoneIdx].rules || [])];
+      rules[ruleIdx] = val;
+      zones[zoneIdx] = { ...zones[zoneIdx], rules };
+      return { ...prev, zones };
+    });
+  }
+
+  function removeZoneCustomRule(zoneIdx, ruleIdx) {
+    setAiConfig(prev => {
+      const zones = [...(prev.zones || [])];
+      const rules = [...(zones[zoneIdx].rules || [])];
+      rules.splice(ruleIdx, 1);
+      zones[zoneIdx] = { ...zones[zoneIdx], rules };
+      return { ...prev, zones };
+    });
+  }
+
+  async function handleSaveAiConfig(clientId) {
+    setAiConfigSaving(true);
+    setAiConfigError('');
+    const cleanConfig = {
+      ...aiConfig,
+      alert_rules: (aiConfig.alert_rules || []).filter(r => r.trim() !== ''),
+      zones: (aiConfig.zones || []).map(z => ({
+        ...z,
+        rules: (z.rules || []).filter(r => r.trim() !== ''),
+      })),
+    };
+    const res = await fetch('/api/monitor/config', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ client_id: clientId, analysis_config: cleanConfig }),
+    });
+    const data = await res.json();
+    setAiConfigSaving(false);
+    if (!res.ok) { setAiConfigError(data.error || 'Save failed'); return; }
+    setAiConfigClientId(null);
+    reload();
+  }
+
+  async function handlePreviewPrompt(clientId) {
+    setLoadingPreview(true);
+    setPromptPreview('');
+    const res = await fetch('/api/monitor/preview-prompt', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ client_id: clientId }),
+    });
+    const data = await res.json();
+    setLoadingPreview(false);
+    setPromptPreview(data.prompt || data.error || 'Failed to generate prompt');
+  }
+
+  if (loading) return <Spinner />;
+
+  const statusColor = { normal: 'bg-emerald-500', warning: 'bg-amber-500', critical: 'bg-red-500', none: 'bg-gray-300' };
+  const statusLabel = { normal: 'Normal', warning: 'Warning', critical: 'Critical', none: 'No data' };
+
+  return (
+    <>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">AI Monitoring Engine</h1>
+          <p className="text-sm text-gray-500 mt-1">Set the IP address and login for each camera. The engine captures frames every 5 minutes automatically.</p>
+        </div>
+        <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2">
+          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+          <span className="text-sm font-medium text-emerald-700">Cron: every 5 min</span>
+        </div>
+      </div>
+
+      <div className="space-y-5">
+        {clients.map(c => {
+          const configuredZones = (c.zones || []).filter(z => z.camera_ip);
+          const totalZones = (c.zones || []).length;
+
+          return (
+            <div key={c.id} className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+              {/* Client header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">{INDUSTRY_ICONS[c.industry] || '🏢'}</span>
+                  <div>
+                    <div className="font-semibold text-gray-900">{c.name}</div>
+                    <div className="text-xs text-gray-400">
+                      {c.site_name || 'No site name'} · {configuredZones.length}/{totalZones} cameras configured
+                      {c.camera_source === 'hikconnect' && c.hikconnect_account_id && <span className="ml-2 text-blue-500">· HikConnect ✓</span>}
+                      {c.camera_source === 'onvif' && c.dvr_host && <span className="ml-2 text-emerald-500">· ONVIF Direct ✓</span>}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => openAiConfig(c)}
+                    className="px-4 py-2 bg-violet-600 text-white text-xs font-semibold rounded-lg hover:bg-violet-700 transition-colors"
+                  >
+                    Configure AI
+                  </button>
+                  <button
+                    onClick={() => handleTest(c.id)}
+                    disabled={testingClientId === c.id || configuredZones.length === 0}
+                    className="px-4 py-2 bg-slate-800 text-white text-xs font-semibold rounded-lg hover:bg-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {testingClientId === c.id ? 'Running…' : '▶ Test Run'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Camera zones list */}
+              {(c.zones || []).length === 0 ? (
+                <div className="px-6 py-4 text-sm text-gray-400">No camera zones added yet. Go to Zones in the client dashboard to add cameras first.</div>
+              ) : (
+                <div className="divide-y divide-gray-50">
+                  {(c.zones || []).map(zone => {
+                    const isEditingThis = editingZoneId === zone.id;
+                    const hasIp = !!zone.camera_ip;
+
+                    return (
+                      <div key={zone.id}>
+                        {/* Zone row */}
+                        <div className="flex items-center justify-between px-6 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-2 h-2 rounded-full flex-shrink-0 ${hasIp ? 'bg-emerald-500' : 'bg-gray-300'}`} />
+                            <div>
+                              <div className="text-sm font-medium text-gray-800">{zone.name}</div>
+                              <div className="text-xs text-gray-400">
+                                {hasIp
+                                  ? <span className="font-mono">{zone.camera_ip} · user: {zone.camera_username || 'admin'}</span>
+                                  : 'No IP set — click Configure'}
+                              </div>
+                            </div>
+                          </div>
+                          {!isEditingThis && (
+                            <button
+                              onClick={() => startEditZone(zone, c)}
+                              className="text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors"
+                            >
+                              {hasIp ? 'Edit' : 'Configure →'}
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Zone edit form */}
+                        {isEditingThis && (
+                          <div className="px-6 pb-5 pt-2 bg-slate-50 border-t border-gray-100">
+                            <div className="grid sm:grid-cols-2 gap-4 mb-4">
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1.5">Camera IP Address <span className="text-red-500">*</span></label>
+                                <input
+                                  type="text"
+                                  value={zoneForm.camera_ip}
+                                  onChange={e => setZoneForm(p => ({ ...p, camera_ip: e.target.value }))}
+                                  placeholder="e.g. 192.168.1.101"
+                                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-mono"
+                                />
+                                <p className="text-xs text-gray-400 mt-1">Local network IP of this camera</p>
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1.5">Username</label>
+                                <input
+                                  type="text"
+                                  value={zoneForm.camera_username}
+                                  onChange={e => setZoneForm(p => ({ ...p, camera_username: e.target.value }))}
+                                  placeholder="admin"
+                                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                />
+                              </div>
+                              <div className="relative">
+                                <label className="block text-xs font-medium text-gray-600 mb-1.5">Password</label>
+                                <input
+                                  type={showPassword[zone.id] ? 'text' : 'password'}
+                                  value={zoneForm.camera_password}
+                                  onChange={e => setZoneForm(p => ({ ...p, camera_password: e.target.value }))}
+                                  placeholder="Leave blank to keep existing"
+                                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white pr-16"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setShowPassword(p => ({ ...p, [zone.id]: !p[zone.id] }))}
+                                  className="absolute right-3 top-8 text-xs text-gray-400 hover:text-gray-600"
+                                >
+                                  {showPassword[zone.id] ? 'Hide' : 'Show'}
+                                </button>
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1.5">Site Name</label>
+                                <input
+                                  type="text"
+                                  value={clientForm.site_name}
+                                  onChange={e => setClientForm(p => ({ ...p, site_name: e.target.value }))}
+                                  placeholder="e.g. Manchester Warehouse"
+                                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Camera Source Selector */}
+                            <div className="mt-4 pt-4 border-t border-gray-200">
+                              <div className="flex items-center gap-2 mb-3">
+                                <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Camera Source</span>
+                              </div>
+                              <div className="flex gap-2 mb-4">
+                                <button
+                                  type="button"
+                                  onClick={() => setClientForm(p => ({ ...p, camera_source: 'onvif' }))}
+                                  className={`flex-1 px-4 py-2.5 text-xs font-semibold rounded-lg border-2 transition-all ${clientForm.camera_source === 'onvif' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'}`}
+                                >
+                                  <div className="font-bold">ONVIF Direct</div>
+                                  <div className="text-[10px] mt-0.5 opacity-70">Port-forwarded DVR</div>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setClientForm(p => ({ ...p, camera_source: 'hikconnect' }))}
+                                  className={`flex-1 px-4 py-2.5 text-xs font-semibold rounded-lg border-2 transition-all ${clientForm.camera_source === 'hikconnect' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'}`}
+                                >
+                                  <div className="font-bold">Hik-Connect Cloud</div>
+                                  <div className="text-[10px] mt-0.5 opacity-70">Partner API</div>
+                                </button>
+                              </div>
+
+                              {/* ONVIF Direct fields */}
+                              {clientForm.camera_source === 'onvif' && (
+                                <div className="space-y-3">
+                                  <div className="grid sm:grid-cols-2 gap-3">
+                                    <div>
+                                      <label className="block text-xs font-medium text-gray-600 mb-1.5">DVR Public IP / Hostname <span className="text-red-500">*</span></label>
+                                      <input
+                                        type="text"
+                                        value={clientForm.dvr_host}
+                                        onChange={e => setClientForm(p => ({ ...p, dvr_host: e.target.value }))}
+                                        placeholder="e.g. 203.0.113.50 or mydvr.ddns.net"
+                                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-mono"
+                                      />
+                                      <p className="text-xs text-gray-400 mt-1">Public IP or DDNS hostname (port-forwarded to DVR)</p>
+                                    </div>
+                                    <div>
+                                      <label className="block text-xs font-medium text-gray-600 mb-1.5">Port</label>
+                                      <input
+                                        type="number"
+                                        value={clientForm.dvr_port}
+                                        onChange={e => setClientForm(p => ({ ...p, dvr_port: e.target.value }))}
+                                        placeholder="80"
+                                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-mono"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-xs font-medium text-gray-600 mb-1.5">DVR Username <span className="text-red-500">*</span></label>
+                                      <input
+                                        type="text"
+                                        value={clientForm.dvr_username}
+                                        onChange={e => setClientForm(p => ({ ...p, dvr_username: e.target.value }))}
+                                        placeholder="admin"
+                                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                                      />
+                                    </div>
+                                    <div className="relative">
+                                      <label className="block text-xs font-medium text-gray-600 mb-1.5">DVR Password <span className="text-red-500">*</span></label>
+                                      <input
+                                        type={showPassword['dvr'] ? 'text' : 'password'}
+                                        value={clientForm.dvr_password}
+                                        onChange={e => setClientForm(p => ({ ...p, dvr_password: e.target.value }))}
+                                        placeholder="Leave blank to keep existing"
+                                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white pr-16"
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => setShowPassword(p => ({ ...p, dvr: !p.dvr }))}
+                                        className="absolute right-3 top-8 text-xs text-gray-400 hover:text-gray-600"
+                                      >
+                                        {showPassword['dvr'] ? 'Hide' : 'Show'}
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                                    <span className="text-emerald-600 text-sm">&#9432;</span>
+                                    <span className="text-xs text-emerald-700">ONVIF connects directly to the DVR. Port-forward the DVR&apos;s HTTP port on your router so it&apos;s reachable from the internet.</span>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Hik-Connect Cloud fields */}
+                              {clientForm.camera_source === 'hikconnect' && (
+                                <div className="flex gap-3 items-end">
+                                  <div className="flex-1">
+                                    <label className="block text-xs font-medium text-gray-600 mb-1.5">Client&apos;s HikConnect Account ID <span className="text-red-500">*</span></label>
+                                    <input
+                                      type="text"
+                                      value={clientForm.hikconnect_account_id}
+                                      onChange={e => setClientForm(p => ({ ...p, hikconnect_account_id: e.target.value }))}
+                                      placeholder="e.g. 12345678"
+                                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-mono"
+                                    />
+                                    <p className="text-xs text-gray-400 mt-1">Found in the client&apos;s HikConnect app under Account Settings</p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleTest(c.id, 'hik')}
+                                    disabled={testingClientId === c.id || !clientForm.hikconnect_account_id}
+                                    className="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                                  >
+                                    {testingClientId === c.id ? 'Testing…' : 'Test HikConnect'}
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+
+                            {error && (
+                              <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">{error}</div>
+                            )}
+
+                            <div className="flex items-center gap-3">
+                              <button
+                                onClick={() => handleSaveZone(zone.id, c.id)}
+                                disabled={saving || (!zoneForm.camera_ip && clientForm.camera_source !== 'onvif')}
+                                className="px-5 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                              >
+                                {saving ? 'Saving…' : 'Save'}
+                              </button>
+                              <button
+                                onClick={() => { setEditingZoneId(null); setError(''); }}
+                                className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Test result for this client */}
+              {testResult?.clientId === c.id && (
+                <div className="px-6 pb-5 border-t border-gray-100">
+                  <div className="text-xs font-medium text-gray-500 mt-4 mb-2">Test Result</div>
+                  <pre className="bg-gray-900 text-green-400 text-xs rounded-xl p-4 overflow-x-auto max-h-56 overflow-y-auto font-mono">
+                    {testResult.text}
+                  </pre>
+                </div>
+              )}
+
+              {/* AI Analysis Config Editor */}
+              {aiConfigClientId === c.id && (
+                <div className="px-6 pb-6 pt-4 border-t border-violet-200 bg-violet-50/50">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-bold text-violet-900">AI Analysis Configuration</h3>
+                    <button onClick={() => setAiConfigClientId(null)} className="text-xs text-gray-400 hover:text-gray-600">&times; Close</button>
+                  </div>
+
+                  {/* Row 1: Industry, Shift, Frequency, Severity */}
+                  <div className="grid sm:grid-cols-4 gap-4 mb-5">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1.5">Industry Type</label>
+                      <select
+                        value={aiConfig.industry || 'factory'}
+                        onChange={e => updateAiConfig('industry', e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                      >
+                        {AI_INDUSTRIES.map(ind => <option key={ind} value={ind}>{cap(ind)}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1.5">Shift Start</label>
+                      <input
+                        type="time"
+                        value={aiConfig.shift_start || '06:00'}
+                        onChange={e => updateAiConfig('shift_start', e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1.5">Shift End</label>
+                      <input
+                        type="time"
+                        value={aiConfig.shift_end || '22:00'}
+                        onChange={e => updateAiConfig('shift_end', e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1.5">Analysis Frequency</label>
+                      <select
+                        value={aiConfig.analysis_frequency_minutes || 5}
+                        onChange={e => updateAiConfig('analysis_frequency_minutes', Number(e.target.value))}
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                      >
+                        {FREQUENCY_OPTIONS.map(m => <option key={m} value={m}>{m} min</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Row 2: Severity threshold, WhatsApp */}
+                  <div className="grid sm:grid-cols-2 gap-4 mb-5">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1.5">Alert Severity Threshold</label>
+                      <select
+                        value={aiConfig.alert_severity_threshold || 'medium'}
+                        onChange={e => updateAiConfig('alert_severity_threshold', e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                      >
+                        {SEVERITY_OPTIONS.map(s => <option key={s} value={s}>{cap(s)}</option>)}
+                      </select>
+                      <p className="text-xs text-gray-400 mt-1">Only send alerts at or above this severity</p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1.5">WhatsApp Number for Alerts</label>
+                      <input
+                        type="text"
+                        value={aiConfig.whatsapp_number || ''}
+                        onChange={e => updateAiConfig('whatsapp_number', e.target.value)}
+                        placeholder="e.g. +91 98765 43210"
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Site-wide PPE Requirements */}
+                  <div className="mb-5">
+                    <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">Site-Wide PPE Requirements</label>
+                    <div className="flex flex-wrap gap-2">
+                      {ALL_PPE_OPTIONS.map(item => (
+                        <label key={item} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium cursor-pointer transition-all ${(aiConfig.ppe_requirements || []).includes(item) ? 'bg-violet-100 border-violet-300 text-violet-800' : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'}`}>
+                          <input
+                            type="checkbox"
+                            checked={(aiConfig.ppe_requirements || []).includes(item)}
+                            onChange={() => togglePPE(item)}
+                            className="sr-only"
+                          />
+                          {(aiConfig.ppe_requirements || []).includes(item) ? '✓ ' : ''}{cap(item)}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Zone Rules */}
+                  <div className="mb-5">
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">Zone Rules</label>
+                      <button onClick={addZoneRule} className="text-xs font-medium text-violet-600 hover:text-violet-800">+ Add Zone</button>
+                    </div>
+                    {(aiConfig.zones || []).length === 0 && (
+                      <p className="text-xs text-gray-400">No zone rules configured. Click &quot;+ Add Zone&quot; to add one.</p>
+                    )}
+                    <div className="space-y-3">
+                      {(aiConfig.zones || []).map((zone, zIdx) => (
+                        <div key={zIdx} className="bg-white border border-gray-200 rounded-xl p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs font-semibold text-gray-700">Zone {zIdx + 1}</span>
+                            <button onClick={() => removeZoneRule(zIdx)} className="text-xs text-red-500 hover:text-red-700">Remove</button>
+                          </div>
+                          <div className="grid sm:grid-cols-4 gap-3 mb-3">
+                            <div>
+                              <label className="block text-xs text-gray-500 mb-1">Zone Name</label>
+                              <input
+                                type="text"
+                                value={zone.name || ''}
+                                onChange={e => updateZoneRule(zIdx, 'name', e.target.value)}
+                                placeholder="e.g. Main Floor"
+                                className="w-full px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs text-gray-500 mb-1">Min Staff</label>
+                              <input
+                                type="number"
+                                value={zone.min_staff ?? 0}
+                                onChange={e => updateZoneRule(zIdx, 'min_staff', Number(e.target.value))}
+                                min="0"
+                                className="w-full px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs text-gray-500 mb-1">Max Staff</label>
+                              <input
+                                type="number"
+                                value={zone.max_staff ?? 10}
+                                onChange={e => updateZoneRule(zIdx, 'max_staff', Number(e.target.value))}
+                                min="0"
+                                className="w-full px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                              />
+                            </div>
+                            <div className="flex items-end">
+                              <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={zone.restricted || false}
+                                  onChange={e => updateZoneRule(zIdx, 'restricted', e.target.checked)}
+                                  className="rounded border-gray-300 text-violet-600 focus:ring-violet-500"
+                                />
+                                Restricted Zone
+                              </label>
+                            </div>
+                          </div>
+
+                          {/* Zone PPE */}
+                          <div className="mb-3">
+                            <label className="block text-xs text-gray-500 mb-1">PPE Requirements</label>
+                            <div className="flex flex-wrap gap-1.5">
+                              {ALL_PPE_OPTIONS.map(item => (
+                                <label key={item} className={`flex items-center gap-1 px-2 py-1 rounded border text-[10px] font-medium cursor-pointer transition-all ${(zone.ppe_requirements || []).includes(item) ? 'bg-violet-100 border-violet-300 text-violet-700' : 'bg-gray-50 border-gray-200 text-gray-400 hover:border-gray-300'}`}>
+                                  <input
+                                    type="checkbox"
+                                    checked={(zone.ppe_requirements || []).includes(item)}
+                                    onChange={() => toggleZonePPE(zIdx, item)}
+                                    className="sr-only"
+                                  />
+                                  {cap(item)}
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Zone Custom Rules */}
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="block text-xs text-gray-500">Custom Rules</label>
+                              <button onClick={() => addZoneCustomRule(zIdx)} className="text-[10px] font-medium text-violet-600 hover:text-violet-800">+ Add Rule</button>
+                            </div>
+                            {(zone.rules || []).map((rule, rIdx) => (
+                              <div key={rIdx} className="flex items-center gap-2 mb-1.5">
+                                <input
+                                  type="text"
+                                  value={rule}
+                                  onChange={e => updateZoneCustomRule(zIdx, rIdx, e.target.value)}
+                                  placeholder="e.g. No entry without supervisor"
+                                  className="flex-1 px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                                />
+                                <button onClick={() => removeZoneCustomRule(zIdx, rIdx)} className="text-xs text-red-400 hover:text-red-600">x</button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Custom Alert Rules */}
+                  <div className="mb-5">
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">Custom Alert Rules</label>
+                      <button onClick={addAlertRule} className="text-xs font-medium text-violet-600 hover:text-violet-800">+ Add Rule</button>
+                    </div>
+                    {(aiConfig.alert_rules || []).length === 0 && (
+                      <p className="text-xs text-gray-400">No custom alert rules. Click &quot;+ Add Rule&quot; to create one.</p>
+                    )}
+                    {(aiConfig.alert_rules || []).map((rule, idx) => (
+                      <div key={idx} className="flex items-center gap-2 mb-2">
+                        <input
+                          type="text"
+                          value={rule}
+                          onChange={e => updateAlertRule(idx, e.target.value)}
+                          placeholder="e.g. Reception must always be staffed during operating hours"
+                          className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                        />
+                        <button onClick={() => removeAlertRule(idx)} className="text-xs text-red-400 hover:text-red-600 px-2">x</button>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Prompt Preview */}
+                  <div className="mb-5">
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">Prompt Preview</label>
+                      <button
+                        onClick={() => handlePreviewPrompt(c.id)}
+                        disabled={loadingPreview}
+                        className="text-xs font-medium text-violet-600 hover:text-violet-800 disabled:opacity-50"
+                      >
+                        {loadingPreview ? 'Generating...' : 'Preview Prompt'}
+                      </button>
+                    </div>
+                    {promptPreview && (
+                      <textarea
+                        readOnly
+                        value={promptPreview}
+                        className="w-full h-48 px-3 py-2 text-xs font-mono border border-gray-200 rounded-lg bg-gray-50 text-gray-700 resize-y"
+                      />
+                    )}
+                  </div>
+
+                  {/* Error + Save/Cancel */}
+                  {aiConfigError && (
+                    <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">{aiConfigError}</div>
+                  )}
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => handleSaveAiConfig(c.id)}
+                      disabled={aiConfigSaving}
+                      className="px-5 py-2 bg-violet-600 text-white text-sm font-semibold rounded-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {aiConfigSaving ? 'Saving...' : 'Save AI Config'}
+                    </button>
+                    <button
+                      onClick={() => setAiConfigClientId(null)}
+                      className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {clients.length === 0 && <Empty msg="No clients found. Add clients first." />}
+
+      <div className="mt-8 bg-blue-50 border border-blue-100 rounded-2xl p-5">
+        <h3 className="font-semibold text-blue-900 mb-2">How it works</h3>
+        <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
+          <li>Add camera zones in the client dashboard (Zones tab) — each zone = one camera</li>
+          <li>Come here and set the <strong>IP address</strong> and login for each camera</li>
+          <li>Save — the engine starts capturing automatically at the next 5-minute cycle</li>
+          <li>Use <strong>Test Run</strong> to fire the full loop right now and see what Claude detects</li>
+        </ol>
+      </div>
+
+      {/* ─── Cost & Analytics ───────────────────────────────────────────── */}
+      <div className="mt-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-gray-900">Cost &amp; Analytics — Today</h2>
+          <button
+            onClick={loadStats}
+            disabled={loadingStats}
+            className="text-xs font-medium text-blue-600 hover:text-blue-800 disabled:opacity-50"
+          >
+            {loadingStats ? 'Refreshing...' : 'Refresh'}
+          </button>
+        </div>
+
+        {loadingStats && !monitorStats && <Spinner />}
+
+        {monitorStats && (
+          <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-100">
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Client</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Last Analysis</th>
+                    <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Alerts</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Analyses</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Cost (USD)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {monitorStats.map(s => (
+                    <tr key={s.client_id} className="hover:bg-gray-50/50">
+                      <td className="px-4 py-3 font-medium text-gray-900">
+                        <span className="mr-1.5">{INDUSTRY_ICONS[s.industry] || '🏢'}</span>
+                        {s.client_name}
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 text-xs">
+                        {s.last_analysis ? new Date(s.last_analysis).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '—'}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          s.overall_status === 'critical' ? 'bg-red-100 text-red-700' :
+                          s.overall_status === 'warning' ? 'bg-amber-100 text-amber-700' :
+                          s.overall_status === 'normal' ? 'bg-emerald-100 text-emerald-700' :
+                          'bg-gray-100 text-gray-500'
+                        }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${statusColor[s.overall_status] || 'bg-gray-300'}`} />
+                          {statusLabel[s.overall_status] || 'No data'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right text-gray-700 tabular-nums">{s.alerts_today}</td>
+                      <td className="px-4 py-3 text-right text-gray-700 tabular-nums">{s.analyses_today}</td>
+                      <td className="px-4 py-3 text-right text-gray-700 font-mono text-xs tabular-nums">${s.cost_today_usd.toFixed(4)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="bg-gray-50 border-t border-gray-200 font-semibold">
+                    <td className="px-4 py-3 text-gray-900">Totals</td>
+                    <td className="px-4 py-3"></td>
+                    <td className="px-4 py-3"></td>
+                    <td className="px-4 py-3 text-right text-gray-900 tabular-nums">{monitorStats.reduce((sum, s) => sum + s.alerts_today, 0)}</td>
+                    <td className="px-4 py-3 text-right text-gray-900 tabular-nums">{monitorStats.reduce((sum, s) => sum + s.analyses_today, 0)}</td>
+                    <td className="px-4 py-3 text-right text-gray-900 font-mono text-xs tabular-nums">${monitorStats.reduce((sum, s) => sum + s.cost_today_usd, 0).toFixed(4)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {monitorStats && monitorStats.length === 0 && (
+          <div className="text-center text-gray-400 text-sm py-8">No monitoring data for today.</div>
+        )}
+      </div>
+    </>
+  );
+}
+
+/* ─── Tab: Edge Agents ──────────────────────────────────────────────────── */
+function EdgeAgentsTab() {
+  const [clients, setClients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [generatedConfig, setGeneratedConfig] = useState(null);
+  const [generating, setGenerating] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/monitor/config')
+      .then(r => r.json())
+      .then(d => { setClients(d.clients || []); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  async function generateAgentKey(clientId) {
+    setGenerating(clientId);
+    const res = await fetch('/api/agent/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ client_id: clientId }),
+    });
+    const data = await res.json();
+    setGenerating(null);
+    if (res.ok) setGeneratedConfig({ clientId, ...data });
+  }
+
+  if (loading) return <Spinner />;
+
+  return (
+    <>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Edge Agents</h1>
+        <p className="text-sm text-gray-500 mt-1">Deploy a small device at each client site to capture camera frames 24/7. No port forwarding needed.</p>
+      </div>
+
+      {/* How it works */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-6 mb-6">
+        <h2 className="text-sm font-bold text-blue-900 mb-3">How Edge Agents Work</h2>
+        <div className="flex flex-wrap gap-2 text-xs text-blue-800">
+          {['Raspberry Pi on client WiFi','Discovers cameras via ONVIF','Captures snapshots every 5 min','Uploads to cloud','AI analyzes frames','Dashboard shows results','WhatsApp alerts on violations'].map((step, i) => (
+            <div key={i} className="flex items-center gap-1.5">
+              {i > 0 && <span className="text-blue-400">→</span>}
+              <span className="bg-white border border-blue-200 rounded-lg px-3 py-1.5 font-medium">{step}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Hardware needed */}
+      <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-6 shadow-sm">
+        <h3 className="text-sm font-bold text-gray-900 mb-3">What You Need Per Site</h3>
+        <div className="grid sm:grid-cols-3 gap-4">
+          <div className="text-center p-4 bg-gray-50 rounded-xl">
+            <div className="text-2xl mb-2">🥧</div>
+            <div className="text-sm font-semibold">Raspberry Pi 4</div>
+            <div className="text-xs text-gray-500 mt-1">~₹2,500 · 2GB RAM is enough</div>
+          </div>
+          <div className="text-center p-4 bg-gray-50 rounded-xl">
+            <div className="text-2xl mb-2">📡</div>
+            <div className="text-sm font-semibold">WiFi / Ethernet</div>
+            <div className="text-xs text-gray-500 mt-1">Same network as the DVR</div>
+          </div>
+          <div className="text-center p-4 bg-gray-50 rounded-xl">
+            <div className="text-2xl mb-2">🔌</div>
+            <div className="text-sm font-semibold">Power Supply</div>
+            <div className="text-xs text-gray-500 mt-1">USB-C · Always on</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Client list */}
+      <div className="space-y-4">
+        {clients.map(c => (
+          <div key={c.id} className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <span className="text-xl">{INDUSTRY_ICONS[c.industry] || '🏢'}</span>
+                <div>
+                  <div className="font-semibold text-gray-900">{c.name}</div>
+                  <div className="text-xs text-gray-400">{(c.zones || []).length} camera zones</div>
+                </div>
+              </div>
+              <button
+                onClick={() => generateAgentKey(c.id)}
+                disabled={generating === c.id}
+                className="px-4 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 disabled:opacity-40 transition-colors"
+              >
+                {generating === c.id ? 'Generating...' : 'Generate Agent Key'}
+              </button>
+            </div>
+
+            {/* Show generated config */}
+            {generatedConfig?.clientId === c.id && (
+              <div className="px-6 py-5 bg-gray-50">
+                <div className="mb-3">
+                  <div className="text-xs font-bold text-green-700 uppercase tracking-wide mb-2">Agent Config Generated</div>
+                  <p className="text-xs text-gray-500 mb-3">Copy this config to the Raspberry Pi, or use the one-liner install command below.</p>
+                </div>
+
+                {/* Config JSON */}
+                <div className="mb-4">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">config.json</label>
+                  <pre className="bg-gray-900 text-green-400 text-[11px] p-4 rounded-lg overflow-x-auto font-mono">
+{JSON.stringify({
+  ...generatedConfig.config,
+  dvr_ip: '192.168.1.64',
+  dvr_port: 80,
+  dvr_username: 'admin',
+  dvr_password: 'YOUR_DVR_PASSWORD',
+  max_channels: 8,
+  interval_ms: 300000,
+}, null, 2)}
+                  </pre>
+                </div>
+
+                {/* Install command */}
+                <div className="mb-4">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">One-liner install (run on Raspberry Pi)</label>
+                  <div className="bg-gray-900 text-yellow-300 text-xs p-3 rounded-lg font-mono break-all">
+                    curl -sL https://www.stafflenz.com/install.sh | sudo bash
+                  </div>
+                </div>
+
+                {/* Manual steps */}
+                <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+                  <div className="text-xs font-semibold text-blue-800 mb-2">Manual Setup Steps</div>
+                  <ol className="text-xs text-blue-700 space-y-1 list-decimal list-inside">
+                    <li>Copy the config.json above to the Pi</li>
+                    <li>Replace DVR IP, username, and password with actual values</li>
+                    <li>Run: <code className="bg-blue-100 px-1 rounded">npm install && npm start</code></li>
+                    <li>The agent will discover cameras and start capturing automatically</li>
+                  </ol>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+
+        {clients.length === 0 && <Empty msg="No clients found. Add a client first." />}
+      </div>
+    </>
+  );
+}
+
 /* ─── Tab: System ────────────────────────────────────────────────────────── */
 function SystemTab() {
   const info = [
@@ -1208,6 +2240,8 @@ export default function AdminPage() {
         {tab === 'affiliates'   && <AffiliatesTab />}
         {tab === 'white labels' && <WhiteLabelsTab />}
         {tab === 'revenue'      && <RevenueTab />}
+        {tab === 'monitoring'   && <MonitoringTab />}
+        {tab === 'edge agents' && <EdgeAgentsTab />}
         {tab === 'system'       && <SystemTab />}
         {tab === 'demo view'    && <DemoViewTab />}
       </main>

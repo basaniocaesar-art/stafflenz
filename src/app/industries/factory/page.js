@@ -5,9 +5,10 @@ import CameraGrid from '@/components/CameraGrid';
 import IndustryPricing from '@/components/IndustryPricing';
 
 const PRICING = [
-  { name: 'Starter', price: 79, ideal: 'Small plants', highlight: false, features: ['Up to 5 production lines', 'Up to 25 workers', '8 cameras (8-ch DVR)', 'PPE zone monitoring', 'WhatsApp alerts', 'Daily shift report'] },
-  { name: 'Professional', price: 149, ideal: 'Mid-size operations', highlight: true, features: ['Up to 15 production lines', 'Up to 60 workers', '16 cameras (16-ch DVR)', 'Contractor invoice audit', 'Night shift monitoring', 'Zone-specific PPE rules', 'Weekly analytics'] },
-  { name: 'Enterprise', price: 299, ideal: 'Multi-site factories', highlight: false, features: ['Up to 30 production lines', 'Up to 100 workers', '32 cameras (32-ch DVR)', 'Multi-site dashboard', 'Custom alert rules', 'API access', 'Dedicated support'] },
+  { name: 'Starter', price: 79, ideal: 'Small plants', highlight: false, features: ['8 cameras (8-ch DVR)', 'Up to 10 workers', 'AI scan every 5 minutes', '3 frames per scan', 'PPE zone monitoring', 'WhatsApp alerts', 'Daily shift report'] },
+  { name: 'Professional', price: 149, ideal: 'Mid-size operations', highlight: true, features: ['16 cameras (16-ch DVR)', 'Up to 30 workers', 'AI scan every 5 minutes', '5 frames per scan', 'Night shift monitoring', 'Zone-specific PPE rules', 'Contractor invoice audit', 'Weekly analytics report'] },
+  { name: 'Enterprise', price: 299, ideal: 'Multi-site factories', highlight: false, features: ['32 cameras (32-ch DVR)', 'Up to 60 workers', 'AI scan every 2 minutes', '5 frames per scan', 'Multi-site dashboard', 'Custom alert rules', 'API access', 'Dedicated support'] },
+  { name: 'Custom', price: 499, ideal: 'Resellers & large deployments', highlight: false, features: ['Unlimited cameras', 'Unlimited workers', 'Real-time 1-minute scans', '10 frames per scan', 'White-label branding', 'Client management portal', 'Priority support', 'Custom integrations'] },
 ];
 
 const FRAMES = [

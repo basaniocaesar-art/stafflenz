@@ -100,7 +100,8 @@ export function getTokenFromRequest(request) {
 
 // Build Set-Cookie header string
 export function buildSessionCookie(token, maxAge = SESSION_DURATION_HOURS * 3600) {
-  return `${SESSION_COOKIE}=${token}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${maxAge}`;
+  const isLocal = process.env.NEXT_PUBLIC_APP_URL?.includes('localhost');
+  return `${SESSION_COOKIE}=${token}; HttpOnly; ${isLocal ? '' : 'Secure; '}SameSite=Strict; Path=/; Max-Age=${maxAge}`;
 }
 
 export function clearSessionCookie() {

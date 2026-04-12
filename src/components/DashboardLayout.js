@@ -13,17 +13,18 @@ const industryConfig = {
   construction: { label: 'Construction', icon: '🏗️' },
   hospital:     { label: 'Hospital',     icon: '🏥' },
   security:     { label: 'Security',     icon: '🔒' },
+  gym:          { label: 'Gym',          icon: '🏋️' },
 };
 
 const NAV_ICONS = {
   dashboard: (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
   ),
-  attendance: (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-  ),
   workers: (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+  ),
+  attendance: (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
   ),
   zones: (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M23 7l-7 5-4-4-7 5"/><rect x="1" y="3" width="22" height="18" rx="2"/></svg>
@@ -40,8 +41,8 @@ export default function DashboardLayout({ children, industry, clientName, userNa
 
   const navItems = [
     { href: `/${industry}`, label: 'Dashboard',    key: 'dashboard'  },
+    { href: '/workers',     label: 'Workers',      key: 'workers'    },
     { href: '/attendance',  label: 'Schedule',     key: 'attendance' },
-    { href: '/workers',     label: 'Performance',  key: 'workers'    },
     { href: '/zones',       label: 'Camera Zones', key: 'zones'      },
   ];
 

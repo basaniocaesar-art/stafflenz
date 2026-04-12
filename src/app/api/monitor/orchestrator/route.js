@@ -22,13 +22,139 @@ function internalHeaders() {
   };
 }
 
+// ── Queue-based path (webhook / email / ftp pushes) ─────────────────────────
+// For clients whose DVR PUSHES snapshots (instead of us pulling via ONVIF), the
+// snapshots sit in frame_queue until the 15-min batch cron picks them up. The
+// DVR's motion detection is the upstream trigger — we skip our own motion
+// detection here because a queued row already means something happened.
+async function processQueuedFrames(clientId, db, log) {
+  // Silent-fail if the table doesn't exist yet (migration not run)
+  let queue;
+  try {
+    const { data, error } = await db
+      .from('frame_queue')
+      .select('id, frame_path')
+      .eq('client_id', clientId)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: true })
+      .limit(16);
+    if (error) return null; // treat as "no queue" — fall back to pull path
+    queue = data;
+  } catch {
+    return null;
+  }
+
+  if (!queue || queue.length === 0) return null;
+
+  log.push(`queue: ${queue.length} pending frames`);
+
+  // Respect the 15-min batch interval so we don't blow up Claude costs
+  const { data: lastAnalysis } = await db
+    .from('monitoring_results')
+    .select('created_at')
+    .eq('client_id', clientId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  const lastAnalysisTime = lastAnalysis?.created_at ? new Date(lastAnalysis.created_at).getTime() : 0;
+  const timeSinceLastAnalysis = Date.now() - lastAnalysisTime;
+
+  if (timeSinceLastAnalysis < ANALYSIS_INTERVAL_MS) {
+    const minutesLeft = Math.ceil((ANALYSIS_INTERVAL_MS - timeSinceLastAnalysis) / 60000);
+    log.push(`queue_batch_waiting: ${minutesLeft}min until next analysis`);
+    return {
+      client_id: clientId,
+      status: 'queue_batch_waiting',
+      queued: queue.length,
+      minutes_until_analysis: minutesLeft,
+      log,
+    };
+  }
+
+  // Claim the rows — mark as processing so a concurrent cron run won't double-process
+  const claimedIds = queue.map((r) => r.id);
+  await db.from('frame_queue').update({ status: 'processing' }).in('id', claimedIds);
+
+  // Sign the 3 most recent frames for Claude (oldest → current ordering)
+  const recent = queue.slice(-3);
+  const frameUrls = await Promise.all(
+    recent.map(async (r) => {
+      const { data } = await db.storage.from('frames').createSignedUrl(r.frame_path, 3600);
+      return data?.signedUrl || null;
+    })
+  );
+  const validFrameUrls = frameUrls.filter(Boolean);
+
+  if (validFrameUrls.length === 0) {
+    // Nothing signable — mark as failed so we don't retry forever
+    await db
+      .from('frame_queue')
+      .update({ status: 'failed', error: 'no_signed_url', processed_at: new Date().toISOString() })
+      .in('id', claimedIds);
+    return { client_id: clientId, status: 'queue_sign_failed', log };
+  }
+
+  // Hand off to the existing /api/monitor/analyze route — same pipeline, same cost model
+  const analyzeRes = await fetch(`${BASE_URL}/api/monitor/analyze`, {
+    method: 'POST',
+    headers: internalHeaders(),
+    body: JSON.stringify({ client_id: clientId, frame_urls: validFrameUrls }),
+  });
+
+  const analyzeData = await analyzeRes.json();
+
+  if (!analyzeRes.ok) {
+    await db
+      .from('frame_queue')
+      .update({ status: 'failed', error: analyzeData.error || 'analyze_failed', processed_at: new Date().toISOString() })
+      .in('id', claimedIds);
+    return { client_id: clientId, status: 'queue_analyze_failed', error: analyzeData.error, log };
+  }
+
+  // Mark all claimed rows as processed
+  await db
+    .from('frame_queue')
+    .update({ status: 'processed', processed_at: new Date().toISOString() })
+    .in('id', claimedIds);
+
+  const { analysis } = analyzeData;
+  log.push(`queue_analysed: ${claimedIds.length} frames`);
+  log.push(`workers_detected: ${analysis?.detected_workers?.length ?? 0}`);
+  log.push(`alerts: ${analysis?.alerts?.length ?? 0}`);
+
+  return {
+    client_id: clientId,
+    status: 'analysed',
+    source: 'queue',
+    frames_processed: claimedIds.length,
+    workers_detected: analysis?.detected_workers?.length ?? 0,
+    alerts_created: analysis?.alerts?.length ?? 0,
+    summary: analysis?.summary ?? null,
+    log,
+  };
+}
+
 // ── Per-client worker ─────────────────────────────────────────────────────────
-// Phase 1: Capture + motion check (runs every 5 min, FREE)
+// Phase 0: Check frame_queue for queued push-based frames (webhook/email/ftp)
+// Phase 1: Capture + motion check (runs every 5 min, FREE) — for pull-based cameras
 // Phase 2: Claude analysis (runs every 15 min IF motion was detected, PAID)
 
 async function runClientWorker(clientId) {
   const log = [];
   const db = getAdminClient();
+
+  // Phase 0: If this client has push-based ingest (webhook/email/ftp), the
+  // snapshots are already sitting in the queue. Process them first and return —
+  // no need to also run capture+motion for push clients.
+  try {
+    const queueResult = await processQueuedFrames(clientId, db, log);
+    if (queueResult) return queueResult;
+  } catch (err) {
+    log.push(`queue_error: ${err.message}`);
+    // Don't abort — fall through to the pull path so a broken queue
+    // doesn't break clients that actually use ONVIF capture.
+  }
 
   try {
     // 1. Capture latest frame
@@ -210,7 +336,10 @@ export async function POST(request) {
     analysed: summary.filter((r) => r.status === 'analysed').length,
     no_motion: summary.filter((r) => r.status === 'no_motion').length,
     batch_waiting: summary.filter((r) => r.status === 'batch_waiting').length,
-    failed: summary.filter((r) => ['error', 'capture_failed', 'analyze_failed'].includes(r.status)).length,
+    queue_batch_waiting: summary.filter((r) => r.status === 'queue_batch_waiting').length,
+    failed: summary.filter((r) =>
+      ['error', 'capture_failed', 'analyze_failed', 'queue_analyze_failed', 'queue_sign_failed'].includes(r.status)
+    ).length,
   };
 
   // ── Update daily_summary for each client ──────────────────────────────────

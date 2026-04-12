@@ -1,0 +1,13 @@
+{
+  "name": "stafflenz-edge-agent",
+  "version": "1.0.0",
+  "description": "StaffLenz Edge Agent — runs on Raspberry Pi to capture camera frames and send to cloud",
+  "main": "agent.js",
+  "scripts": {
+    "start": "node agent.js",
+    "setup": "node setup.js"
+  },
+  "dependencies": {
+    "onvif": "^0.6.5"
+  }
+}

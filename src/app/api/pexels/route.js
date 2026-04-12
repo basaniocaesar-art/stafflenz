@@ -11,6 +11,7 @@ const QUERIES = {
   warehouse:    'warehouse logistics',
   restaurant:   'restaurant kitchen cooking',
   security:     'security guard office',
+  gym:          'gym fitness workout',
 };
 
 // 8 different queries per industry for camera grid variety
@@ -24,6 +25,7 @@ const GRID_QUERIES = {
   warehouse:    ['warehouse shelves','forklift warehouse','warehouse workers','loading dock','warehouse inventory','logistics workers','shipping warehouse','warehouse interior'],
   restaurant:   ['restaurant kitchen','restaurant dining','restaurant bar','restaurant staff','food preparation','restaurant service','restaurant entrance','chef cooking'],
   security:     ['security guard','office building entrance','security checkpoint','parking lot surveillance','security patrol','building lobby security','night security','access control'],
+  gym:          ['gym weights workout','cardio gym','gym trainer','fitness class studio','gym reception','treadmill running','gym floor members','yoga studio'],
 };
 
 function pickFile(video) {

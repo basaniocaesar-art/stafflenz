@@ -1,7 +1,19 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
+import sharp from 'sharp';
 import { getAdminClient } from '@/lib/supabase';
 import { buildAnalysisPrompt as buildDynamicPrompt, calculateCost } from '@/lib/promptBuilder';
+
+// Resize worker reference photos before sending to Claude.
+// Claude Vision charges by image tokens (~1500 tokens for 640x480, ~400 for 384x384).
+// Face recognition works fine at 384px — this cuts worker photo costs by ~75%.
+async function resizePhoto(buffer) {
+  try {
+    return await sharp(buffer).resize(384, 384, { fit: 'inside' }).jpeg({ quality: 82 }).toBuffer();
+  } catch {
+    return buffer; // fall back to original if resize fails
+  }
+}
 
 function verifyInternalSecret(request) {
   return request.headers.get('x-internal-secret') === process.env.INTERNAL_SECRET;
@@ -90,6 +102,7 @@ export async function POST(request) {
 
   // ── Step 3: Download worker reference photos as base64 ───────────────────
   // Supports multiple photos per worker (photo_paths array) with fallback to single photo_path
+  // Photos are resized to 384x384 before base64 encoding to cut Claude token cost ~75%.
   async function downloadPhotoBase64(path) {
     try {
       const { data: signed } = await db.storage
@@ -98,7 +111,8 @@ export async function POST(request) {
       if (!signed?.signedUrl) return null;
       const res = await fetch(signed.signedUrl);
       if (!res.ok) return null;
-      return Buffer.from(await res.arrayBuffer()).toString('base64');
+      const resized = await resizePhoto(Buffer.from(await res.arrayBuffer()));
+      return resized.toString('base64');
     } catch {
       return null;
     }
@@ -139,7 +153,11 @@ export async function POST(request) {
   const content = [];
 
   // Reference photos — send up to 4 per worker for better face matching
+  // These are static across calls (worker photos rarely change), so we mark the
+  // last block with cache_control so Anthropic caches them. Cached reads are ~10%
+  // of normal price, saving significant money on every repeated analysis.
   const photoLabels = ['front view', 'left profile', 'right profile', 'from above', 'alternate 1', 'alternate 2'];
+  let workerPhotoBlocksAdded = 0;
   for (const w of workersWithPhotos) {
     if (!w.photoBase64s || w.photoBase64s.length === 0) continue;
     const maxPhotos = Math.min(w.photoBase64s.length, 4);
@@ -153,7 +171,17 @@ export async function POST(request) {
         type: 'text',
         text: `Reference: This is ${w.full_name}${angleLabel} — ${w.department || 'staff'} assigned to ${currentShift} shift`,
       });
+      workerPhotoBlocksAdded += 2;
     }
+  }
+
+  // Add cache breakpoint after the last worker photo text block.
+  // Everything before and including this block gets cached on Anthropic's side.
+  // Cache TTL is 5 minutes — perfect for batch-analysis loops running every 15 min
+  // because each client batch within a cycle hits the warm cache.
+  if (workerPhotoBlocksAdded > 0) {
+    const lastIdx = content.length - 1;
+    content[lastIdx] = { ...content[lastIdx], cache_control: { type: 'ephemeral' } };
   }
 
   // Frames oldest → current

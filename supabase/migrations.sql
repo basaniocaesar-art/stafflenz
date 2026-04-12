@@ -172,6 +172,37 @@ $$ LANGUAGE sql SECURITY DEFINER;
 -- ============================================================
 
 -- ============================================================
+-- 13. ADD device_type TO camera_zones
+-- ============================================================
+ALTER TABLE camera_zones ADD COLUMN IF NOT EXISTS device_type text DEFAULT 'ip_camera';
+
+-- ============================================================
+-- 14. ADD hikconnect_account_id TO clients
+-- ============================================================
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS hikconnect_account_id text;
+
+-- ============================================================
+-- 15. ADD ONVIF direct-connection fields to clients
+-- ============================================================
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS dvr_host text;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS dvr_port int DEFAULT 80;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS dvr_username text;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS dvr_password text;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS camera_source text DEFAULT 'onvif';
+
+-- Add check constraint for camera_source (safe re-run)
+DO $$ BEGIN
+  ALTER TABLE clients ADD CONSTRAINT clients_camera_source_check
+    CHECK (camera_source IN ('onvif','hikconnect'));
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+-- ============================================================
+-- 16. ADD photo_paths ARRAY COLUMN TO workers (multi-photo support)
+-- ============================================================
+ALTER TABLE workers ADD COLUMN IF NOT EXISTS photo_paths text[];
+
+-- ============================================================
 -- DONE — verify with:
 -- SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name;
 -- ============================================================

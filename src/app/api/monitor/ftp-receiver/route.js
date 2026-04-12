@@ -133,6 +133,7 @@ async function processClientFolder(ftp, folderName, db) {
     workers = workerResult.data || [];
 
     // Download worker reference photos (max 1 per worker for speed)
+    // Resized to 384x384 to cut Claude token cost ~75% (face recognition still works at this size)
     const workersWithPhotos = await Promise.all(
       workers.map(async (w) => {
         if (!w.photo_path) return { ...w, photoBase64: null };
@@ -141,7 +142,9 @@ async function processClientFolder(ftp, folderName, db) {
           if (!signed?.signedUrl) return { ...w, photoBase64: null };
           const res = await fetch(signed.signedUrl);
           if (!res.ok) return { ...w, photoBase64: null };
-          return { ...w, photoBase64: Buffer.from(await res.arrayBuffer()).toString('base64') };
+          const raw = Buffer.from(await res.arrayBuffer());
+          const resized = await sharp(raw).resize(384, 384, { fit: 'inside' }).jpeg({ quality: 82 }).toBuffer().catch(() => raw);
+          return { ...w, photoBase64: resized.toString('base64') };
         } catch { return { ...w, photoBase64: null }; }
       })
     );
@@ -159,11 +162,18 @@ async function processClientFolder(ftp, folderName, db) {
     // Build Claude message content
     const content = [];
 
-    // Worker reference photos
+    // Worker reference photos — cache these since they rarely change.
+    // Cached reads cost ~10% of normal input tokens, saving money on every repeat.
+    let workerPhotoBlocksAdded = 0;
     for (const w of workersWithPhotos) {
       if (!w.photoBase64) continue;
       content.push({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: w.photoBase64 } });
       content.push({ type: 'text', text: `Reference: ${w.full_name} — ${w.department || 'staff'}` });
+      workerPhotoBlocksAdded += 2;
+    }
+    if (workerPhotoBlocksAdded > 0) {
+      const lastIdx = content.length - 1;
+      content[lastIdx] = { ...content[lastIdx], cache_control: { type: 'ephemeral' } };
     }
 
     // Stitched frame

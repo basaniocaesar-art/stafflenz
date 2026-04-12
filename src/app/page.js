@@ -149,6 +149,22 @@ const INDUSTRIES = [
     ],
     zone: 'Site Perimeter · Camera 09',
   },
+  {
+    id: 'gym',
+    label: 'Gym',
+    icon: '🏋️',
+    headline: 'Trainer Presence & Peak Hour Footfall',
+    sub: 'Is the floor trainer on duty. Are peak hours really your peak hours — by camera count.',
+    color: 'text-green-400',
+    border: 'border-green-500',
+    bg: 'bg-green-500',
+    detections: [
+      { label: 'Trainer Karthik', sub: 'Weights Floor · On duty', color: '#10b981', x: '8%', y: '18%', w: '22%', h: '55%' },
+      { label: '⚠ Reception Unmanned', sub: '6 min gap · Peak hour', color: '#ef4444', x: '48%', y: '6%', w: '44%', h: '34%' },
+      { label: '14 members on floor', sub: 'Cardio zone · 18:42', color: '#10b981', x: '38%', y: '45%', w: '22%', h: '42%' },
+    ],
+    zone: 'Main Floor · Camera 01',
+  },
 ];
 
 const TICKER = [
@@ -354,6 +370,7 @@ export default function HomePage() {
             <a href="#platform" className="px-3 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-colors">Platform</a>
             <a href="#industries" className="px-3 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-colors">Industries</a>
             <a href="#why" className="px-3 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-colors">Why StaffLenz</a>
+            <a href="#setup-cost" className="px-3 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-colors">Setup</a>
             <a href="#pricing" className="px-3 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-colors">Pricing</a>
             <Link href="/blog" className="px-3 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-colors">Blog</Link>
             <Link href="/partners" className="px-3 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-colors">Partners</Link>
@@ -377,9 +394,9 @@ export default function HomePage() {
 
             {/* Left */}
             <div>
-              <div className="inline-flex items-center gap-2 bg-blue-500/15 border border-blue-500/30 rounded-full px-4 py-1.5 text-sm font-semibold text-blue-400 mb-6 tracking-wide">
-                <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
-                AI-POWERED WORKFORCE INTELLIGENCE
+              <div className="inline-flex items-center gap-2 bg-green-500/15 border border-green-500/30 rounded-full px-4 py-1.5 text-sm font-semibold text-green-400 mb-6 tracking-wide">
+                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                LIVE IN 5 MINUTES · NO NEW HARDWARE
               </div>
               <h1 className="text-5xl sm:text-6xl font-extrabold leading-[1.08] tracking-tight mb-6">
                 Turn Every Camera Into<br />
@@ -387,14 +404,14 @@ export default function HomePage() {
                 for Your Business
               </h1>
               <p className="text-lg text-slate-400 mb-8 leading-relaxed max-w-xl">
-                StaffLenz transforms your existing CCTV infrastructure into a real-time AI intelligence platform — detecting attendance, compliance violations, and operational gaps across every industry.
+                StaffLenz turns your existing CCTV into a real-time AI workforce intelligence platform — tracking attendance, compliance, and operational gaps across 10 industries. Self-serve setup takes 5 minutes. No new cameras, no rewiring, no downtime.
               </p>
               <div className="flex flex-wrap gap-4 mb-10">
                 <a href="#contact" className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold px-8 py-4 rounded-xl hover:opacity-90 transition-all shadow-2xl shadow-blue-900/40 text-base">
-                  Request a Demo →
+                  Start Free Trial →
                 </a>
-                <a href="#platform" className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white font-semibold px-8 py-4 rounded-xl hover:bg-white/15 transition-all text-base backdrop-blur">
-                  Explore Platform
+                <a href="#setup-cost" className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white font-semibold px-8 py-4 rounded-xl hover:bg-white/15 transition-all text-base backdrop-blur">
+                  See Setup Options
                 </a>
               </div>
 
@@ -402,9 +419,9 @@ export default function HomePage() {
               <div className="grid grid-cols-4 gap-4">
                 {[
                   { n: '95%+', l: 'Detection Accuracy' },
-                  { n: '30s', l: 'Alert Speed' },
+                  { n: '5 min', l: 'To Live Setup' },
                   { n: '500+', l: 'Sites Monitored' },
-                  { n: '9+', l: 'Industry Verticals' },
+                  { n: '10', l: 'Industry Verticals' },
                 ].map(s => (
                   <div key={s.l}>
                     <div className="text-2xl font-extrabold text-white">{s.n}</div>
@@ -590,6 +607,7 @@ export default function HomePage() {
               { id:'warehouse', label:'Warehouse & Logistics', icon:'📦', color:'from-indigo-500 to-blue-600', bg:'bg-indigo-50', border:'border-indigo-200', tag:'bg-indigo-100 text-indigo-700', points:['Loading bay coverage','Cold storage access control','Picker zone assignment','Overtime AI verification'] },
               { id:'restaurant', label:'Restaurant & Food Service', icon:'🍽️', color:'from-orange-500 to-red-600', bg:'bg-orange-50', border:'border-orange-200', tag:'bg-orange-100 text-orange-700', points:['Kitchen station coverage','Floor cover ratio alerts','Hygiene PPE per station','Break overlap prevention'] },
               { id:'security', label:'Security & Guard Services', icon:'🔒', color:'from-slate-600 to-gray-700', bg:'bg-slate-50', border:'border-slate-200', tag:'bg-slate-100 text-slate-700', points:['Live post abandonment alerts','Patrol route verification','Shift handover timestamps','Response time tracking'] },
+              { id:'gym', label:'Gym & Fitness', icon:'🏋️', color:'from-green-500 to-emerald-600', bg:'bg-green-50', border:'border-green-200', tag:'bg-green-100 text-green-700', points:['Trainer presence tracking','Peak hour footfall count','Unattended equipment alerts','Class attendance auto-count'] },
             ].map(ind => (
               <Link key={ind.id} href={`/industries/${ind.id}`} className={`card-hover p-6 flex flex-col group ${ind.bg} border ${ind.border}`}>
                 <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${ind.color} flex items-center justify-center text-2xl shadow-lg mb-4`}>{ind.icon}</div>
@@ -704,6 +722,120 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Setup / Install options */}
+      <section id="setup-cost" className="py-24 px-4 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-14">
+            <div className="section-label mb-4">How You Get Started</div>
+            <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight">
+              Pick how you want to set up.<br />
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-violet-600">Live in 5 minutes or hands-off.</span>
+            </h2>
+            <p className="mt-4 text-gray-500 text-lg max-w-2xl mx-auto">
+              Monthly subscription is separate from setup. Pick a setup option below based on how hands-on you want to be. All options include the same AI features.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {/* Self-Serve */}
+            <div className="relative rounded-3xl p-8 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+              <div className="absolute -top-3 left-6 bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow">MOST POPULAR</div>
+              <div className="text-4xl mb-3">⚡</div>
+              <h3 className="text-xl font-extrabold text-gray-900 mb-1">Self-Serve Setup</h3>
+              <div className="text-sm text-gray-500 mb-5">Do it yourself in 5 minutes</div>
+              <div className="flex items-baseline gap-1 mb-1">
+                <span className="text-5xl font-extrabold text-gray-900">Free</span>
+              </div>
+              <div className="text-xs text-gray-500 mb-6">No setup fee · Monthly plan separate</div>
+              <ul className="space-y-2.5 mb-8">
+                {[
+                  'Guided 5-minute onboarding wizard',
+                  'Paste-in email settings for your DVR',
+                  'Step-by-step guides for Hikvision, Dahua, CP Plus',
+                  'Live connection test',
+                  'Worker photo upload walkthrough',
+                  'Email + chat support',
+                ].map((f) => (
+                  <li key={f} className="flex items-start gap-2 text-sm text-gray-700">
+                    <span className="text-green-600 font-bold mt-0.5">✓</span> {f}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/#contact" className="block text-center py-3.5 rounded-2xl bg-green-600 text-white font-bold text-sm hover:bg-green-700 transition-all">
+                Start Free Trial →
+              </Link>
+              <div className="text-center text-xs text-gray-400 mt-3">Ready in 5 minutes</div>
+            </div>
+
+            {/* White-Glove */}
+            <div className="relative rounded-3xl p-8 bg-gradient-to-br from-blue-50 to-violet-50 border-2 border-blue-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+              <div className="text-4xl mb-3">🧑‍💻</div>
+              <h3 className="text-xl font-extrabold text-gray-900 mb-1">White-Glove Setup</h3>
+              <div className="text-sm text-gray-500 mb-5">We do it remotely via TeamViewer</div>
+              <div className="flex items-baseline gap-1 mb-1">
+                <span className="text-5xl font-extrabold text-gray-900">$99</span>
+                <span className="text-gray-500 text-sm">one-time</span>
+              </div>
+              <div className="text-xs text-gray-500 mb-6">Waived on Enterprise plans</div>
+              <ul className="space-y-2.5 mb-8">
+                {[
+                  '30-min remote session via TeamViewer / AnyDesk',
+                  'We configure your DVR email/FTP settings',
+                  'We add your workers and zones for you',
+                  'We run live connection test with you',
+                  'You never touch any technical setting',
+                  'Priority email + WhatsApp support',
+                ].map((f) => (
+                  <li key={f} className="flex items-start gap-2 text-sm text-gray-700">
+                    <span className="text-blue-600 font-bold mt-0.5">✓</span> {f}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/#contact" className="block text-center py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold text-sm hover:opacity-90 transition-all">
+                Book Setup Session →
+              </Link>
+              <div className="text-center text-xs text-gray-400 mt-3">Scheduled within 24 hours</div>
+            </div>
+
+            {/* Edge Agent */}
+            <div className="relative rounded-3xl p-8 bg-gradient-to-br from-slate-900 to-gray-950 border-2 border-gray-800 text-white hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+              <div className="absolute -top-3 left-6 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow">PREMIUM</div>
+              <div className="text-4xl mb-3">📦</div>
+              <h3 className="text-xl font-extrabold text-white mb-1">Edge Agent</h3>
+              <div className="text-sm text-gray-400 mb-5">We ship a pre-configured device</div>
+              <div className="flex items-baseline gap-1 mb-1">
+                <span className="text-5xl font-extrabold text-white">$249</span>
+                <span className="text-gray-400 text-sm">one-time</span>
+              </div>
+              <div className="text-xs text-gray-400 mb-6">Includes device + shipping + setup</div>
+              <ul className="space-y-2.5 mb-8">
+                {[
+                  'Pre-configured StaffLenz edge device',
+                  'Plug into your network — zero DVR config',
+                  'Auto-discovers cameras via ONVIF',
+                  'Works offline if your internet drops',
+                  '2-year hardware warranty',
+                  'Priority 24/7 support',
+                ].map((f) => (
+                  <li key={f} className="flex items-start gap-2 text-sm text-gray-300">
+                    <span className="text-amber-400 font-bold mt-0.5">✓</span> {f}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/#contact" className="block text-center py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-gray-900 font-bold text-sm hover:opacity-90 transition-all">
+                Order Device →
+              </Link>
+              <div className="text-center text-xs text-gray-500 mt-3">Shipped within 3 business days</div>
+            </div>
+          </div>
+
+          <div className="mt-10 rounded-2xl border border-blue-200 bg-blue-50 px-6 py-5 text-center text-sm text-blue-900 max-w-3xl mx-auto">
+            <span className="font-bold">Not sure which is right?</span> 90% of customers pick <b>Self-Serve</b>. If you're not comfortable touching your DVR settings, <b>White-Glove</b> is the stress-free option. Multi-site chains go with the <b>Edge Agent</b>.
+            &nbsp;<Link href="/#contact" className="underline font-semibold hover:text-blue-700">Talk to a human →</Link>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing — industry-specific slider */}
       <PricingSlider />
 
@@ -767,6 +899,7 @@ export default function HomePage() {
                   <option value="warehouse" className="bg-gray-900">Warehouse / Logistics</option>
                   <option value="restaurant" className="bg-gray-900">Restaurant / Food Service</option>
                   <option value="security" className="bg-gray-900">Security / Guard Services</option>
+                  <option value="gym" className="bg-gray-900">Gym / Fitness</option>
                 </select>
               </div>
               <div>
@@ -800,6 +933,7 @@ export default function HomePage() {
               <Link href="/industries/warehouse" className="hover:text-white transition-colors">Warehouse</Link>
               <Link href="/industries/restaurant" className="hover:text-white transition-colors">Restaurant</Link>
               <Link href="/industries/security" className="hover:text-white transition-colors">Security</Link>
+              <Link href="/industries/gym" className="hover:text-white transition-colors">Gym</Link>
               <Link href="/blog" className="hover:text-white transition-colors">Blog</Link>
             </div>
             <div className="flex items-center gap-4 text-sm text-gray-500">

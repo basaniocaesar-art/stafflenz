@@ -36,6 +36,13 @@ CREATE TABLE IF NOT EXISTS clients (
   plan        text NOT NULL DEFAULT 'starter' REFERENCES plan_limits(plan),
   is_active   boolean DEFAULT true,
   timezone    text DEFAULT 'Asia/Kolkata',
+  hikconnect_account_id text,
+  -- ONVIF direct connection (for clients without Hik-Connect)
+  dvr_host     text,          -- public IP or hostname of port-forwarded DVR
+  dvr_port     int DEFAULT 80,
+  dvr_username text,
+  dvr_password text,
+  camera_source text DEFAULT 'onvif' CHECK (camera_source IN ('onvif','hikconnect')),
   created_at  timestamptz DEFAULT now()
 );
 
@@ -98,6 +105,7 @@ CREATE TABLE IF NOT EXISTS camera_zones (
   camera_ip       text,
   location_label  text,
   zone_type       text DEFAULT 'floor',
+  device_type     text DEFAULT 'ip_camera',
   is_active       boolean DEFAULT true,
   created_at      timestamptz DEFAULT now()
 );

@@ -6,73 +6,91 @@ const ALL_INDUSTRIES = [
   {
     id: 'factory', label: 'Factory', icon: '🏭', accent: '#f59e0b',
     plans: [
-      { name: 'Starter', price: 79, ideal: 'Small plants', highlight: false, features: ['Up to 5 production lines', 'Up to 25 workers', '8 cameras (8-ch DVR)', 'PPE zone monitoring', 'WhatsApp alerts', 'Daily shift report'] },
-      { name: 'Professional', price: 149, ideal: 'Mid-size operations', highlight: true, features: ['Up to 15 production lines', 'Up to 60 workers', '16 cameras (16-ch DVR)', 'Contractor invoice audit', 'Night shift monitoring', 'Zone-specific PPE rules', 'Weekly analytics report'] },
-      { name: 'Enterprise', price: 299, ideal: 'Multi-site factories', highlight: false, features: ['Up to 30 production lines', 'Up to 100 workers', '32 cameras (32-ch DVR)', 'Multi-site dashboard', 'Custom alert rules', 'API access', 'Dedicated support'] },
+      { name: 'Starter', price: 79, ideal: 'Small plants', highlight: false, features: ['8 cameras (8-ch DVR)', 'Up to 10 workers', 'AI scan every 5 minutes', '3 frames per scan', 'PPE zone monitoring', 'WhatsApp alerts', 'Daily shift report'] },
+      { name: 'Professional', price: 149, ideal: 'Mid-size operations', highlight: true, features: ['16 cameras (16-ch DVR)', 'Up to 30 workers', 'AI scan every 5 minutes', '5 frames per scan', 'Night shift monitoring', 'Zone-specific PPE rules', 'Contractor invoice audit', 'Weekly analytics report'] },
+      { name: 'Enterprise', price: 299, ideal: 'Multi-site factories', highlight: false, features: ['32 cameras (32-ch DVR)', 'Up to 60 workers', 'AI scan every 2 minutes', '5 frames per scan', 'Multi-site dashboard', 'Custom alert rules', 'API access', 'Dedicated support'] },
+      { name: 'Custom', price: 499, ideal: 'Resellers & large deployments', highlight: false, features: ['Unlimited cameras', 'Unlimited workers', 'Real-time 1-minute scans', '10 frames per scan', 'White-label branding', 'Client management portal', 'Priority support', 'Custom integrations'] },
     ],
   },
   {
     id: 'hotel', label: 'Hotel', icon: '🏨', accent: '#8b5cf6',
     plans: [
-      { name: 'Starter', price: 89, ideal: 'Boutique hotels', highlight: false, features: ['Up to 25 staff monitored', '8 cameras (8-ch DVR — lobby, corridors, restaurant)', 'Reception coverage alerts', 'Housekeeping corridor tracker', 'WhatsApp alerts', 'Daily ops summary'] },
-      { name: 'Professional', price: 169, ideal: 'Mid-size hotels', highlight: true, features: ['Up to 60 staff monitored', '16 cameras (16-ch DVR) across public areas', 'Restaurant + banquet coverage', 'Cover ratio monitoring', 'Break overlap alerts', 'Hygiene alerts', 'Daily ops report'] },
-      { name: 'Enterprise', price: 329, ideal: 'Hotel chains', highlight: false, features: ['Up to 100 staff monitored', '32 cameras (32-ch DVR)', 'Multi-property dashboard', 'Cross-property benchmarking', 'GM morning summary', 'API access', 'Dedicated support'] },
+      { name: 'Starter', price: 89, ideal: 'Boutique hotels', highlight: false, features: ['8 cameras (8-ch DVR)', 'Up to 10 staff', 'AI scan every 5 minutes', '3 frames per scan', 'Reception & corridor alerts', 'WhatsApp alerts', 'Daily ops summary'] },
+      { name: 'Professional', price: 169, ideal: 'Mid-size hotels', highlight: true, features: ['16 cameras (16-ch DVR)', 'Up to 30 staff', 'AI scan every 5 minutes', '5 frames per scan', 'Restaurant + banquet coverage', 'Cover ratio monitoring', 'Hygiene alerts', 'Daily ops report'] },
+      { name: 'Enterprise', price: 329, ideal: 'Hotel chains', highlight: false, features: ['32 cameras (32-ch DVR)', 'Up to 60 staff', 'AI scan every 2 minutes', '5 frames per scan', 'Multi-property dashboard', 'Cross-property benchmarking', 'API access', 'Dedicated support'] },
+      { name: 'Custom', price: 499, ideal: 'Resellers & large groups', highlight: false, features: ['Unlimited cameras', 'Unlimited staff', 'Real-time 1-minute scans', '10 frames per scan', 'White-label branding', 'Client management portal', 'Priority support', 'Custom integrations'] },
     ],
   },
   {
     id: 'school', label: 'School', icon: '🏫', accent: '#10b981',
     plans: [
-      { name: 'Starter', price: 59, ideal: 'Small schools', highlight: false, features: ['Up to 25 teaching staff', '8 cameras (corridors & common areas)', 'Period-by-period duty grid', 'Unattended class alerts', 'WhatsApp alerts', 'Daily duty summary'] },
-      { name: 'Professional', price: 119, ideal: 'Mid-size schools', highlight: true, features: ['Up to 60 staff monitored', '16 cameras (corridors, canteen, gates)', 'Exam hall invigilation tracker', 'Canteen & gate duty alerts', 'Bus duty log', 'Parent-safe reporting'] },
-      { name: 'Enterprise', price: 229, ideal: 'School groups', highlight: false, features: ['Up to 100 staff monitored', '32 cameras (32-ch DVR)', 'Multi-campus dashboard', 'Board-level compliance reports', 'Custom duty schedules', 'API access', 'Dedicated support'] },
+      { name: 'Starter', price: 59, ideal: 'Small schools', highlight: false, features: ['8 cameras (corridors & common areas)', 'Up to 10 staff', 'AI scan every 5 minutes', '3 frames per scan', 'Unattended class alerts', 'WhatsApp alerts', 'Daily duty summary'] },
+      { name: 'Professional', price: 119, ideal: 'Mid-size schools', highlight: true, features: ['16 cameras (corridors, canteen, gates)', 'Up to 30 staff', 'AI scan every 5 minutes', '5 frames per scan', 'Exam hall invigilation tracker', 'Canteen & gate duty alerts', 'Parent-safe reporting'] },
+      { name: 'Enterprise', price: 229, ideal: 'School groups', highlight: false, features: ['32 cameras (32-ch DVR)', 'Up to 60 staff', 'AI scan every 2 minutes', '5 frames per scan', 'Multi-campus dashboard', 'Board-level compliance reports', 'API access', 'Dedicated support'] },
+      { name: 'Custom', price: 399, ideal: 'Multi-school operators', highlight: false, features: ['Unlimited cameras', 'Unlimited staff', 'Real-time 1-minute scans', '10 frames per scan', 'White-label branding', 'Client management portal', 'Priority support', 'Custom integrations'] },
     ],
   },
   {
     id: 'retail', label: 'Retail', icon: '🛍️', accent: '#f43f5e',
     plans: [
-      { name: 'Starter', price: 69, ideal: 'Small stores', highlight: false, features: ['Up to 8 sections', '4 billing counters', 'Up to 25 staff', '8 cameras (8-ch DVR)', 'Section heatmap', 'WhatsApp alerts', 'Daily report'] },
-      { name: 'Professional', price: 139, ideal: 'Mid-size stores', highlight: true, features: ['Up to 20 sections', '8 billing counters', 'Up to 60 staff', '16 cameras (16-ch DVR)', 'Stock room access log', 'Loss prevention alerts', 'Weekly analytics'] },
-      { name: 'Enterprise', price: 269, ideal: 'Retail chains', highlight: false, features: ['Up to 40 sections', 'Up to 100 staff', '32 cameras (32-ch DVR)', 'Multi-store dashboard', 'Cross-store benchmarking', 'Custom alert rules', 'API access', 'Dedicated support'] },
+      { name: 'Starter', price: 69, ideal: 'Small stores', highlight: false, features: ['8 cameras (8-ch DVR)', 'Up to 10 staff', 'AI scan every 5 minutes', '3 frames per scan', 'Section heatmap', 'WhatsApp alerts', 'Daily report'] },
+      { name: 'Professional', price: 139, ideal: 'Mid-size stores', highlight: true, features: ['16 cameras (16-ch DVR)', 'Up to 30 staff', 'AI scan every 5 minutes', '5 frames per scan', 'Stock room access log', 'Loss prevention alerts', 'Weekly analytics'] },
+      { name: 'Enterprise', price: 269, ideal: 'Retail chains', highlight: false, features: ['32 cameras (32-ch DVR)', 'Up to 60 staff', 'AI scan every 2 minutes', '5 frames per scan', 'Multi-store dashboard', 'Custom alert rules', 'API access', 'Dedicated support'] },
+      { name: 'Custom', price: 499, ideal: 'Resellers & large chains', highlight: false, features: ['Unlimited cameras', 'Unlimited staff', 'Real-time 1-minute scans', '10 frames per scan', 'White-label branding', 'Client management portal', 'Priority support', 'Custom integrations'] },
     ],
   },
   {
     id: 'hospital', label: 'Hospital', icon: '🏥', accent: '#06b6d4',
     plans: [
-      { name: 'Starter', price: 99, ideal: 'Small clinics', highlight: false, features: ['Up to 5 wards', 'Up to 25 clinical staff', '8 cameras (8-ch DVR)', 'Nurse ratio alerts', 'WhatsApp alerts', 'Daily coverage report'] },
-      { name: 'Professional', price: 199, ideal: 'Mid-size hospitals', highlight: true, features: ['Up to 10 wards', 'Up to 60 staff', '16 cameras (16-ch DVR)', 'Restricted zone access log', 'Shift handover verification', 'PPE per ward type', 'Compliance audit export'] },
-      { name: 'Enterprise', price: 399, ideal: 'Hospital groups', highlight: false, features: ['Up to 20 wards', 'Up to 100 staff', '32 cameras (32-ch DVR)', 'Multi-facility dashboard', 'Accreditation-ready reports', 'Custom ratio rules', 'API access', 'Dedicated support'] },
+      { name: 'Starter', price: 99, ideal: 'Small clinics', highlight: false, features: ['8 cameras (8-ch DVR)', 'Up to 10 clinical staff', 'AI scan every 5 minutes', '3 frames per scan', 'Nurse ratio alerts', 'WhatsApp alerts', 'Daily coverage report'] },
+      { name: 'Professional', price: 199, ideal: 'Mid-size hospitals', highlight: true, features: ['16 cameras (16-ch DVR)', 'Up to 30 staff', 'AI scan every 5 minutes', '5 frames per scan', 'Restricted zone access log', 'Shift handover verification', 'PPE per ward type', 'Compliance audit export'] },
+      { name: 'Enterprise', price: 399, ideal: 'Hospital groups', highlight: false, features: ['32 cameras (32-ch DVR)', 'Up to 60 staff', 'AI scan every 2 minutes', '5 frames per scan', 'Multi-facility dashboard', 'Accreditation-ready reports', 'API access', 'Dedicated support'] },
+      { name: 'Custom', price: 699, ideal: 'Healthcare networks', highlight: false, features: ['Unlimited cameras', 'Unlimited staff', 'Real-time 1-minute scans', '10 frames per scan', 'White-label branding', 'Client management portal', 'Priority support', 'Custom integrations'] },
     ],
   },
   {
     id: 'construction', label: 'Construction', icon: '🏗️', accent: '#eab308',
     plans: [
-      { name: 'Starter', price: 89, ideal: 'Single site', highlight: false, features: ['1 construction site', 'Up to 25 workers', '8 cameras (8-ch DVR)', 'PPE + muster check', 'WhatsApp alerts', 'Daily site report'] },
-      { name: 'Professional', price: 179, ideal: 'Growing contractors', highlight: true, features: ['Up to 3 sites', 'Up to 60 workers', '16 cameras per site (16-ch DVR)', 'Contractor invoice audit', 'Danger zone enforcement', 'After-hours security', 'Ghost worker detection'] },
-      { name: 'Enterprise', price: 349, ideal: 'Large contractors', highlight: false, features: ['Up to 10 sites', 'Up to 100 workers', '32 cameras per site (32-ch DVR)', 'Multi-project dashboard', 'Custom zone rules', 'API access', 'Dedicated support'] },
+      { name: 'Starter', price: 89, ideal: 'Single site', highlight: false, features: ['8 cameras (8-ch DVR)', 'Up to 10 workers', 'AI scan every 5 minutes', '3 frames per scan', 'PPE + muster check', 'WhatsApp alerts', 'Daily site report'] },
+      { name: 'Professional', price: 179, ideal: 'Growing contractors', highlight: true, features: ['16 cameras (16-ch DVR)', 'Up to 30 workers', 'AI scan every 5 minutes', '5 frames per scan', 'Danger zone enforcement', 'After-hours security', 'Ghost worker detection', 'Contractor invoice audit'] },
+      { name: 'Enterprise', price: 349, ideal: 'Large contractors', highlight: false, features: ['32 cameras (32-ch DVR)', 'Up to 60 workers', 'AI scan every 2 minutes', '5 frames per scan', 'Multi-project dashboard', 'Custom zone rules', 'API access', 'Dedicated support'] },
+      { name: 'Custom', price: 499, ideal: 'Resellers & large firms', highlight: false, features: ['Unlimited cameras', 'Unlimited workers', 'Real-time 1-minute scans', '10 frames per scan', 'White-label branding', 'Client management portal', 'Priority support', 'Custom integrations'] },
     ],
   },
   {
     id: 'warehouse', label: 'Warehouse', icon: '📦', accent: '#6366f1',
     plans: [
-      { name: 'Starter', price: 79, ideal: 'Small warehouses', highlight: false, features: ['Up to 6 loading bays', 'Up to 25 pickers', '8 cameras (8-ch DVR)', 'Bay coverage alerts', 'WhatsApp alerts', 'Daily ops report'] },
-      { name: 'Professional', price: 159, ideal: 'Mid-size logistics', highlight: true, features: ['Up to 20 bays', 'Up to 60 staff', '16 cameras (16-ch DVR)', 'Cold storage access log', 'Picker zone assignment', 'Overtime verification', 'SLA breach alerts'] },
-      { name: 'Enterprise', price: 299, ideal: 'Multi-warehouse', highlight: false, features: ['Up to 50 bays', 'Up to 100 staff', '32 cameras (32-ch DVR)', 'Multi-warehouse dashboard', 'Cross-site analytics', 'API access', 'Custom rules', 'Dedicated support'] },
+      { name: 'Starter', price: 79, ideal: 'Small warehouses', highlight: false, features: ['8 cameras (8-ch DVR)', 'Up to 10 staff', 'AI scan every 5 minutes', '3 frames per scan', 'Bay coverage alerts', 'WhatsApp alerts', 'Daily ops report'] },
+      { name: 'Professional', price: 159, ideal: 'Mid-size logistics', highlight: true, features: ['16 cameras (16-ch DVR)', 'Up to 30 staff', 'AI scan every 5 minutes', '5 frames per scan', 'Cold storage access log', 'Picker zone assignment', 'SLA breach alerts', 'Overtime verification'] },
+      { name: 'Enterprise', price: 299, ideal: 'Multi-warehouse', highlight: false, features: ['32 cameras (32-ch DVR)', 'Up to 60 staff', 'AI scan every 2 minutes', '5 frames per scan', 'Multi-warehouse dashboard', 'Custom rules', 'API access', 'Dedicated support'] },
+      { name: 'Custom', price: 499, ideal: 'Resellers & 3PL operators', highlight: false, features: ['Unlimited cameras', 'Unlimited staff', 'Real-time 1-minute scans', '10 frames per scan', 'White-label branding', 'Client management portal', 'Priority support', 'Custom integrations'] },
     ],
   },
   {
     id: 'restaurant', label: 'Restaurant', icon: '🍽️', accent: '#f97316',
     plans: [
-      { name: 'Starter', price: 69, ideal: 'Single restaurant', highlight: false, features: ['Up to 6 kitchen stations', 'Up to 25 staff', '8 cameras (8-ch DVR)', 'Hygiene PPE alerts', 'WhatsApp alerts', 'Service report'] },
-      { name: 'Professional', price: 129, ideal: 'Restaurant groups', highlight: true, features: ['Up to 3 locations', 'Up to 60 staff', '16 cameras per location (16-ch DVR)', 'Cover ratio monitoring', 'Break overlap alerts', 'Station coverage live', 'Food safety audit log'] },
-      { name: 'Enterprise', price: 249, ideal: 'Chains & franchises', highlight: false, features: ['Up to 10 locations', 'Up to 100 staff', '32 cameras per location (32-ch DVR)', 'Chain dashboard', 'Franchise benchmarking', 'Custom station rules', 'API access', 'Dedicated support'] },
+      { name: 'Starter', price: 69, ideal: 'Single restaurant', highlight: false, features: ['8 cameras (8-ch DVR)', 'Up to 10 staff', 'AI scan every 5 minutes', '3 frames per scan', 'Hygiene PPE alerts', 'WhatsApp alerts', 'Service report'] },
+      { name: 'Professional', price: 129, ideal: 'Restaurant groups', highlight: true, features: ['16 cameras (16-ch DVR)', 'Up to 30 staff', 'AI scan every 5 minutes', '5 frames per scan', 'Cover ratio monitoring', 'Break overlap alerts', 'Station coverage live', 'Food safety audit log'] },
+      { name: 'Enterprise', price: 249, ideal: 'Chains & franchises', highlight: false, features: ['32 cameras (32-ch DVR)', 'Up to 60 staff', 'AI scan every 2 minutes', '5 frames per scan', 'Chain dashboard', 'Franchise benchmarking', 'API access', 'Dedicated support'] },
+      { name: 'Custom', price: 499, ideal: 'Resellers & large chains', highlight: false, features: ['Unlimited cameras', 'Unlimited staff', 'Real-time 1-minute scans', '10 frames per scan', 'White-label branding', 'Client management portal', 'Priority support', 'Custom integrations'] },
     ],
   },
   {
     id: 'security', label: 'Security', icon: '🔒', accent: '#94a3b8',
     plans: [
-      { name: 'Starter', price: 89, ideal: 'Small sites', highlight: false, features: ['Up to 10 guard posts', 'Up to 25 guards', '8 cameras (8-ch DVR)', 'Post abandonment alerts', 'WhatsApp alerts', 'Daily patrol report'] },
-      { name: 'Professional', price: 169, ideal: 'Security companies', highlight: true, features: ['Up to 20 posts', 'Up to 60 guards', '16 cameras (16-ch DVR)', 'Patrol route verification', 'Shift handover log', 'Client SLA reports', 'Response time tracking'] },
-      { name: 'Enterprise', price: 329, ideal: 'Multi-client operations', highlight: false, features: ['Up to 50 posts', 'Up to 100 guards', '32 cameras (32-ch DVR)', 'Multi-client dashboard', 'White-label reports', 'API access', 'Custom patrol routes', 'Dedicated support'] },
+      { name: 'Starter', price: 89, ideal: 'Small sites', highlight: false, features: ['8 cameras (8-ch DVR)', 'Up to 10 guards', 'AI scan every 5 minutes', '3 frames per scan', 'Post abandonment alerts', 'WhatsApp alerts', 'Daily patrol report'] },
+      { name: 'Professional', price: 169, ideal: 'Security companies', highlight: true, features: ['16 cameras (16-ch DVR)', 'Up to 30 guards', 'AI scan every 5 minutes', '5 frames per scan', 'Patrol route verification', 'Shift handover log', 'Client SLA reports', 'Response time tracking'] },
+      { name: 'Enterprise', price: 329, ideal: 'Multi-client operations', highlight: false, features: ['32 cameras (32-ch DVR)', 'Up to 60 guards', 'AI scan every 2 minutes', '5 frames per scan', 'Multi-client dashboard', 'API access', 'Custom patrol routes', 'Dedicated support'] },
+      { name: 'Custom', price: 499, ideal: 'Resellers & large operators', highlight: false, features: ['Unlimited cameras', 'Unlimited guards', 'Real-time 1-minute scans', '10 frames per scan', 'White-label branding', 'Client management portal', 'Priority support', 'Custom integrations'] },
+    ],
+  },
+  {
+    id: 'gym', label: 'Gym', icon: '🏋️', accent: '#22c55e',
+    plans: [
+      { name: 'Starter', price: 69, ideal: 'Single gym', highlight: false, features: ['4 cameras (floor, weights, cardio, reception)', 'Up to 10 trainers', 'AI scan every 5 minutes', '3 frames per scan', 'Reception coverage alerts', 'WhatsApp alerts', 'Daily footfall summary'] },
+      { name: 'Professional', price: 129, ideal: 'Mid-size gyms', highlight: true, features: ['8 cameras (full floor coverage)', 'Up to 25 trainers', 'AI scan every 5 minutes', '5 frames per scan', 'Trainer presence tracking', 'Peak hour footfall', 'Unattended equipment alerts', 'Weekly member activity report'] },
+      { name: 'Enterprise', price: 249, ideal: 'Gym chains', highlight: false, features: ['16 cameras (multi-area)', 'Up to 60 trainers', 'AI scan every 2 minutes', '5 frames per scan', 'Multi-branch dashboard', 'Class attendance auto-count', 'API access', 'Dedicated support'] },
+      { name: 'Custom', price: 449, ideal: 'Franchise & large chains', highlight: false, features: ['Unlimited cameras', 'Unlimited trainers', 'Real-time 1-minute scans', '10 frames per scan', 'White-label branding', 'Client management portal', 'Priority support', 'Custom integrations'] },
     ],
   },
 ];
@@ -120,7 +138,7 @@ export default function PricingSlider() {
           </button>
 
           {/* Cards */}
-          <div key={ind.id} className="grid sm:grid-cols-3 gap-5">
+          <div key={ind.id} className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {ind.plans.map((plan) => (
               <div
                 key={plan.name}
