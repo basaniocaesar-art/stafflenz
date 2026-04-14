@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import sharp from 'sharp';
 import { getAdminClient } from '@/lib/supabase';
+import { calculateCost } from '@/lib/promptBuilder';
 
 // Anthropic enforces a 2000px max dimension when sending many images per
 // request. Resize everything safely below that AND smaller than the worker
@@ -154,23 +155,34 @@ ${workerList}
 ZONES:
 ${zoneList}
 
-Each registered worker above has MULTIPLE reference photos showing them from different angles — treat all photos labeled with the same name as the SAME person, not different candidates. Examine the current frame and try to match every visible face to one of the registered workers before labeling anyone "Unknown Person". Flag unknown persons, PPE violations, and zone issues.
+Each registered worker above has MULTIPLE reference photos showing them from different angles — treat all photos labeled with the same name as the SAME person, not different candidates.
+
+MATCHING RULES (very important):
+- A FALSE match is much worse than no match. Only assign a worker_name if you are highly confident the face in the frame is the same person as the reference photos.
+- If the face is too small, blurry, partially turned, or you have any doubt, label the person as "Unknown Person" with confidence 0.3 or lower.
+- Use confidence values: 0.9+ = certain match, 0.7-0.9 = likely match, below 0.7 = label as Unknown.
+- Do NOT guess based on clothing, hair colour, or body shape alone — face match required.
 
 Return ONLY valid JSON:
 {
   "detected_workers": [{"worker_id":null,"worker_name":"","zone":"","status":"working|idle","ppe_compliant":true,"confidence":0.8}],
   "alerts": [{"alert_type":"ppe_violation|zone_violation","worker_name":"","zone_name":"","message":"","severity":"low|medium|high"}],
-  "summary": ""
+  "summary": "",
+  "overall_status": "normal|warning|critical"
 }` });
 
   // Call Claude
-  let analysis;
+  const startMs = Date.now();
+  let analysis, inputTokens = 0, outputTokens = 0;
+  const model = 'claude-haiku-4-5-20251001';
   try {
     const response = await anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
+      model,
       max_tokens: 1500,
       messages: [{ role: 'user', content }],
     });
+    inputTokens = response.usage?.input_tokens || 0;
+    outputTokens = response.usage?.output_tokens || 0;
     const raw = response.content.find(b => b.type === 'text')?.text || '{}';
     const match = raw.match(/\{[\s\S]*\}/);
     analysis = JSON.parse(match?.[0] || '{}');
@@ -178,17 +190,32 @@ Return ONLY valid JSON:
     return NextResponse.json({ error: `Analysis failed: ${err.message}` }, { status: 500 });
   }
 
-  // Save events
+  // Save events. Filter out low-confidence "matches" — better to record an
+  // Unknown than a false positive against a real worker (a false match
+  // poisons attendance records and is harder to clean up than a missed one).
   const now = new Date().toISOString();
+  let workerEventsInserted = 0;
+  let alertsInserted = 0;
+
   if (Array.isArray(analysis.detected_workers) && analysis.detected_workers.length > 0) {
-    const events = analysis.detected_workers.map(w => ({
-      client_id, worker_id: w.worker_id || null, worker_name: w.worker_name,
-      event_type: 'detected', activity: w.status || 'present',
-      zone_id: zones.find(z => z.name === w.zone)?.id || null,
-      ppe_compliant: w.ppe_compliant !== false, zone_violation: false,
-      confidence: typeof w.confidence === 'number' ? w.confidence : 0.8, occurred_at: now,
-    }));
-    await db.from('worker_events').insert(events);
+    const events = analysis.detected_workers.map(w => {
+      const conf = typeof w.confidence === 'number' ? w.confidence : 0.8;
+      const matched = conf >= 0.7 && w.worker_name && !/unknown/i.test(w.worker_name);
+      return {
+        client_id,
+        worker_id: matched ? (w.worker_id || null) : null,
+        worker_name: matched ? w.worker_name : 'Unknown Person',
+        event_type: 'detected',
+        activity: w.status || 'present',
+        zone_id: zones.find(z => z.name === w.zone)?.id || null,
+        ppe_compliant: w.ppe_compliant !== false,
+        zone_violation: false,
+        confidence: conf,
+        occurred_at: now,
+      };
+    });
+    const { data: weData } = await db.from('worker_events').insert(events).select('id');
+    workerEventsInserted = weData?.length || 0;
   }
 
   if (Array.isArray(analysis.alerts) && analysis.alerts.length > 0) {
@@ -197,8 +224,26 @@ Return ONLY valid JSON:
       worker_name: a.worker_name || null, zone_name: a.zone_name || null,
       is_resolved: false, created_at: now,
     }));
-    await db.from('alerts').insert(alerts);
+    const { data: alertData } = await db.from('alerts').insert(alerts).select('id');
+    alertsInserted = alertData?.length || 0;
   }
 
-  return NextResponse.json({ success: true, analysis, timestamp: now });
+  // Persist per-cycle monitoring result so the dashboard charts populate.
+  const processingMs = Date.now() - startMs;
+  const costUsd = calculateCost(model, inputTokens, outputTokens);
+  await db.from('monitoring_results').insert({
+    client_id,
+    analysis_json: analysis,
+    frame_url,
+    input_tokens: inputTokens,
+    output_tokens: outputTokens,
+    model_used: model,
+    cost_usd: costUsd,
+    processing_ms: processingMs,
+    workers_detected: workerEventsInserted,
+    alerts_created: alertsInserted,
+    overall_status: analysis.overall_status || 'normal',
+  });
+
+  return NextResponse.json({ success: true, analysis, timestamp: now, cost_usd: costUsd });
 }
