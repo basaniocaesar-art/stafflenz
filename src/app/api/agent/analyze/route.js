@@ -60,7 +60,11 @@ export async function POST(request) {
     return NextResponse.json({ error: `Frame download failed: ${e.message}` }, { status: 502 });
   }
 
-  // Download worker reference photos (max 2 per worker)
+  // Download worker reference photos.
+  // The DB stores one photo_path per worker, but in storage each worker has
+  // a folder with multiple angles (photo_0.jpg … photo_4.jpg). Listing the
+  // folder lets Claude see the worker from every angle the admin uploaded,
+  // which is the single biggest knob for face-match accuracy on CCTV feeds.
   async function downloadPhoto(path) {
     try {
       const { data: signed } = await db.storage.from('worker-photos').createSignedUrl(path, 120);
@@ -71,12 +75,26 @@ export async function POST(request) {
     } catch { return null; }
   }
 
+  const MAX_PHOTOS_PER_WORKER = 5;
   const workersWithPhotos = await Promise.all(
     workers.map(async (w) => {
       const photos = [];
       if (w.photo_path) {
-        const b64 = await downloadPhoto(w.photo_path);
-        if (b64) photos.push(b64);
+        const folder = w.photo_path.substring(0, w.photo_path.lastIndexOf('/'));
+        let paths = [];
+        try {
+          const { data: files } = await db.storage.from('worker-photos').list(folder, { limit: 20 });
+          paths = (files || [])
+            .filter((f) => /\.(jpg|jpeg|png|webp)$/i.test(f.name))
+            .map((f) => `${folder}/${f.name}`)
+            .sort()
+            .slice(0, MAX_PHOTOS_PER_WORKER);
+        } catch { /* fall through to single-photo path */ }
+        if (paths.length === 0) paths = [w.photo_path];
+        for (const p of paths) {
+          const b64 = await downloadPhoto(p);
+          if (b64) photos.push(b64);
+        }
       }
       return { ...w, photoBase64s: photos };
     })
@@ -86,9 +104,12 @@ export async function POST(request) {
   const content = [];
   let workerPhotoBlocksAdded = 0;
   for (const w of workersWithPhotos) {
-    for (const b64 of w.photoBase64s) {
-      content.push({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: b64 } });
-      content.push({ type: 'text', text: `Reference: ${w.full_name} — ${w.department || 'staff'}` });
+    const total = w.photoBase64s.length;
+    for (let i = 0; i < total; i++) {
+      content.push({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: w.photoBase64s[i] } });
+      // Tell Claude these are N different angles of the SAME person, otherwise
+      // it treats each photo as a separate candidate and gets confused.
+      content.push({ type: 'text', text: `Reference angle ${i + 1}/${total} of ${w.full_name} — ${w.department || 'staff'}` });
       workerPhotoBlocksAdded += 2;
     }
   }
@@ -115,7 +136,7 @@ ${workerList}
 ZONES:
 ${zoneList}
 
-Examine the frame. Identify registered workers by comparing faces. Flag unknown persons, PPE violations, and zone issues.
+Each registered worker above has MULTIPLE reference photos showing them from different angles — treat all photos labeled with the same name as the SAME person, not different candidates. Examine the current frame and try to match every visible face to one of the registered workers before labeling anyone "Unknown Person". Flag unknown persons, PPE violations, and zone issues.
 
 Return ONLY valid JSON:
 {
