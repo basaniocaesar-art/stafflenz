@@ -1,6 +1,18 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
+import sharp from 'sharp';
 import { getAdminClient } from '@/lib/supabase';
+
+// Anthropic enforces a 2000px max dimension when sending many images per
+// request. Resize everything safely below that AND smaller than the worker
+// reference photos to control token cost.
+async function shrink(buffer, max) {
+  try {
+    return await sharp(buffer).resize(max, max, { fit: 'inside', withoutEnlargement: true }).jpeg({ quality: 82 }).toBuffer();
+  } catch {
+    return buffer;
+  }
+}
 
 // POST /api/agent/analyze — called by edge agent after uploading frames
 // This is the same analysis logic as /api/monitor/analyze but triggered by the agent
@@ -55,7 +67,9 @@ export async function POST(request) {
   try {
     const res = await fetch(frame_url);
     if (!res.ok) return NextResponse.json({ error: 'Could not download frame' }, { status: 502 });
-    frameBase64 = Buffer.from(await res.arrayBuffer()).toString('base64');
+    const raw = Buffer.from(await res.arrayBuffer());
+    const resized = await shrink(raw, 1280);
+    frameBase64 = resized.toString('base64');
   } catch (e) {
     return NextResponse.json({ error: `Frame download failed: ${e.message}` }, { status: 502 });
   }
@@ -71,7 +85,11 @@ export async function POST(request) {
       if (!signed?.signedUrl) return null;
       const res = await fetch(signed.signedUrl);
       if (!res.ok) return null;
-      return Buffer.from(await res.arrayBuffer()).toString('base64');
+      const raw = Buffer.from(await res.arrayBuffer());
+      // 512px is plenty for face matching and keeps token cost down across
+      // many reference angles per worker.
+      const resized = await shrink(raw, 512);
+      return resized.toString('base64');
     } catch { return null; }
   }
 
