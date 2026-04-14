@@ -32,3 +32,4 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+edge-agent/config.json

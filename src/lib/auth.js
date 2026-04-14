@@ -69,7 +69,7 @@ export async function verifySession(token) {
   if (user.client_id) {
     const { data } = await db
       .from('clients')
-      .select('id, name, industry, plan, is_active')
+      .select('id, name, industry, plan, is_active, subscription_status, trial_ends_at, current_period_end')
       .eq('id', user.client_id)
       .single();
     client = data;
@@ -113,4 +113,28 @@ export async function requireAuth(request) {
   const token = getTokenFromRequest(request);
   const session = await verifySession(token);
   return session;
+}
+
+// Helper: subscription gating. Returns one of:
+//   'ok'           — trialing (trial still valid) or active subscription
+//   'trial_expired'— was on trial, trial end date passed, not paid
+//   'past_due'     — subscription exists but payment failed
+//   'cancelled'    — user cancelled
+//   'no_client'    — super_admin or no client attached
+//
+// Call from page server components / API routes to redirect the user to
+// /billing when their subscription isn't in good standing. Kept separate
+// from requireAuth so authenticated-but-unpaid users can still reach the
+// billing portal and pay.
+export function subscriptionState(client) {
+  if (!client) return 'no_client';
+  const status = client.subscription_status || 'trialing';
+  if (status === 'active') return 'ok';
+  if (status === 'trialing') {
+    if (!client.trial_ends_at) return 'ok';
+    return new Date(client.trial_ends_at) > new Date() ? 'ok' : 'trial_expired';
+  }
+  if (status === 'past_due') return 'past_due';
+  if (status === 'cancelled') return 'cancelled';
+  return 'trial_expired';
 }

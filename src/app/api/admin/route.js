@@ -69,6 +69,43 @@ export async function GET(request) {
     return NextResponse.json({ white_labels: enriched });
   }
 
+  if (view === 'billing') {
+    // Real billing state — reads from the new payments table and the
+    // subscription_status column seeded by the Razorpay webhook.
+    const [{ data: clients }, { data: recentPayments }, { data: planLimits }] = await Promise.all([
+      db
+        .from('clients')
+        .select('id, name, industry, plan, subscription_status, trial_ends_at, current_period_end, razorpay_subscription_id, billing_email, created_at')
+        .order('created_at', { ascending: false }),
+      db
+        .from('payments')
+        .select('id, client_id, amount_inr, currency, status, method, paid_at, created_at, error_description')
+        .order('created_at', { ascending: false })
+        .limit(100),
+      db.from('plan_limits').select('plan, price_inr'),
+    ]);
+    const priceByPlan = Object.fromEntries((planLimits || []).map((p) => [p.plan, p.price_inr]));
+    const mrrPaise = (clients || [])
+      .filter((c) => c.subscription_status === 'active')
+      .reduce((sum, c) => sum + (priceByPlan[c.plan] || 0) * 100, 0);
+    const byStatus = {};
+    (clients || []).forEach((c) => {
+      const s = c.subscription_status || 'trialing';
+      byStatus[s] = (byStatus[s] || 0) + 1;
+    });
+    return NextResponse.json({
+      clients: clients || [],
+      recent_payments: recentPayments || [],
+      mrr_inr: mrrPaise / 100,
+      arr_inr: (mrrPaise / 100) * 12,
+      active_paying: byStatus.active || 0,
+      trialing: byStatus.trialing || 0,
+      past_due: byStatus.past_due || 0,
+      cancelled: byStatus.cancelled || 0,
+      by_status: byStatus,
+    });
+  }
+
   if (view === 'revenue') {
     const PLAN_PRICES = { starter: 79, professional: 149, enterprise: 299 };
     const { data: activeClients } = await db
