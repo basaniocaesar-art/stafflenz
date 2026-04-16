@@ -34,6 +34,44 @@ async function shrink(buffer, max) {
   }
 }
 
+// Tolerant JSON parser. Claude's sequence output is large nested arrays —
+// if max_tokens truncates mid-array we still want to return what we have.
+// Strategy: find the outer object, try to parse it; on failure, walk back
+// from the end closing-by-closing until we get something parseable.
+function parseJsonWithRecovery(raw) {
+  const start = raw.indexOf('{');
+  if (start < 0) return {};
+  let candidate = raw.slice(start);
+
+  // Cheap, common case: full JSON parses clean
+  try { return JSON.parse(candidate); } catch { /* continue */ }
+
+  // Walk back, removing trailing chars and re-balancing braces/brackets
+  for (let end = candidate.length; end > 100; end -= Math.max(1, Math.floor(end / 50))) {
+    let attempt = candidate.slice(0, end);
+    // Trim any dangling comma + close any unbalanced brackets/braces
+    attempt = attempt.replace(/[,\s]+$/, '');
+    let opens = 0, opensSq = 0;
+    let inStr = false, escape = false;
+    for (let i = 0; i < attempt.length; i++) {
+      const c = attempt[i];
+      if (escape) { escape = false; continue; }
+      if (c === '\\') { escape = true; continue; }
+      if (c === '"') { inStr = !inStr; continue; }
+      if (inStr) continue;
+      if (c === '{') opens++;
+      else if (c === '}') opens--;
+      else if (c === '[') opensSq++;
+      else if (c === ']') opensSq--;
+    }
+    if (inStr) attempt += '"';
+    while (opensSq-- > 0) attempt += ']';
+    while (opens-- > 0) attempt += '}';
+    try { return JSON.parse(attempt); } catch { /* try a shorter slice */ }
+  }
+  return {};
+}
+
 export async function POST(request) {
   const body = await request.json().catch(() => ({}));
   const { agent_key, client_id, frames, window_start, window_end } = body;
@@ -199,6 +237,11 @@ YOUR TASK:
 4. Count idle minutes (same person, same spot, no activity) and away minutes (expected presence but empty frame) per worker and per zone.
 5. Flag alerts at the right severity — most unknown persons are customers/visitors (not zone violations). Only flag real risks.
 
+OUTPUT BUDGET — keep the JSON under 6000 tokens. To stay within budget:
+- For each minute, only list distinct people once (don't repeat the same Unknown Person across multiple frames of the same minute).
+- Use SHORT field values: zone names from the registered list verbatim, single-word activity values, no parenthetical explanations inside worker_name.
+- Include ALL alerts and worker_states; truncate the timeline array if necessary (better to lose late minutes than to return invalid JSON).
+
 Return ONLY valid JSON in this exact shape:
 {
   "timeline": [
@@ -233,14 +276,16 @@ Return ONLY valid JSON in this exact shape:
   try {
     const response = await anthropic.messages.create({
       model,
-      max_tokens: 3000,
+      // Sequence output has 8 cameras × N minutes of timeline rows + alerts +
+      // worker_states. 3000 was getting truncated mid-array; 8000 gives
+      // comfortable headroom while staying inside Haiku's per-call budget.
+      max_tokens: 8000,
       messages: [{ role: 'user', content }],
     });
     inputTokens = response.usage?.input_tokens || 0;
     outputTokens = response.usage?.output_tokens || 0;
     const raw = response.content.find((b) => b.type === 'text')?.text || '{}';
-    const match = raw.match(/\{[\s\S]*\}/);
-    analysis = JSON.parse(match?.[0] || '{}');
+    analysis = parseJsonWithRecovery(raw);
   } catch (err) {
     return NextResponse.json(
       { error: `Analysis failed: ${err.message}` },

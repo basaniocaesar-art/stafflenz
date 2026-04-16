@@ -30,6 +30,33 @@ async function shrink(buffer, max) {
   }
 }
 
+// Tolerant JSON parser — recovers from truncated arrays by closing
+// dangling braces/brackets. Same shape as analyze-sequence.
+function parseJsonRecovery(raw) {
+  const start = raw.indexOf('{');
+  if (start < 0) return {};
+  let candidate = raw.slice(start);
+  try { return JSON.parse(candidate); } catch { /* fallthrough */ }
+  for (let end = candidate.length; end > 100; end -= Math.max(1, Math.floor(end / 50))) {
+    let attempt = candidate.slice(0, end).replace(/[,\s]+$/, '');
+    let opens = 0, opensSq = 0, inStr = false, escape = false;
+    for (let i = 0; i < attempt.length; i++) {
+      const c = attempt[i];
+      if (escape) { escape = false; continue; }
+      if (c === '\\') { escape = true; continue; }
+      if (c === '"') { inStr = !inStr; continue; }
+      if (inStr) continue;
+      if (c === '{') opens++; else if (c === '}') opens--;
+      else if (c === '[') opensSq++; else if (c === ']') opensSq--;
+    }
+    if (inStr) attempt += '"';
+    while (opensSq-- > 0) attempt += ']';
+    while (opens-- > 0) attempt += '}';
+    try { return JSON.parse(attempt); } catch { /* shorter slice next iter */ }
+  }
+  return {};
+}
+
 export async function POST(request) {
   const body = await request.json().catch(() => ({}));
   const {
@@ -209,8 +236,8 @@ Return ONLY valid JSON:
     inputTokens = response.usage?.input_tokens || 0;
     outputTokens = response.usage?.output_tokens || 0;
     const raw = response.content.find((b) => b.type === 'text')?.text || '{}';
-    const match = raw.match(/\{[\s\S]*\}/);
-    analysis = JSON.parse(match?.[0] || '{}');
+    // Tolerant parse — see analyze-sequence for the same helper
+    analysis = parseJsonRecovery(raw);
   } catch (err) {
     return NextResponse.json(
       { error: `Analysis failed: ${err.message}` },
