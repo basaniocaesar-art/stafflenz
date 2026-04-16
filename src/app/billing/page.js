@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 // Client billing portal — shows current plan, subscription status, next
@@ -15,7 +15,17 @@ const STATUS_COPY = {
   none:       { label: 'No plan',        color: 'bg-gray-100 text-gray-600' },
 };
 
-export default function BillingPortal() {
+// Outer wrapper provides the Suspense boundary required by Next.js 14
+// when any child uses useSearchParams() under static export.
+export default function BillingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-gray-500">Loading…</div>}>
+      <BillingPortal />
+    </Suspense>
+  );
+}
+
+function BillingPortal() {
   const router = useRouter();
   const search = useSearchParams();
   const showWelcome = search.get('welcome') === '1';

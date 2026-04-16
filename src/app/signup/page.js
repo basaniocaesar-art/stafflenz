@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 // Public signup page — collects company details, creates a trialing client,
@@ -20,7 +20,15 @@ const INDUSTRIES = [
   { value: 'security',     label: '🔒 Security Services' },
 ];
 
-export default function SignupPage() {
+export default function SignupPageWrapper() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-gray-500">Loading…</div>}>
+      <SignupPage />
+    </Suspense>
+  );
+}
+
+function SignupPage() {
   const router = useRouter();
   const search = useSearchParams();
   const [loading, setLoading] = useState(false);
