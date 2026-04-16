@@ -33,3 +33,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 edge-agent/config.json
+edge-agent/node_modules/
+edge-agent/package-lock.json

@@ -295,32 +295,36 @@ async function runCycle(channelCount) {
     const uploadFails = uploadResults.filter(r => r.status === 'rejected').length;
     log(`Uploaded ${uploaded.length} frames (${uploadFails} failed)`);
 
-    // 3. Also upload a "latest" composite (first frame as quick reference)
-    const latestPath = `${client_id}/latest.jpg`;
-    await uploadToSupabase(snapshots[0], latestPath);
+    // 3. Analyze EVERY uploaded camera, not just camera 01 — otherwise workers
+    //    on channels 2-8 are invisible to Claude.
+    let totalWorkers = 0;
+    let totalAlerts = 0;
+    for (let i = 0; i < uploaded.length; i++) {
+      const path = uploaded[i];
+      const signedRes = await httpPost(
+        `${supabase_url}/storage/v1/object/sign/frames/${path}`,
+        JSON.stringify({ expiresIn: 3600 }),
+        { 'Content-Type': 'application/json', Authorization: `Bearer ${supabase_key}`, apikey: supabase_key }
+      );
+      const frameUrl = signedRes.body?.signedURL
+        ? `${supabase_url}/storage/v1${signedRes.body.signedURL}`
+        : null;
+      if (!frameUrl) { log(`cam${i + 1}: no signed URL`); continue; }
 
-    // 4. Get signed URL for the latest frame
-    const signedRes = await httpPost(
-      `${supabase_url}/storage/v1/object/sign/frames/${latestPath}`,
-      JSON.stringify({ expiresIn: 3600 }),
-      { 'Content-Type': 'application/json', Authorization: `Bearer ${supabase_key}`, apikey: supabase_key }
-    );
-    const frameUrl = signedRes.body?.signedURL
-      ? `${supabase_url}/storage/v1${signedRes.body.signedURL}`
-      : null;
-
-    // 5. Trigger cloud analysis
-    if (frameUrl) {
-      log('Triggering cloud analysis...');
       const analysis = await triggerAnalysis(frameUrl);
       if (analysis.status === 200 && analysis.body?.success) {
         const a = analysis.body.analysis || {};
-        log(`Analysis: ${a.detected_workers?.length || 0} workers, ${a.alerts?.length || 0} alerts`);
-        log(`Summary: ${a.summary || 'none'}`);
+        const w = a.detected_workers?.length || 0;
+        const al = a.alerts?.length || 0;
+        totalWorkers += w;
+        totalAlerts += al;
+        const names = (a.detected_workers || []).map(d => d.worker_name).filter(Boolean).join(', ') || 'none';
+        log(`cam${i + 1}: ${w} workers [${names}], ${al} alerts`);
       } else {
-        log(`Analysis response: ${analysis.status} ${JSON.stringify(analysis.body).slice(0, 200)}`);
+        log(`cam${i + 1}: analysis failed ${analysis.status}`);
       }
     }
+    log(`Cycle totals: ${totalWorkers} worker detections, ${totalAlerts} alerts across ${uploaded.length} cameras`);
 
     // 6. Heartbeat
     await sendHeartbeat('online', channelCount, new Date().toISOString());
