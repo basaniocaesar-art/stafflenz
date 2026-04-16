@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic';
 
 const TRIAL_DAYS = 14;
 const VALID_INDUSTRIES = ['factory', 'hotel', 'school', 'retail'];
-const VALID_PLANS = ['starter', 'standard', 'pro', 'enterprise'];
+const VALID_PLANS = ['starter', 'standard', 'pro', 'scale', 'enterprise'];
 
 export async function POST(request) {
   const body = await request.json().catch(() => ({}));

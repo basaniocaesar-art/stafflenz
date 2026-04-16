@@ -97,10 +97,11 @@ export default function SignupPage() {
                 onChange={update('plan')}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
               >
-                <option value="starter">Starter — ₹5,000/mo</option>
-                <option value="standard">Standard — ₹8,000/mo</option>
-                <option value="pro">Pro — ₹14,000/mo</option>
-                <option value="enterprise">Enterprise — ₹22,000/mo</option>
+                <option value="starter">Starter — ₹4,999/mo · 4 cams</option>
+                <option value="standard">Standard — ₹9,999/mo · 8 cams</option>
+                <option value="pro">Pro — ₹19,999/mo · 16 cams + theft response</option>
+                <option value="scale">Scale — ₹39,999/mo · 32 cams · 24/7</option>
+                <option value="enterprise">Enterprise — custom</option>
               </select>
             </div>
           </div>

@@ -9,18 +9,43 @@ import Script from 'next/script';
 // - Everyone else → Stripe (USD, hosted checkout redirect)
 // User can override the auto-detected currency with the toggle at the top.
 
+// Keep feature lists in sync with supabase/migration-pricing-hybrid.sql — the
+// DB `plan_limits.features` jsonb drives the actual runtime config, this list
+// drives the marketing copy.
 const PLANS_INR = [
-  { key: 'starter',    name: 'Starter',    price: 5000,  features: ['15 workers', '4 cameras',  'Email alerts'] },
-  { key: 'standard',   name: 'Standard',   price: 8000,  features: ['50 workers', '8 cameras',  'WhatsApp alerts', 'Worker photos'] },
-  { key: 'pro',        name: 'Pro',        price: 14000, features: ['150 workers', '16 cameras', 'Zones + PPE', 'Priority support'] },
-  { key: 'enterprise', name: 'Enterprise', price: 22000, features: ['Unlimited workers', '64 cameras', 'Custom rules', 'Dedicated manager'] },
+  { key: 'starter',    name: 'Starter',    price: 4999,  credits: 3500,
+    tagline: 'Attendance + compliance', highlight: false,
+    features: ['4 cameras · 15 workers', '15-min attendance checks', 'Business hours (12h)', 'Email alerts', '3,500 credits included'] },
+  { key: 'standard',   name: 'Standard',   price: 9999,  credits: 10000,
+    tagline: 'Live workforce monitoring', highlight: true,
+    features: ['8 cameras · 50 workers', '5-min live checks', 'Business hours (12h)', 'Email + WhatsApp alerts', '24h forensic archive', '10,000 credits included'] },
+  { key: 'pro',        name: 'Pro',        price: 19999, credits: 30000,
+    tagline: 'Theft + incident response', highlight: false,
+    features: ['16 cameras · 150 workers', '3-second capture', 'Motion-triggered bursts', '7-day forensic archive', 'Voice + WhatsApp alerts', '30,000 credits included'] },
+  { key: 'scale',      name: 'Scale',      price: 39999, credits: 75000,
+    tagline: 'Multi-site, 24/7', highlight: false,
+    features: ['32 cameras · 500 workers', '3-sec + 1-min analysis', '24/7 coverage', '30-day forensic archive', 'All alerts + webhooks', '75,000 credits included'] },
+  { key: 'enterprise', name: 'Enterprise', price: 75000, credits: null,
+    tagline: 'Custom SLA + dedicated support', highlight: false,
+    features: ['Unlimited cameras + workers', '3-sec capture + 1-min analysis', '24/7 coverage + dedicated AM', 'White-label option', 'Custom integrations', 'Unlimited credits'] },
 ];
 
 const PLANS_USD = [
-  { key: 'starter',    name: 'Starter',    price: 79,  features: ['15 workers', '4 cameras',  'Email alerts'] },
-  { key: 'standard',   name: 'Standard',   price: 149, features: ['50 workers', '8 cameras',  'WhatsApp alerts', 'Worker photos'] },
-  { key: 'pro',        name: 'Pro',        price: 299, features: ['150 workers', '16 cameras', 'Zones + PPE', 'Priority support'] },
-  { key: 'enterprise', name: 'Enterprise', price: 499, features: ['Unlimited workers', '64 cameras', 'Custom rules', 'Dedicated manager'] },
+  { key: 'starter',    name: 'Starter',    price: 59,  credits: 3500,
+    tagline: 'Attendance + compliance', highlight: false,
+    features: ['4 cameras · 15 workers', '15-min attendance checks', 'Business hours (12h)', 'Email alerts', '3,500 credits included'] },
+  { key: 'standard',   name: 'Standard',   price: 119, credits: 10000,
+    tagline: 'Live workforce monitoring', highlight: true,
+    features: ['8 cameras · 50 workers', '5-min live checks', 'Business hours (12h)', 'Email + WhatsApp alerts', '24h forensic archive', '10,000 credits included'] },
+  { key: 'pro',        name: 'Pro',        price: 239, credits: 30000,
+    tagline: 'Theft + incident response', highlight: false,
+    features: ['16 cameras · 150 workers', '3-second capture', 'Motion-triggered bursts', '7-day forensic archive', 'Voice + WhatsApp alerts', '30,000 credits included'] },
+  { key: 'scale',      name: 'Scale',      price: 479, credits: 75000,
+    tagline: 'Multi-site, 24/7', highlight: false,
+    features: ['32 cameras · 500 workers', '3-sec + 1-min analysis', '24/7 coverage', '30-day forensic archive', 'All alerts + webhooks', '75,000 credits included'] },
+  { key: 'enterprise', name: 'Enterprise', price: 899, credits: null,
+    tagline: 'Custom SLA + dedicated support', highlight: false,
+    features: ['Unlimited cameras + workers', '3-sec capture + 1-min analysis', '24/7 coverage + dedicated AM', 'White-label option', 'Custom integrations', 'Unlimited credits'] },
 ];
 
 function formatINR(n) { return '₹' + n.toLocaleString('en-IN'); }
@@ -136,6 +161,11 @@ export default function CheckoutPage() {
   }
 
   function startCheckout(planKey) {
+    // Enterprise is custom-negotiated — route to sales rather than self-checkout
+    if (planKey === 'enterprise') {
+      window.location.href = '/#contact';
+      return;
+    }
     if (currency === 'USD') return startStripe(planKey);
     return startRazorpay(planKey);
   }
@@ -195,38 +225,64 @@ export default function CheckoutPage() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {plans.map((p) => (
-              <div key={p.key} className="bg-white rounded-2xl shadow-lg p-6 flex flex-col">
-                <h3 className="text-xl font-bold text-gray-900">{p.name}</h3>
-                <div className="mt-3">
-                  <span className="text-3xl font-bold text-gray-900">{fmt(p.price)}</span>
-                  <span className="text-gray-500">/month</span>
-                </div>
-                <ul className="mt-4 space-y-2 text-sm text-gray-700 flex-1">
-                  {p.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2">
-                      <span className="text-green-500">✓</span> {f}
-                    </li>
-                  ))}
-                </ul>
-                <button
-                  disabled={busyPlan !== null || (currency === 'INR' && !razorpayReady)}
-                  onClick={() => startCheckout(p.key)}
-                  className={`mt-6 w-full py-3 rounded-lg font-semibold transition ${
-                    client?.plan === p.key
-                      ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
-                  } disabled:opacity-50`}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {plans.map((p) => {
+              const isHighlight = p.highlight;
+              const isCurrent = client?.plan === p.key;
+              return (
+                <div
+                  key={p.key}
+                  className={`relative bg-white rounded-2xl p-6 flex flex-col border-2 transition ${
+                    isHighlight
+                      ? 'border-indigo-500 shadow-2xl scale-[1.02]'
+                      : 'border-gray-200 shadow'
+                  }`}
                 >
-                  {busyPlan === p.key
-                    ? 'Opening checkout…'
-                    : client?.plan === p.key
-                      ? 'Subscribe'
-                      : 'Choose plan'}
-                </button>
-              </div>
-            ))}
+                  {isHighlight && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+                      Most Popular
+                    </div>
+                  )}
+                  <h3 className="text-lg font-bold text-gray-900">{p.name}</h3>
+                  <div className="text-xs text-gray-500 mt-0.5">{p.tagline}</div>
+                  <div className="mt-3">
+                    <span className="text-2xl font-bold text-gray-900">{fmt(p.price)}</span>
+                    <span className="text-gray-500 text-sm">/mo</span>
+                  </div>
+                  <ul className="mt-4 space-y-1.5 text-xs text-gray-700 flex-1">
+                    {p.features.map((f) => (
+                      <li key={f} className="flex items-start gap-1.5">
+                        <span className="text-green-500 mt-0.5 shrink-0">✓</span>
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <button
+                    disabled={busyPlan !== null || (currency === 'INR' && !razorpayReady)}
+                    onClick={() => startCheckout(p.key)}
+                    className={`mt-5 w-full py-2.5 rounded-lg font-semibold text-sm transition disabled:opacity-50 ${
+                      isHighlight || isCurrent
+                        ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                        : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+                    }`}
+                  >
+                    {busyPlan === p.key
+                      ? 'Opening…'
+                      : isCurrent
+                        ? 'Subscribe'
+                        : p.key === 'enterprise'
+                          ? 'Contact sales'
+                          : 'Choose plan'}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-6 text-center text-xs text-gray-500 max-w-3xl mx-auto">
+            Each plan includes a monthly credit allowance. Overages are billed at your tier&apos;s rate
+            (₹1.00–₹2.00 per extra credit / $0.012–$0.024 at the USD equivalent) with a hard cap before we throttle — you&apos;ll never be hit with a surprise bill.
+            <a href="/pricing" className="text-indigo-600 hover:underline ml-1">See how credits work</a>
           </div>
 
           <div className="mt-6 text-center text-xs text-gray-500">
