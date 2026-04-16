@@ -18,7 +18,7 @@ export function middleware(request) {
   const protectedPaths = [
     '/factory', '/hotel', '/school', '/retail',
     '/restaurant', '/warehouse', '/construction', '/hospital', '/security',
-    '/workers', '/zones', '/attendance',
+    '/workers', '/zones', '/attendance', '/incidents',
     '/admin', '/whitelabel/dashboard',
   ];
   const isProtected = protectedPaths.some((p) => pathname.startsWith(p));
@@ -49,6 +49,7 @@ export const config = {
     '/workers/:path*',
     '/zones/:path*',
     '/attendance/:path*',
+    '/incidents/:path*',
     '/admin/:path*',
     '/whitelabel/dashboard/:path*',
     '/affiliate/dashboard/:path*',
