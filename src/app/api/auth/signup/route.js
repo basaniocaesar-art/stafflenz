@@ -43,6 +43,12 @@ export async function POST(request) {
 
   const db = getAdminClient();
 
+  // Detect country via the Vercel edge header so we can auto-pick the
+  // right payment provider on checkout. Falls back to IN if nothing set.
+  const country = (request.headers.get('x-vercel-ip-country') || 'IN').toUpperCase();
+  const defaultCurrency = country === 'IN' ? 'INR' : 'USD';
+  const defaultProvider = country === 'IN' ? 'razorpay' : 'stripe';
+
   // Create client first
   const trialEnds = new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000).toISOString();
   const { data: client, error: clientErr } = await db
@@ -55,6 +61,9 @@ export async function POST(request) {
       trial_ends_at: trialEnds,
       billing_email: admin_email.toLowerCase().trim(),
       billing_phone: phone || null,
+      billing_country: country,
+      billing_currency: defaultCurrency,
+      payment_provider: defaultProvider,
     })
     .select()
     .single();

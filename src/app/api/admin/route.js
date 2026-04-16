@@ -70,39 +70,55 @@ export async function GET(request) {
   }
 
   if (view === 'billing') {
-    // Real billing state — reads from the new payments table and the
-    // subscription_status column seeded by the Razorpay webhook.
+    // Real billing state across both providers. MRR is reported in both
+    // currencies — we don't do FX conversion, it's misleading. The admin
+    // can eyeball INR + USD totals separately.
     const [{ data: clients }, { data: recentPayments }, { data: planLimits }] = await Promise.all([
       db
         .from('clients')
-        .select('id, name, industry, plan, subscription_status, trial_ends_at, current_period_end, razorpay_subscription_id, billing_email, created_at')
+        .select('id, name, industry, plan, subscription_status, trial_ends_at, current_period_end, razorpay_subscription_id, stripe_subscription_id, payment_provider, billing_email, billing_currency, created_at')
         .order('created_at', { ascending: false }),
       db
         .from('payments')
-        .select('id, client_id, amount_inr, currency, status, method, paid_at, created_at, error_description')
+        .select('id, client_id, provider, amount_inr, currency, status, method, paid_at, created_at, error_description')
         .order('created_at', { ascending: false })
         .limit(100),
-      db.from('plan_limits').select('plan, price_inr'),
+      db.from('plan_limits').select('plan, price_inr, price_usd'),
     ]);
-    const priceByPlan = Object.fromEntries((planLimits || []).map((p) => [p.plan, p.price_inr]));
-    const mrrPaise = (clients || [])
+    const priceInrByPlan = Object.fromEntries((planLimits || []).map((p) => [p.plan, p.price_inr]));
+    const priceUsdByPlan = Object.fromEntries((planLimits || []).map((p) => [p.plan, p.price_usd]));
+    let mrrInr = 0;
+    let mrrUsd = 0;
+    (clients || [])
       .filter((c) => c.subscription_status === 'active')
-      .reduce((sum, c) => sum + (priceByPlan[c.plan] || 0) * 100, 0);
+      .forEach((c) => {
+        if (c.payment_provider === 'stripe' || c.billing_currency === 'USD') {
+          mrrUsd += priceUsdByPlan[c.plan] || 0;
+        } else {
+          mrrInr += priceInrByPlan[c.plan] || 0;
+        }
+      });
     const byStatus = {};
+    const byProvider = { razorpay: 0, stripe: 0, none: 0 };
     (clients || []).forEach((c) => {
       const s = c.subscription_status || 'trialing';
       byStatus[s] = (byStatus[s] || 0) + 1;
+      const p = c.payment_provider || 'none';
+      byProvider[p] = (byProvider[p] || 0) + 1;
     });
     return NextResponse.json({
       clients: clients || [],
       recent_payments: recentPayments || [],
-      mrr_inr: mrrPaise / 100,
-      arr_inr: (mrrPaise / 100) * 12,
+      mrr_inr: mrrInr,
+      arr_inr: mrrInr * 12,
+      mrr_usd: mrrUsd,
+      arr_usd: mrrUsd * 12,
       active_paying: byStatus.active || 0,
       trialing: byStatus.trialing || 0,
       past_due: byStatus.past_due || 0,
       cancelled: byStatus.cancelled || 0,
       by_status: byStatus,
+      by_provider: byProvider,
     });
   }
 

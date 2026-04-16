@@ -19,17 +19,17 @@ export async function GET(request) {
   const [{ data: client }, { data: plan }, { data: payments }] = await Promise.all([
     db
       .from('clients')
-      .select('id, name, plan, subscription_status, trial_ends_at, current_period_end, razorpay_subscription_id, billing_email, billing_phone')
+      .select('id, name, plan, subscription_status, trial_ends_at, current_period_end, razorpay_subscription_id, stripe_subscription_id, stripe_customer_id, payment_provider, billing_email, billing_phone, billing_country, billing_currency')
       .eq('id', session.client.id)
       .single(),
     db
       .from('plan_limits')
-      .select('plan, price_inr, max_workers, max_cameras')
+      .select('plan, price_inr, price_usd, max_workers, max_cameras')
       .eq('plan', session.client.plan)
       .single(),
     db
       .from('payments')
-      .select('id, amount_inr, currency, status, method, description, paid_at, created_at, error_description')
+      .select('id, provider, amount_inr, currency, status, method, description, paid_at, created_at, error_description')
       .eq('client_id', session.client.id)
       .order('created_at', { ascending: false })
       .limit(20),

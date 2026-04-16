@@ -56,6 +56,18 @@ export default function BillingPortal() {
     }
   }
 
+  async function openStripePortal() {
+    setError(null);
+    try {
+      const res = await fetch('/api/billing/stripe/portal', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || 'Could not open portal'); return; }
+      window.location.href = data.url;
+    } catch (e) {
+      setError(e.message);
+    }
+  }
+
   if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-500">Loading…</div>;
 
   const client = state?.client;
@@ -74,7 +86,7 @@ export default function BillingPortal() {
 
         {showWelcome && (
           <div className="mb-6 p-4 rounded-lg bg-green-50 text-green-800 border border-green-200">
-            🎉 Welcome! Your subscription is being confirmed — it can take a minute for Razorpay to send us the final confirmation.
+            🎉 Welcome! Your subscription is being confirmed — it can take a minute for the confirmation to arrive.
           </div>
         )}
 
@@ -109,13 +121,27 @@ export default function BillingPortal() {
             {client?.billing_email && <Field label="Billing email" value={client.billing_email} />}
           </div>
 
-          <div className="mt-6 flex gap-3">
+          {client?.payment_provider === 'stripe' && (
+            <div className="mt-4 text-xs text-gray-500">
+              Billed in USD via Stripe · managed through the Stripe customer portal
+            </div>
+          )}
+
+          <div className="mt-6 flex gap-3 flex-wrap">
             {(status === 'trialing' || status === 'cancelled' || status === 'none' || status === 'incomplete') && (
               <a href="/signup/checkout" className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold">
                 {status === 'cancelled' ? 'Reactivate' : 'Choose a plan'}
               </a>
             )}
-            {status === 'active' && (
+            {status === 'active' && client?.payment_provider === 'stripe' && (
+              <button
+                onClick={openStripePortal}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold"
+              >
+                Manage in Stripe Portal
+              </button>
+            )}
+            {status === 'active' && client?.payment_provider !== 'stripe' && (
               <button
                 onClick={cancelSub}
                 disabled={cancelling}
