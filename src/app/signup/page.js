@@ -6,11 +6,18 @@ import { useRouter, useSearchParams } from 'next/navigation';
 // Public signup page — collects company details, creates a trialing client,
 // then redirects to /signup/checkout for plan selection + payment.
 
+// Aligned with supabase/migration-industry-packs.sql
 const INDUSTRIES = [
-  { value: 'factory', label: 'Factory / Manufacturing' },
-  { value: 'hotel',   label: 'Hotel / Hospitality' },
-  { value: 'school',  label: 'School / Education' },
-  { value: 'retail',  label: 'Retail / Gym / Fitness' },
+  { value: 'gym',          label: '🏋️ Gym / Fitness' },
+  { value: 'factory',      label: '🏭 Factory / Manufacturing' },
+  { value: 'construction', label: '🏗️ Construction' },
+  { value: 'retail',       label: '🛍️ Retail / Store' },
+  { value: 'warehouse',    label: '📦 Warehouse / Logistics' },
+  { value: 'hotel',        label: '🏨 Hotel / Hospitality' },
+  { value: 'restaurant',   label: '🍽️ Restaurant / F&B' },
+  { value: 'hospital',     label: '🏥 Hospital / Clinic' },
+  { value: 'school',       label: '🏫 School / Education' },
+  { value: 'security',     label: '🔒 Security Services' },
 ];
 
 export default function SignupPage() {

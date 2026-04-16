@@ -12,8 +12,37 @@ import { createSession, buildSessionCookie } from '@/lib/auth';
 export const dynamic = 'force-dynamic';
 
 const TRIAL_DAYS = 14;
-const VALID_INDUSTRIES = ['factory', 'hotel', 'school', 'retail'];
+// Aligned with supabase/migration-industry-packs.sql (clients.industry CHECK).
+const VALID_INDUSTRIES = [
+  'gym', 'factory', 'construction', 'retail', 'warehouse',
+  'hotel', 'restaurant', 'hospital', 'school', 'security',
+];
 const VALID_PLANS = ['starter', 'standard', 'pro', 'scale', 'enterprise'];
+
+// After creating a client, apply the industry pack's zone templates so
+// they see a pre-populated workspace instead of a blank dashboard. Runs
+// best-effort — a failure here must NOT block signup.
+async function applyIndustryPack(db, clientId, industrySlug) {
+  try {
+    const { data: pack } = await db
+      .from('industry_packs')
+      .select('default_zones')
+      .eq('slug', industrySlug)
+      .eq('is_active', true)
+      .single();
+    if (!pack?.default_zones?.length) return;
+
+    const zones = pack.default_zones.map((z) => ({
+      client_id: clientId,
+      name: z.name,
+      zone_type: z.zone_type || 'floor',
+      is_active: true,
+    }));
+    await db.from('camera_zones').insert(zones);
+  } catch (e) {
+    console.warn('[signup] applyIndustryPack failed', e.message);
+  }
+}
 
 export async function POST(request) {
   const body = await request.json().catch(() => ({}));
@@ -94,6 +123,9 @@ export async function POST(request) {
     }
     return NextResponse.json({ error: userErr.message }, { status: 500 });
   }
+
+  // Apply the industry pack (zones, default alert rules). Best-effort.
+  await applyIndustryPack(db, client.id, industry);
 
   // Issue a session cookie so the user lands on /dashboard signed-in.
   const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || null;
