@@ -248,6 +248,42 @@ Return ONLY valid JSON:
   const processingMs = Date.now() - startMs;
   const costUsd = calculateCost(model, inputTokens, outputTokens);
 
+  // ── Active learning: auto-save high-confidence CCTV frames ────────
+  // Same mechanism as analyze-sequence — harvest 0.95+ matches as new
+  // reference photos so recognition improves over time.
+  const AUTO_LEARN_THRESHOLD = 0.95;
+  const MAX_AUTO_PHOTOS = 10;
+  for (const personName of analysis.identified_people || []) {
+    if (/unknown/i.test(personName)) continue;
+    // The burst response doesn't include per-person confidence, so we
+    // only auto-learn from burst results when severity is low (routine
+    // activity — high-severity frames may contain unusual angles that
+    // would confuse future matching).
+    if (severity !== 'low') continue;
+
+    const cleanName = personName.split('(')[0].trim();
+    const worker = workersWithPhotos.find((w) =>
+      w.full_name.toLowerCase() === cleanName.toLowerCase()
+    );
+    if (!worker?.photo_path || !frames[0]?.buffer) continue;
+
+    try {
+      const folder = worker.photo_path.substring(0, worker.photo_path.lastIndexOf('/'));
+      const { data: existing } = await db.storage.from('worker-photos').list(folder, { limit: 50 });
+      const autoCount = (existing || []).filter((f) => f.name.startsWith('auto_')).length;
+      if (autoCount >= MAX_AUTO_PHOTOS) continue;
+
+      const autoPath = `${folder}/auto_${Date.now()}.jpg`;
+      await db.storage.from('worker-photos').upload(autoPath, frames[0].buffer, {
+        contentType: 'image/jpeg',
+        upsert: false,
+      });
+      console.log(`[active-learning] Saved burst frame as reference for ${cleanName} → ${autoPath}`);
+    } catch (e) {
+      console.warn(`[active-learning] Failed for ${cleanName}:`, e.message);
+    }
+  }
+
   // ── Persist motion_event row ─────────────────────────────────────
   const framePaths = frame_urls.map((url) => {
     const m = url.match(/\/sign\/frames\/([^?]+)/);

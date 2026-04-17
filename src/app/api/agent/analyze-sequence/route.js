@@ -334,6 +334,55 @@ Return ONLY valid JSON in this exact shape:
     workerEventsInserted = data?.length || 0;
   }
 
+  // ── Active learning: auto-save high-confidence CCTV frames as new
+  // reference photos. When Claude is very confident (≥ 0.95) about a
+  // match, save the camera frame as an additional reference. Over time
+  // the reference set grows with real CCTV-angle photos, which is
+  // exactly what face matching needs to improve. Capped at 10 auto-saved
+  // photos per worker so storage doesn't grow forever.
+  const AUTO_LEARN_THRESHOLD = 0.95;
+  const MAX_AUTO_PHOTOS = 10;
+
+  for (const cam of analysis.timeline || []) {
+    for (const minute of cam.minutes || []) {
+      for (const p of minute.people || []) {
+        const conf = typeof p.confidence === 'number' ? p.confidence : 0;
+        if (conf < AUTO_LEARN_THRESHOLD || !p.worker_name || /unknown/i.test(p.worker_name)) continue;
+
+        const worker = workersWithPhotos.find((w) =>
+          w.full_name.toLowerCase() === p.worker_name.toLowerCase()
+        );
+        if (!worker?.photo_path) continue;
+
+        try {
+          const folder = worker.photo_path.substring(0, worker.photo_path.lastIndexOf('/'));
+
+          // Count existing auto-saved photos to enforce cap
+          const { data: existing } = await db.storage.from('worker-photos').list(folder, { limit: 50 });
+          const autoCount = (existing || []).filter((f) => f.name.startsWith('auto_')).length;
+          if (autoCount >= MAX_AUTO_PHOTOS) continue;
+
+          // Find the frame URL from this camera + minute to save
+          const camChannel = cam.camera_channel;
+          const frameEntry = frameBlocks.find((f) => f.camera_channel === camChannel);
+          if (!frameEntry?.buffer) continue;
+
+          const autoName = `auto_${Date.now()}.jpg`;
+          const autoPath = `${folder}/${autoName}`;
+          await db.storage.from('worker-photos').upload(autoPath, frameEntry.buffer, {
+            contentType: 'image/jpeg',
+            upsert: false,
+          });
+          // Log it — this is a meaningful self-improvement event
+          console.log(`[active-learning] Saved CCTV frame as reference for ${worker.full_name} (conf ${conf}) → ${autoPath}`);
+        } catch (e) {
+          // Non-fatal — learning failure doesn't break analysis
+          console.warn(`[active-learning] Failed for ${p.worker_name}:`, e.message);
+        }
+      }
+    }
+  }
+
   // Alerts
   if (Array.isArray(analysis.alerts) && analysis.alerts.length > 0) {
     const alertRows = analysis.alerts.map((a) => ({
