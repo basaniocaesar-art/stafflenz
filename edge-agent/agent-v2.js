@@ -55,10 +55,12 @@ const {
   motion_threshold = 10,        // 0-255 mean pixel delta to consider motion
   motion_cooldown_sec = 45,     // don't fire bursts more often than this per camera
   schedule = '24x7',            // '24x7' or 'business_hours' (06:00-22:00 local)
-  exclude_cameras = [],         // skip these camera channels entirely (e.g. [8] for pool)
+  exclude_cameras = [],         // skip these camera channels entirely
+  motion_exclude_cameras = [],  // capture + analyze these but skip motion detection (e.g. [8] for pool — water reflections)
 } = config;
 
 const excludeSet = new Set(exclude_cameras);
+const motionExcludeSet = new Set(motion_exclude_cameras);
 
 // ─── Small utilities ────────────────────────────────────────────────────────
 function log(msg) {
@@ -264,9 +266,10 @@ async function captureCycle(channelCount) {
       if (excludeSet.has(ch)) return { ch, skipped: true };
       const buffer = await captureChannel(ch);
 
-      // Motion detection on the edge
+      // Motion detection on the edge (skip for cameras like pool where
+      // water reflections cause constant false triggers)
       let motion = { score: 0, hasMotion: false, available: false };
-      if (motion_enabled && sharpAvailable) {
+      if (motion_enabled && sharpAvailable && !motionExcludeSet.has(ch)) {
         motion = await detectMotion(ch, buffer, motion_threshold);
       }
 
