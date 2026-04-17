@@ -160,7 +160,7 @@ Each registered worker above has MULTIPLE reference photos showing them from dif
 MATCHING RULES (very important):
 - A FALSE match is much worse than no match. Only assign a worker_name if you are highly confident the face in the frame is the same person as the reference photos.
 - If the face is too small, blurry, partially turned, or you have any doubt, label the person as "Unknown Person" with confidence 0.3 or lower.
-- Use confidence values: 0.9+ = certain match, 0.7-0.9 = likely match, below 0.7 = label as Unknown.
+- Use confidence values: 0.9+ = certain match, 0.85-0.95 = likely match, below 0.85 = label as Unknown.
 - Do NOT guess based on clothing, hair colour, or body shape alone — face match required.
 
 Return ONLY valid JSON:
@@ -200,7 +200,7 @@ Return ONLY valid JSON:
   if (Array.isArray(analysis.detected_workers) && analysis.detected_workers.length > 0) {
     const events = analysis.detected_workers.map(w => {
       const conf = typeof w.confidence === 'number' ? w.confidence : 0.8;
-      const matched = conf >= 0.7 && w.worker_name && !/unknown/i.test(w.worker_name);
+      const matched = conf >= 0.85 && w.worker_name && !/unknown/i.test(w.worker_name);
       return {
         client_id,
         worker_id: matched ? (w.worker_id || null) : null,

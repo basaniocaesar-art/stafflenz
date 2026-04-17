@@ -232,7 +232,7 @@ ${zoneList}
 
 YOUR TASK:
 1. For each camera, build a minute-by-minute timeline of who was present, where they were, and what activity they were engaged in.
-2. Identify registered workers by face match against the reference photos. Be CONSERVATIVE — only assign a worker_name if confidence ≥ 0.7. Otherwise mark as "Unknown Person" at confidence 0.3.
+2. Identify registered workers by face match against the reference photos. Be CONSERVATIVE — only assign a worker_name if confidence ≥ 0.85. Otherwise mark as "Unknown Person" at confidence 0.3.
 3. Flag meaningful changes across time — someone leaving, someone new arriving, a zone becoming unstaffed, suspicious activity.
 4. Count idle minutes (same person, same spot, no activity) and away minutes (expected presence but empty frame) per worker and per zone.
 5. Flag alerts at the right severity — most unknown persons are customers/visitors (not zone violations). Only flag real risks.
@@ -302,7 +302,7 @@ Return ONLY valid JSON in this exact shape:
   const nowIso = new Date().toISOString();
 
   // Insert per-minute worker_events so existing dashboards stay populated.
-  // We only store confidence ≥ 0.7 matches as real worker_ids; below that
+  // We only store confidence ≥ 0.85 matches as real worker_ids; below that
   // they're logged as Unknown Person so false positives don't poison data.
   const eventRows = [];
   for (const cam of analysis.timeline || []) {
@@ -312,7 +312,7 @@ Return ONLY valid JSON in this exact shape:
         : nowIso;
       for (const p of minute.people || []) {
         const conf = typeof p.confidence === 'number' ? p.confidence : 0.5;
-        const matched = conf >= 0.7 && p.worker_name && !/unknown/i.test(p.worker_name);
+        const matched = conf >= 0.85 && p.worker_name && !/unknown/i.test(p.worker_name);
         eventRows.push({
           client_id,
           worker_id: matched

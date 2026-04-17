@@ -201,7 +201,7 @@ ${zoneList}
 
 YOUR TASK — analyse what happened during this burst:
 1. Describe the action unfolding across the frames (person X entered, picked up Y, moved to Z).
-2. Match visible faces to registered workers. Be conservative: assign worker_name only if confidence ≥ 0.7, else "Unknown Person".
+2. Match visible faces to registered workers. Be conservative: assign worker_name only if confidence ≥ 0.85, else "Unknown Person".
 3. Judge severity:
    - "low" — routine activity (staff at work, customer browsing)
    - "medium" — unusual but not alarming (unknown person in public zone, minor PPE lapse)
