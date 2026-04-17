@@ -72,6 +72,58 @@ export async function GET(request) {
     db.from('workers').select('id, full_name, department, shift').eq('client_id', clientId).eq('is_active', true).is('deleted_at', null),
   ]);
 
+  // ── v2 data: timeline narratives + latest camera snapshots ─────
+  // These come from the temporal-analysis pipeline (agent v2) and give
+  // the dashboard real narrative context instead of generic event rows.
+  let recentTimelines = [];
+  let latestSnapshots = [];
+  let todayCost = 0;
+
+  try {
+    // Last 12 timeline narratives (1 hour at 5-min intervals)
+    const { data: tlData } = await db
+      .from('activity_timeline')
+      .select('id, window_start, window_end, summary, workers_detected, alerts_created, idle_minutes, away_minutes, cost_usd')
+      .eq('client_id', clientId)
+      .order('window_start', { ascending: false })
+      .limit(12);
+    recentTimelines = tlData || [];
+
+    // Today's total Claude cost
+    const todayStart = new Date().toISOString().slice(0, 10) + 'T00:00:00Z';
+    const { data: costData } = await db
+      .from('activity_timeline')
+      .select('cost_usd')
+      .eq('client_id', clientId)
+      .gte('window_start', todayStart);
+    todayCost = (costData || []).reduce((s, r) => s + (r.cost_usd || 0), 0);
+
+    // Latest snapshot per camera from frame_buffer (for the camera grid)
+    const cameraChannels = [1, 2, 3, 4, 5, 6, 7, 8];
+    const snapPromises = cameraChannels.map(async (ch) => {
+      const { data: latest } = await db
+        .from('frame_buffer')
+        .select('frame_path, captured_at, has_motion')
+        .eq('client_id', clientId)
+        .eq('camera_channel', ch)
+        .order('captured_at', { ascending: false })
+        .limit(1)
+        .single();
+      if (!latest) return { channel: ch, url: null, captured_at: null };
+      const { data: signed } = await db.storage.from('frames').createSignedUrl(latest.frame_path, 300);
+      return {
+        channel: ch,
+        url: signed?.signedUrl || null,
+        captured_at: latest.captured_at,
+        has_motion: latest.has_motion,
+      };
+    });
+    latestSnapshots = await Promise.all(snapPromises);
+  } catch (e) {
+    // v2 tables might not exist yet — degrade gracefully
+    console.warn('[client API] v2 data fetch failed:', e.message);
+  }
+
   const res = NextResponse.json({
     client: { ...client, total_workers: totalWorkers || 0, onboarding_completed: onboardingCompleted },
     today: summary || { present_count: 0, absent_count: 0, late_count: 0, violation_count: 0, total_events: 0 },
@@ -83,6 +135,10 @@ export async function GET(request) {
     zones: zonesData || [],
     workers: workersData || [],
     onboarding_completed: onboardingCompleted,
+    // v2 additions
+    timelines: recentTimelines,
+    camera_snapshots: latestSnapshots,
+    today_cost_usd: todayCost,
   });
   res.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
   return res;

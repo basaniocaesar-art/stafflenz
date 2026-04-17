@@ -278,17 +278,20 @@ export default function DashboardPage({ industry }) {
 
   useEffect(()=>{ const iv=setInterval(()=>setTime(new Date()),1000); return ()=>clearInterval(iv); },[]);
 
-  // Pexels videos
+  // Camera snapshots — use real frame_buffer data from the API (v2) instead
+  // of trying to reach the DVR directly from the browser. Falls back to
+  // ONVIF proxy or Pexels if no v2 data is available yet.
   useEffect(()=>{
-    async function load(){
-      // Load real camera snapshots — each returns a proxied image from the DVR
-      const snapUrls = Array.from({length:8},(_,i)=>`/api/onvif/snapshot?channel=${i+1}`);
-      setVideoUrls(snapUrls);
-      // Also try Pexels as fallback for cameras without DVR connection
-      try{ const r=await fetch('/api/pexels?count=8'); const j=await r.json(); if(j.urls) setVideoUrls(prev => prev.map((u,i) => u || j.urls[i])); }catch{}
+    if (!data?.camera_snapshots) return;
+    const urls = Array(8).fill(null);
+    for (const snap of data.camera_snapshots) {
+      if (snap.url && snap.channel >= 1 && snap.channel <= 8) {
+        urls[snap.channel - 1] = snap.url;
+      }
     }
-    load();
-  },[]);
+    // Only update if we got at least one real URL
+    if (urls.some(Boolean)) setVideoUrls(urls);
+  },[data?.camera_snapshots]);
 
   // Real data
   const fetchData = useCallback(async()=>{
@@ -463,27 +466,39 @@ export default function DashboardPage({ industry }) {
               </div>
             </div>
 
-            {/* Timeline */}
+            {/* AI Timeline Narratives (v2) */}
             <div className="rounded-2xl border overflow-hidden" style={{background:S.card,borderColor:S.border}}>
-              <div className="px-4 py-3 border-b" style={{borderColor:S.border}}>
-                <h2 className="text-sm font-bold text-white">Timeline Statistics</h2>
-                <p className="text-[11px] mt-0.5" style={{color:S.muted}}>Recent activity</p>
+              <div className="px-4 py-3 border-b flex items-center justify-between" style={{borderColor:S.border}}>
+                <div>
+                  <h2 className="text-sm font-bold text-white">AI Analysis Feed</h2>
+                  <p className="text-[11px] mt-0.5" style={{color:S.muted}}>What happened — every 5 minutes</p>
+                </div>
+                {data?.today_cost_usd > 0 && (
+                  <span className="text-[9px] font-mono px-2 py-1 rounded" style={{background:'rgba(34,211,238,0.1)',color:'#22d3ee'}}>
+                    ${data.today_cost_usd.toFixed(3)} today
+                  </span>
+                )}
               </div>
-              <div className="divide-y overflow-y-auto" style={{borderColor:S.border,maxHeight:'200px'}}>
-                {(recent_events||[]).slice(0,6).map((e,i)=>(
-                  <div key={e.id||i} className="px-4 py-2.5 flex items-center gap-3">
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0" style={{background:'linear-gradient(135deg,#1e3a5f,#1d6fa4)',color:'#22d3ee'}}>
-                      {(e.worker_name||'?')[0]}
+              <div className="divide-y overflow-y-auto" style={{borderColor:S.border,maxHeight:'280px'}}>
+                {(data?.timelines||[]).length > 0 ? (data.timelines.map((tl,i)=>{
+                  const t = new Date(tl.window_start);
+                  const timeStr = t.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+                  return (
+                    <div key={tl.id||i} className="px-4 py-3">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded" style={{background:'rgba(34,211,238,0.15)',color:'#22d3ee'}}>{timeStr}</span>
+                        <span className="text-[9px] font-mono" style={{color:S.muted}}>{tl.workers_detected} people</span>
+                        {tl.alerts_created>0&&<span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{background:'rgba(239,68,68,0.15)',color:'#ef4444'}}>{tl.alerts_created} alert{tl.alerts_created>1?'s':''}</span>}
+                        {tl.away_minutes>0&&<span className="text-[9px] font-mono" style={{color:'#f59e0b'}}>{tl.away_minutes}m away</span>}
+                        {tl.idle_minutes>0&&<span className="text-[9px] font-mono" style={{color:'#f97316'}}>{tl.idle_minutes}m idle</span>}
+                      </div>
+                      <p className="text-[11px] leading-relaxed" style={{color:'#cbd5e1'}}>{tl.summary || 'Analysis completed'}</p>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs font-semibold text-white truncate">{e.worker_name||'Unknown'}</div>
-                      <div className="text-[10px] font-mono truncate" style={{color:S.muted}}>{e.activity||e.event_type?.replace('_',' ')}</div>
-                    </div>
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0" style={{background:'rgba(34,197,94,0.12)',color:'#22c55e'}}>active</span>
+                  );
+                })) : (
+                  <div className="px-4 py-8 text-center text-xs" style={{color:S.muted}}>
+                    {recent_events?.length > 0 ? 'Legacy events only — v2 timeline will appear after the next 5-min analysis cycle' : 'No activity yet today'}
                   </div>
-                ))}
-                {!recent_events?.length&&(
-                  <div className="px-4 py-8 text-center text-xs" style={{color:S.muted}}>No activity yet today</div>
                 )}
               </div>
             </div>
@@ -565,16 +580,29 @@ export default function DashboardPage({ industry }) {
             </div>
           </div>
 
-          {/* Live log */}
+          {/* AI Narrative Feed (v2 — replaces generic live log) */}
           <div className="rounded-2xl p-4 border flex flex-col" style={{background:S.card,borderColor:S.border}}>
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-bold text-white">Live AI Log</span>
+              <span className="text-sm font-bold text-white">AI Analysis Feed</span>
               <span className="text-xs flex items-center gap-1" style={{color:'#22c55e'}}>
-                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{background:'#22c55e'}}/>Live
+                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{background:'#22c55e'}}/>Every 5 min
               </span>
             </div>
-            <div className="flex-1 overflow-y-auto space-y-1" style={{maxHeight:'420px'}}>
-              {liveLog.map((ev,i)=>(
+            <div className="flex-1 overflow-y-auto space-y-2" style={{maxHeight:'420px'}}>
+              {(data?.timelines||[]).length > 0 ? data.timelines.map((tl,i)=>{
+                const t = new Date(tl.window_start);
+                const timeStr = t.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+                return (
+                  <div key={tl.id||i} className="py-2 px-3 rounded-lg" style={{background:i===0?'rgba(34,211,238,0.06)':'transparent',border:i===0?'1px solid rgba(34,211,238,0.12)':'1px solid transparent'}}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded" style={{background:'rgba(34,211,238,0.15)',color:'#22d3ee'}}>{timeStr}</span>
+                      <span className="text-[9px]" style={{color:S.muted}}>{tl.workers_detected} detections</span>
+                      {tl.alerts_created>0&&<span className="text-[8px] font-bold px-1 py-0.5 rounded-full" style={{background:'rgba(239,68,68,0.15)',color:'#ef4444'}}>{tl.alerts_created} alert</span>}
+                    </div>
+                    <p className="text-[10px] leading-relaxed" style={{color:'#94a3b8'}}>{tl.summary || 'Analysis completed'}</p>
+                  </div>
+                );
+              }) : liveLog.map((ev,i)=>(
                 <div key={ev.id} className="flex items-start gap-2 py-1.5 px-2 rounded-lg text-[11px]" style={{background:i===0?'rgba(59,130,246,0.08)':'transparent',border:i===0?'1px solid rgba(59,130,246,0.15)':'1px solid transparent'}}>
                   <span className="mt-0.5 w-1.5 h-1.5 rounded-full shrink-0 mt-1" style={{background:ev.color}}/>
                   <div className="flex-1 min-w-0">
@@ -586,7 +614,7 @@ export default function DashboardPage({ industry }) {
                   </div>
                 </div>
               ))}
-              {!liveLog.length&&(
+              {!data?.timelines?.length && !liveLog.length&&(
                 <div className="text-center py-8 text-xs" style={{color:S.muted}}>No events yet today</div>
               )}
             </div>
