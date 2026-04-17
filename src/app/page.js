@@ -797,11 +797,11 @@ export default function HomePage() {
               <div className="text-center text-xs text-gray-400 mt-3">Scheduled within 24 hours</div>
             </div>
 
-            {/* Edge Agent */}
+            {/* LenzAI Device */}
             <div className="relative rounded-3xl p-8 bg-gradient-to-br from-slate-900 to-gray-950 border-2 border-gray-800 text-white hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
               <div className="absolute -top-3 left-6 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow">PREMIUM</div>
               <div className="text-4xl mb-3">📦</div>
-              <h3 className="text-xl font-extrabold text-white mb-1">Edge Agent</h3>
+              <h3 className="text-xl font-extrabold text-white mb-1">LenzAI Device</h3>
               <div className="text-sm text-gray-400 mb-5">We ship a pre-configured device</div>
               <div className="flex items-baseline gap-1 mb-1">
                 <span className="text-5xl font-extrabold text-white">$249</span>
@@ -810,7 +810,7 @@ export default function HomePage() {
               <div className="text-xs text-gray-400 mb-6">Includes device + shipping + setup</div>
               <ul className="space-y-2.5 mb-8">
                 {[
-                  'Pre-configured StaffLenz edge device',
+                  'Pre-configured LenzAI device',
                   'Plug into your network — zero DVR config',
                   'Auto-discovers cameras via ONVIF',
                   'Works offline if your internet drops',
@@ -830,7 +830,7 @@ export default function HomePage() {
           </div>
 
           <div className="mt-10 rounded-2xl border border-blue-200 bg-blue-50 px-6 py-5 text-center text-sm text-blue-900 max-w-3xl mx-auto">
-            <span className="font-bold">Not sure which is right?</span> 90% of customers pick <b>Self-Serve</b>. If you're not comfortable touching your DVR settings, <b>White-Glove</b> is the stress-free option. Multi-site chains go with the <b>Edge Agent</b>.
+            <span className="font-bold">Not sure which is right?</span> 90% of customers pick <b>Self-Serve</b>. If you're not comfortable touching your DVR settings, <b>White-Glove</b> is the stress-free option. Multi-site chains go with the <b>LenzAI Device</b>.
             &nbsp;<Link href="/#contact" className="underline font-semibold hover:text-blue-700">Talk to a human →</Link>
           </div>
         </div>

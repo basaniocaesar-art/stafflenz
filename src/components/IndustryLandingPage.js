@@ -179,7 +179,7 @@ export default function IndustryLandingPage({ industry }) {
             See it running on your CCTV in 20 minutes
           </h2>
           <p className="text-lg md:text-xl opacity-90 mb-8">
-            No new cameras. No rewiring. Just your existing DVR, a Raspberry Pi, and your team.
+            No new cameras. No rewiring. Just your existing DVR and our LenzAI device.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <Link

@@ -7,7 +7,7 @@ const ALL_INDUSTRIES = ['factory','hotel','school','retail','hospital','construc
 const INDUSTRY_ICONS = {factory:'🏭',hotel:'🏨',school:'🏫',retail:'🛍️',hospital:'🏥',construction:'🏗️',warehouse:'📦',restaurant:'🍽️',security:'🔒'};
 const PLANS = ['starter','professional','enterprise'];
 const PLAN_COLORS = {starter:'bg-gray-100 text-gray-700',professional:'bg-blue-100 text-blue-700',enterprise:'bg-violet-100 text-violet-700'};
-const ALL_TABS = ['overview','clients','leads','partners','affiliates','white labels','revenue','monitoring','edge agents','system','demo view'];
+const ALL_TABS = ['overview','clients','leads','partners','affiliates','white labels','revenue','monitoring','lenzai devices','system','demo view'];
 
 /* ─── Shared helpers ─────────────────────────────────────────────────────── */
 function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
@@ -1914,7 +1914,7 @@ function MonitoringTab() {
   );
 }
 
-/* ─── Tab: Edge Agents ──────────────────────────────────────────────────── */
+/* ─── Tab: LenzAI Devices ──────────────────────────────────────────────────── */
 function EdgeAgentsTab() {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1945,15 +1945,15 @@ function EdgeAgentsTab() {
   return (
     <>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Edge Agents</h1>
+        <h1 className="text-2xl font-bold text-gray-900">LenzAI Devices</h1>
         <p className="text-sm text-gray-500 mt-1">Deploy a small device at each client site to capture camera frames 24/7. No port forwarding needed.</p>
       </div>
 
       {/* How it works */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-6 mb-6">
-        <h2 className="text-sm font-bold text-blue-900 mb-3">How Edge Agents Work</h2>
+        <h2 className="text-sm font-bold text-blue-900 mb-3">How LenzAI Devices Work</h2>
         <div className="flex flex-wrap gap-2 text-xs text-blue-800">
-          {['Raspberry Pi on client WiFi','Discovers cameras via ONVIF','Captures snapshots every 5 min','Uploads to cloud','AI analyzes frames','Dashboard shows results','WhatsApp alerts on violations'].map((step, i) => (
+          {['LenzAI device on client WiFi','Discovers cameras via ONVIF','Captures snapshots every 5 min','Uploads to cloud','AI analyzes frames','Dashboard shows results','WhatsApp alerts on violations'].map((step, i) => (
             <div key={i} className="flex items-center gap-1.5">
               {i > 0 && <span className="text-blue-400">→</span>}
               <span className="bg-white border border-blue-200 rounded-lg px-3 py-1.5 font-medium">{step}</span>
@@ -1968,7 +1968,7 @@ function EdgeAgentsTab() {
         <div className="grid sm:grid-cols-3 gap-4">
           <div className="text-center p-4 bg-gray-50 rounded-xl">
             <div className="text-2xl mb-2">🥧</div>
-            <div className="text-sm font-semibold">Raspberry Pi 4</div>
+            <div className="text-sm font-semibold">LenzAI Device</div>
             <div className="text-xs text-gray-500 mt-1">~₹2,500 · 2GB RAM is enough</div>
           </div>
           <div className="text-center p-4 bg-gray-50 rounded-xl">
@@ -2010,7 +2010,7 @@ function EdgeAgentsTab() {
               <div className="px-6 py-5 bg-gray-50">
                 <div className="mb-3">
                   <div className="text-xs font-bold text-green-700 uppercase tracking-wide mb-2">Agent Config Generated</div>
-                  <p className="text-xs text-gray-500 mb-3">Copy this config to the Raspberry Pi, or use the one-liner install command below.</p>
+                  <p className="text-xs text-gray-500 mb-3">Copy this config to the LenzAI device, or use the one-liner install command below.</p>
                 </div>
 
                 {/* Config JSON */}
@@ -2031,7 +2031,7 @@ function EdgeAgentsTab() {
 
                 {/* Install command */}
                 <div className="mb-4">
-                  <label className="block text-xs font-medium text-gray-600 mb-1">One-liner install (run on Raspberry Pi)</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">One-liner install (run on LenzAI device)</label>
                   <div className="bg-gray-900 text-yellow-300 text-xs p-3 rounded-lg font-mono break-all">
                     curl -sL https://www.stafflenz.com/install.sh | sudo bash
                   </div>
@@ -2241,7 +2241,7 @@ export default function AdminPage() {
         {tab === 'white labels' && <WhiteLabelsTab />}
         {tab === 'revenue'      && <RevenueTab />}
         {tab === 'monitoring'   && <MonitoringTab />}
-        {tab === 'edge agents' && <EdgeAgentsTab />}
+        {tab === 'lenzai devices' && <EdgeAgentsTab />}
         {tab === 'system'       && <SystemTab />}
         {tab === 'demo view'    && <DemoViewTab />}
       </main>
