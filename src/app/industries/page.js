@@ -65,13 +65,13 @@ export default function IndustriesHub() {
           Not sure which fits?
         </h2>
         <p className="text-gray-600 mb-8">
-          Start a free trial on the closest match — you can switch industries any time.
+          Tell us your industry and we'll configure everything for you.
         </p>
         <Link
-          href="/signup"
+          href="/#contact"
           className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold rounded-xl shadow-xl hover:opacity-90 transition-all"
         >
-          Start 14-day free trial →
+          Book a Demo →
         </Link>
       </section>
     </main>

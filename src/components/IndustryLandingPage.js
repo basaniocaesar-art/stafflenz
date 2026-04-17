@@ -25,22 +25,22 @@ export default function IndustryLandingPage({ industry }) {
           </p>
           <div className="mt-10 flex flex-wrap gap-3">
             <Link
-              href={`/signup?industry=${i.db_industry}&plan=${i.hero.cta_plan}`}
+              href="/#contact"
               className="inline-flex items-center gap-2 px-7 py-4 rounded-xl text-white font-bold text-base shadow-xl transition-all hover:opacity-90"
               style={{ background: `linear-gradient(135deg, ${i.accent} 0%, ${i.accentDark} 100%)`, boxShadow: `0 20px 40px ${i.accent}40` }}
             >
-              {i.hero.cta_text} →
+              Book a Demo →
             </Link>
             <Link
-              href="/signup/checkout"
+              href="#pricing"
               className="inline-flex items-center gap-2 px-7 py-4 rounded-xl bg-white border-2 border-gray-200 font-bold text-base hover:border-gray-300 transition-all"
             >
               See pricing
             </Link>
           </div>
           <div className="mt-6 text-xs text-gray-500 flex flex-wrap gap-4">
-            <span>✓ 14-day free trial</span>
-            <span>✓ No credit card required</span>
+            <span>✓ Works with your existing CCTV</span>
+            <span>✓ No new cameras needed</span>
             <span>✓ Setup in 20 minutes</span>
           </div>
         </div>
@@ -166,7 +166,7 @@ export default function IndustryLandingPage({ industry }) {
             className="inline-flex items-center gap-2 px-8 py-4 rounded-xl text-white font-bold shadow-xl transition-all hover:opacity-90"
             style={{ background: `linear-gradient(135deg, ${i.accent} 0%, ${i.accentDark} 100%)` }}
           >
-            Start 14-day free trial →
+            Book a Demo →
           </Link>
           <div className="mt-4 text-xs text-gray-500">No credit card · Cancel anytime</div>
         </div>
@@ -186,7 +186,7 @@ export default function IndustryLandingPage({ industry }) {
               href={`/signup?industry=${i.db_industry}&plan=${i.recommended_plan}`}
               className="inline-flex items-center gap-2 px-8 py-4 bg-white text-gray-900 rounded-xl font-bold shadow-xl hover:shadow-2xl transition-all"
             >
-              Start free trial →
+              Book a Demo →
             </Link>
             <Link
               href="/industries"

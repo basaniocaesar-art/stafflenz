@@ -164,7 +164,7 @@ export async function GET(request) {
     { count: totalWorkers },
     { data: leads },
   ] = await Promise.all([
-    db.from('clients').select('id, name, industry, plan, is_active, created_at').order('created_at', { ascending: false }),
+    db.from('clients').select('id, name, industry, plan, is_active, setup_type, subscription_status, created_at').order('created_at', { ascending: false }),
     db.from('daily_summary').select('client_id, present_count, total_events, violation_count').eq('summary_date', today),
     db.from('workers').select('*', { count: 'exact', head: true }).is('deleted_at', null).eq('is_active', true),
     db.from('leads').select('*', { count: 'exact', head: true }).eq('is_contacted', false),
@@ -200,15 +200,27 @@ export async function POST(request) {
   const db = getAdminClient();
 
   if (action === 'create_client') {
-    const { name, industry, plan, admin_email, admin_password, admin_name } = body;
+    const { name, industry, plan, admin_email, admin_password, admin_name, setup_type, phone } = body;
     if (!name || !industry || !admin_email || !admin_password) {
       return NextResponse.json({ error: 'name, industry, admin_email and admin_password required' }, { status: 400 });
     }
 
-    // Create client
+    // setup_type: 'self_setup' (client uses own device + our script)
+    //             'device'     (we ship them a Pi)
+    const validSetupType = ['self_setup', 'device'].includes(setup_type) ? setup_type : 'self_setup';
+
+    // Create client — no trial, subscription starts as 'active' once admin creates them
     const { data: client, error: clientError } = await db
       .from('clients')
-      .insert({ name, industry, plan: plan || 'starter' })
+      .insert({
+        name,
+        industry,
+        plan: plan || 'standard',
+        setup_type: validSetupType,
+        subscription_status: 'active',
+        billing_email: admin_email.toLowerCase().trim(),
+        billing_phone: phone || null,
+      })
       .select()
       .single();
 

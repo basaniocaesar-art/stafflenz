@@ -407,8 +407,8 @@ export default function HomePage() {
                 StaffLenz turns your existing CCTV into a real-time AI workforce intelligence platform — tracking attendance, compliance, and operational gaps across 10 industries. Self-serve setup takes 5 minutes. No new cameras, no rewiring, no downtime.
               </p>
               <div className="flex flex-wrap gap-4 mb-10">
-                <a href="/signup" className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold px-8 py-4 rounded-xl hover:opacity-90 transition-all shadow-2xl shadow-blue-900/40 text-base">
-                  Start Free Trial →
+                <a href="#contact" className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold px-8 py-4 rounded-xl hover:opacity-90 transition-all shadow-2xl shadow-blue-900/40 text-base">
+                  Book a Demo →
                 </a>
                 <a href="#setup-cost" className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white font-semibold px-8 py-4 rounded-xl hover:bg-white/15 transition-all text-base backdrop-blur">
                   See Setup Options
@@ -761,8 +761,8 @@ export default function HomePage() {
                   </li>
                 ))}
               </ul>
-              <Link href="/signup" className="block text-center py-3.5 rounded-2xl bg-green-600 text-white font-bold text-sm hover:bg-green-700 transition-all">
-                Start Free Trial →
+              <Link href="/#contact" className="block text-center py-3.5 rounded-2xl bg-green-600 text-white font-bold text-sm hover:bg-green-700 transition-all">
+                Book a Demo →
               </Link>
               <div className="text-center text-xs text-gray-400 mt-3">Ready in 5 minutes</div>
             </div>
