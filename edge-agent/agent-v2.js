@@ -55,7 +55,10 @@ const {
   motion_threshold = 10,        // 0-255 mean pixel delta to consider motion
   motion_cooldown_sec = 45,     // don't fire bursts more often than this per camera
   schedule = '24x7',            // '24x7' or 'business_hours' (06:00-22:00 local)
+  exclude_cameras = [],         // skip these camera channels entirely (e.g. [8] for pool)
 } = config;
+
+const excludeSet = new Set(exclude_cameras);
 
 // ─── Small utilities ────────────────────────────────────────────────────────
 function log(msg) {
@@ -258,6 +261,7 @@ async function captureCycle(channelCount) {
   const results = await Promise.allSettled(
     Array.from({ length: channelCount }, async (_, idx) => {
       const ch = idx + 1;
+      if (excludeSet.has(ch)) return { ch, skipped: true };
       const buffer = await captureChannel(ch);
 
       // Motion detection on the edge
@@ -351,6 +355,7 @@ async function analyzeCycle(channelCount) {
 
   const camFrames = [];
   for (let ch = 1; ch <= channelCount; ch++) {
+    if (excludeSet.has(ch)) continue;
     const rows = await recentFramesFromBuffer(ch, framesPerCam);
     if (rows.length === 0) continue;
     const urls = (await Promise.all(rows.map((r) => signedUrl(r.frame_path)))).filter(Boolean);
