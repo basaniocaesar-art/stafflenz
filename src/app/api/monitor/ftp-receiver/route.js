@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAdminClient } from '@/lib/supabase';
 import { buildAnalysisPrompt, calculateCost } from '@/lib/promptBuilder';
+import { ingestFrame, maybeRunSequenceAnalysis } from '@/lib/frameIngest';
 import Anthropic from '@anthropic-ai/sdk';
 import sharp from 'sharp';
 
@@ -107,6 +108,29 @@ async function processClientFolder(ftp, folderName, db) {
     }
 
     log.push(`Downloaded ${frameBuffers.length} frames`);
+
+    // ── v2 pipeline: index frames in frame_buffer so analyze-sequence
+    // can pick them up. Extract camera channel from filename if possible
+    // (Hikvision FTP: 192.168.1.64_01_..._MOTION.jpg where 01 = channel).
+    let frameBufferIndexed = 0;
+    for (let i = 0; i < frameBuffers.length; i++) {
+      const f = frameBuffers[i];
+      // Try to extract camera channel from filename
+      const chMatch = f.name.match(/_(\d{2})_\d{8}/);
+      const camera_channel = chMatch ? parseInt(chMatch[1]) : i + 1;
+      try {
+        await ingestFrame({
+          client_id: client.id,
+          camera_channel,
+          buffer: f.buffer,
+          has_motion: true, // FTP push is typically motion-triggered
+        });
+        frameBufferIndexed++;
+      } catch (e) {
+        log.push(`frame_buffer index failed for ${f.name}: ${e.message}`);
+      }
+    }
+    log.push(`Indexed ${frameBufferIndexed}/${frameBuffers.length} frames in frame_buffer (v2 pipeline)`);
 
     // Load client config
     const config = client.analysis_config || {};
@@ -345,6 +369,18 @@ async function processClientFolder(ftp, folderName, db) {
       try { await ftp.remove(file.name); } catch { /* ignore */ }
     }
     log.push(`Cleaned ${jpegs.length} files from FTP`);
+
+    // ── v2: also trigger sequence analysis if due ──────────────────
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://stafflenz.vercel.app';
+    const seqResult = await maybeRunSequenceAnalysis({
+      client_id: client.id,
+      analyze_interval_min: 5,
+      api_url: appUrl,
+      agent_key: 'ftp-receiver',
+    });
+    if (seqResult.triggered) {
+      log.push(`v2 sequence analysis: ${seqResult.result?.summary?.slice(0, 100) || seqResult.error || 'triggered'}`);
+    }
 
     // Keep only last 5 frames in storage
     const { data: existing } = await db.storage.from('frames').list(client.id, {
