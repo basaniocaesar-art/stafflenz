@@ -102,7 +102,7 @@ export async function POST(request) {
       if (!signed?.signedUrl) return null;
       const res = await fetch(signed.signedUrl);
       if (!res.ok) return null;
-      return await shrink(Buffer.from(await res.arrayBuffer()), 512);
+      return await shrink(Buffer.from(await res.arrayBuffer()), 256);
     } catch { return null; }
   }
 
@@ -137,7 +137,7 @@ export async function POST(request) {
       try {
         const res = await fetch(url);
         if (!res.ok) return null;
-        return { idx: i, buffer: await shrink(Buffer.from(await res.arrayBuffer()), 1024) };
+        return { idx: i, buffer: await shrink(Buffer.from(await res.arrayBuffer()), 768) };
       } catch { return null; }
     })
   );

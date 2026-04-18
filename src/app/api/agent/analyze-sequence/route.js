@@ -112,7 +112,7 @@ export async function POST(request) {
       if (!signed?.signedUrl) return null;
       const res = await fetch(signed.signedUrl);
       if (!res.ok) return null;
-      return await shrink(Buffer.from(await res.arrayBuffer()), 512);
+      return await shrink(Buffer.from(await res.arrayBuffer()), 256);
     } catch { return null; }
   }
 
@@ -148,7 +148,7 @@ export async function POST(request) {
         try {
           const res = await fetch(url);
           if (!res.ok) return null;
-          const buf = await shrink(Buffer.from(await res.arrayBuffer()), 1024);
+          const buf = await shrink(Buffer.from(await res.arrayBuffer()), 768);
           return {
             camera_channel: cam.camera_channel,
             minute_offset: cam.minute_offsets?.[i] ?? i,

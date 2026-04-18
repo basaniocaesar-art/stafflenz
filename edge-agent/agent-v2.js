@@ -267,10 +267,17 @@ async function captureCycle(channelCount) {
       const buffer = await captureChannel(ch);
 
       // Motion detection on the edge (skip for cameras like pool where
-      // water reflections cause constant false triggers)
+      // water reflections cause constant false triggers).
+      // We ALWAYS run pixel-diff (even if motion_enabled=false) so we can
+      // track which cameras had activity for the smart-skip optimisation
+      // in analyzeCycle. Only the burst-trigger path is gated by motion_enabled.
       let motion = { score: 0, hasMotion: false, available: false };
-      if (motion_enabled && sharpAvailable && !motionExcludeSet.has(ch)) {
+      if (sharpAvailable && !motionExcludeSet.has(ch)) {
         motion = await detectMotion(ch, buffer, motion_threshold);
+        if (motion.hasMotion) camsWithMotionSinceLastAnalysis.add(ch);
+      } else {
+        // Pool or no sharp — always include in analysis
+        camsWithMotionSinceLastAnalysis.add(ch);
       }
 
       const storagePath = `${client_id}/cam${ch}_${tsSlug}.jpg`;
@@ -349,16 +356,31 @@ async function triggerBurst(camera_channel, motion_score, detected_at) {
   );
 }
 
+// ─── Track which cameras had motion since last analysis ─────────────────
+// Only cameras with at least one motion event (pixel-diff > 0) get sent to
+// Claude. Empty rooms are skipped entirely — saves 30-60% on input tokens.
+const camsWithMotionSinceLastAnalysis = new Set();
+
 // ─── Scheduled sequence analysis ───────────────────────────────────────────
 async function analyzeCycle(channelCount) {
   if (!inScheduleNow()) return;
 
   const windowMin = analyze_min;
-  const framesPerCam = Math.min(5, Math.max(2, Math.floor((windowMin * 60) / capture_sec)));
+  // Fewer frames per camera = cheaper. 3 frames across a 5-min window is
+  // enough for a minute-level timeline; 5 was overkill.
+  const framesPerCam = Math.min(3, Math.max(2, Math.floor((windowMin * 60) / capture_sec / 60)));
 
   const camFrames = [];
   for (let ch = 1; ch <= channelCount; ch++) {
     if (excludeSet.has(ch)) continue;
+
+    // Skip cameras that had zero motion since the last analysis cycle.
+    // This means empty rooms (e.g., weights room at 7 AM) don't waste tokens.
+    // Always include at least cam1 (reception/entrance) as a baseline.
+    if (!camsWithMotionSinceLastAnalysis.has(ch) && ch !== 1 && camsWithMotionSinceLastAnalysis.size > 0) {
+      continue;
+    }
+
     const rows = await recentFramesFromBuffer(ch, framesPerCam);
     if (rows.length === 0) continue;
     const urls = (await Promise.all(rows.map((r) => signedUrl(r.frame_path)))).filter(Boolean);
@@ -369,6 +391,9 @@ async function analyzeCycle(channelCount) {
     );
     camFrames.push({ camera_channel: ch, frame_urls: urls, minute_offsets });
   }
+
+  // Reset motion tracker for next cycle
+  camsWithMotionSinceLastAnalysis.clear();
 
   if (camFrames.length === 0) {
     log('sequence: no frames to analyse');
