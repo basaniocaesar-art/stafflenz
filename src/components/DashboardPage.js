@@ -273,6 +273,7 @@ export default function DashboardPage({ industry }) {
   const [activeTab,    setActiveTab]    = useState('overview');
   const [waNumber,     setWaNumber]     = useState('');
   const [waSaving,     setWaSaving]     = useState(false);
+  const [frameModal,   setFrameModal]   = useState(null); // { timeline_id, title, loading, frames, summary }
   const [waStatus,     setWaStatus]     = useState(null);
   const [time,         setTime]         = useState(new Date());
 
@@ -311,6 +312,17 @@ export default function DashboardPage({ industry }) {
   },[]);
 
   useEffect(()=>{ fetchData(); const iv=setInterval(fetchData,60000); return ()=>clearInterval(iv); },[fetchData]);
+
+  async function openTimelineFrames(tl) {
+    setFrameModal({ timeline_id: tl.id, title: new Date(tl.window_start).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}), summary: tl.summary, loading: true, frames: [] });
+    try {
+      const r = await fetch(`/api/client/timeline-frames?id=${tl.id}`);
+      const j = await r.json();
+      setFrameModal(prev => prev ? { ...prev, loading: false, frames: j.frames || [], total: j.total_frames_in_window } : null);
+    } catch {
+      setFrameModal(prev => prev ? { ...prev, loading: false } : null);
+    }
+  }
 
   async function saveWhatsApp(){
     setWaSaving(true); setWaStatus(null);
@@ -484,13 +496,14 @@ export default function DashboardPage({ industry }) {
                   const t = new Date(tl.window_start);
                   const timeStr = t.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
                   return (
-                    <div key={tl.id||i} className="px-4 py-3">
+                    <div key={tl.id||i} className="px-4 py-3 cursor-pointer hover:bg-white/5 transition-colors" onClick={()=>openTimelineFrames(tl)}>
                       <div className="flex items-center gap-2 mb-1.5">
                         <span className="text-[9px] font-mono px-1.5 py-0.5 rounded" style={{background:'rgba(34,211,238,0.15)',color:'#22d3ee'}}>{timeStr}</span>
                         <span className="text-[9px] font-mono" style={{color:S.muted}}>{tl.workers_detected} people</span>
                         {tl.alerts_created>0&&<span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{background:'rgba(239,68,68,0.15)',color:'#ef4444'}}>{tl.alerts_created} alert{tl.alerts_created>1?'s':''}</span>}
                         {tl.away_minutes>0&&<span className="text-[9px] font-mono" style={{color:'#f59e0b'}}>{tl.away_minutes}m away</span>}
                         {tl.idle_minutes>0&&<span className="text-[9px] font-mono" style={{color:'#f97316'}}>{tl.idle_minutes}m idle</span>}
+                        <span className="text-[8px] ml-auto" style={{color:'#475569'}}>click to view frames →</span>
                       </div>
                       <p className="text-[11px] leading-relaxed" style={{color:'#cbd5e1'}}>{tl.summary || 'Analysis completed'}</p>
                     </div>
@@ -747,6 +760,65 @@ export default function DashboardPage({ industry }) {
                 </div>
               ))}
               {!recent_events?.length&&<div className="text-center py-6 text-xs" style={{color:S.muted}}>No activity yet today</div>}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════ FRAME VIEWER MODAL ══════════════════ */}
+      {frameModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm" onClick={()=>setFrameModal(null)}>
+          <div className="bg-gray-900 rounded-3xl border border-gray-700 shadow-2xl max-w-5xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={e=>e.stopPropagation()}>
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
+              <div>
+                <h3 className="text-lg font-bold text-white">Event at {frameModal.title}</h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {frameModal.loading ? 'Loading frames...' : `${frameModal.frames?.length || 0} cameras captured · ${frameModal.total || 0} total frames in this window`}
+                </p>
+              </div>
+              <button onClick={()=>setFrameModal(null)} className="w-8 h-8 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition">✕</button>
+            </div>
+
+            {/* AI Summary */}
+            {frameModal.summary && (
+              <div className="px-6 py-4 border-b border-gray-800">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 mb-1">AI Analysis</div>
+                <p className="text-sm text-gray-300 leading-relaxed">{frameModal.summary}</p>
+              </div>
+            )}
+
+            {/* Frames grid */}
+            <div className="p-6">
+              {frameModal.loading ? (
+                <div className="text-center py-12">
+                  <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mx-auto mb-3" style={{borderColor:'#22d3ee',borderTopColor:'transparent'}}/>
+                  <p className="text-sm text-gray-500">Loading camera frames...</p>
+                </div>
+              ) : frameModal.frames?.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {frameModal.frames.map((f, i) => (
+                    <div key={i} className="relative rounded-xl overflow-hidden bg-black border border-gray-800">
+                      {f.url ? (
+                        <img src={f.url} alt={`Camera ${f.camera_channel}`} className="w-full aspect-video object-cover" />
+                      ) : (
+                        <div className="w-full aspect-video flex items-center justify-center text-gray-600 text-xs">No frame</div>
+                      )}
+                      <div className="absolute top-2 left-2 flex gap-1.5">
+                        <span className="text-[9px] font-mono bg-black/70 text-white px-1.5 py-0.5 rounded">CAM {f.camera_channel}</span>
+                        {f.has_motion && <span className="text-[9px] font-mono bg-red-600/80 text-white px-1.5 py-0.5 rounded">motion</span>}
+                      </div>
+                      <div className="absolute bottom-2 left-2">
+                        <span className="text-[8px] font-mono bg-black/70 text-gray-300 px-1.5 py-0.5 rounded">
+                          {new Date(f.captured_at).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 text-gray-500 text-sm">No frames found for this time window</div>
+              )}
             </div>
           </div>
         </div>
