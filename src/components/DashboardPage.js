@@ -189,32 +189,13 @@ function SetupChecklist({ workersCount, zonesCount, hasFrames, alertsCount }) {
 
 /* ── Camera Feed ────────────────────────────────────────────────────────────── */
 function AICamFeed({ camIndex, videoUrl, alertCam, snapshotUrl }) {
-  const [scan, setScan] = useState(0);
-  const [boxes, setBoxes] = useState([]);
-  const [imgSrc, setImgSrc] = useState(snapshotUrl || null);
   const [imgKey, setImgKey] = useState(0);
-
-  // Use real snapshot from DVR if available, otherwise fall back to video
   const hasRealFeed = !!snapshotUrl;
 
-  useEffect(()=>{
-    let pos=0, raf;
-    function step(){ pos=(pos+0.6)%110; setScan(pos); raf=requestAnimationFrame(step); }
-    raf=requestAnimationFrame(step);
-    return ()=>cancelAnimationFrame(raf);
-  },[]);
-
-  useEffect(()=>{
-    function refresh(){ setBoxes(Array.from({length:1+Math.floor(Math.random()*3)},randomBox)); }
-    refresh();
-    const iv=setInterval(refresh, 2500+Math.random()*1500);
-    return ()=>clearInterval(iv);
-  },[]);
-
-  // Refresh snapshot every 30 seconds
+  // Refresh snapshot every 60 seconds
   useEffect(()=>{
     if(!hasRealFeed) return;
-    const iv = setInterval(()=> setImgKey(k => k+1), 30000);
+    const iv = setInterval(()=> setImgKey(k => k+1), 60000);
     return ()=>clearInterval(iv);
   },[hasRealFeed]);
 
@@ -226,39 +207,18 @@ function AICamFeed({ camIndex, videoUrl, alertCam, snapshotUrl }) {
           src={`${snapshotUrl}&t=${imgKey}`}
           alt={`Camera ${camIndex+1}`}
           className="absolute inset-0 w-full h-full object-cover"
-          style={{opacity:0.7,filter:'brightness(0.9) contrast(1.1)'}}
-          onError={()=> setImgSrc(null)}
+          onError={()=>{}}
         />
-      ) : videoUrl ? (
-        <video className="absolute inset-0 w-full h-full object-cover" autoPlay muted loop playsInline style={{opacity:0.5,filter:'brightness(0.8) contrast(1.1)'}}>
-          <source src={videoUrl} type="video/mp4"/>
-        </video>
       ) : (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-[10px] font-mono text-gray-600">NO SIGNAL</span>
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-950">
+          <span className="text-[10px] font-mono text-gray-600">CAM {camIndex+1} · Waiting for frames</span>
         </div>
       )}
-      <div className="absolute inset-0" style={{background:'linear-gradient(to br,rgba(7,13,27,0.3),rgba(7,13,27,0.1))'}}/>
-      <div className="absolute inset-0 pointer-events-none" style={{backgroundImage:'linear-gradient(rgba(34,211,238,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(34,211,238,0.03) 1px,transparent 1px)',backgroundSize:'20% 20%'}}/>
-      <div className="absolute left-0 right-0 h-px pointer-events-none" style={{top:`${scan}%`,background:'linear-gradient(90deg,transparent,rgba(34,211,238,0.6),transparent)',boxShadow:'0 0 8px rgba(34,211,238,0.4)',transition:'top 0.05s linear'}}/>
-      {boxes.map((b,i)=>(
-        <div key={i} className="absolute pointer-events-none" style={{left:`${b.x}%`,top:`${b.y}%`,width:`${b.w}%`,height:`${b.h}%`,border:`1.5px solid ${b.color}`,boxShadow:`0 0 5px ${b.color}44`}}>
-          <div className="absolute -top-4 left-0 text-[8px] font-mono whitespace-nowrap px-1 rounded" style={{background:b.color+'cc',color:'#000',lineHeight:'14px'}}>{b.label} {b.conf}%</div>
-          <div className="absolute top-0 left-0 w-2 h-0.5" style={{background:b.color}}/><div className="absolute top-0 left-0 w-0.5 h-2" style={{background:b.color}}/>
-          <div className="absolute top-0 right-0 w-2 h-0.5" style={{background:b.color}}/><div className="absolute top-0 right-0 w-0.5 h-2" style={{background:b.color}}/>
-          <div className="absolute bottom-0 left-0 w-2 h-0.5" style={{background:b.color}}/><div className="absolute bottom-0 left-0 w-0.5 h-2" style={{background:b.color}}/>
-          <div className="absolute bottom-0 right-0 w-2 h-0.5" style={{background:b.color}}/><div className="absolute bottom-0 right-0 w-0.5 h-2" style={{background:b.color}}/>
-        </div>
-      ))}
-      <div className="absolute top-1 left-1 flex items-center gap-1">
-        <span className="text-[8px] font-mono bg-black/70 px-1 rounded" style={{color:'#94a3b8'}}>CAM {camIndex+1}</span>
-        {hasRealFeed && <span className="text-[8px] font-mono bg-emerald-600 text-white px-1 rounded">LIVE</span>}
-        {alertCam
-          ? <span className="text-[8px] font-mono bg-red-600 text-white px-1 rounded animate-pulse">ALERT</span>
-          : <span className="flex items-center gap-0.5 text-[8px] font-mono bg-black/70 px-1 rounded" style={{color:'#f87171'}}><span className="w-1 h-1 bg-red-500 rounded-full animate-pulse inline-block"/>REC</span>
-        }
+      <div className="absolute top-1.5 left-1.5 flex items-center gap-1">
+        <span className="text-[9px] font-mono bg-black/70 px-1.5 py-0.5 rounded text-gray-300">CAM {camIndex+1}</span>
+        {hasRealFeed && <span className="text-[8px] font-mono bg-emerald-600/90 text-white px-1.5 py-0.5 rounded">LIVE</span>}
+        {alertCam && <span className="text-[8px] font-mono bg-red-600 text-white px-1.5 py-0.5 rounded animate-pulse">ALERT</span>}
       </div>
-      <div className="absolute bottom-1 right-1 text-[7px] font-mono bg-black/70 px-1 rounded" style={{color:'#22d3ee'}}>LenzAI ▶</div>
     </div>
   );
 }
