@@ -91,6 +91,19 @@ ZONE COVERAGE:
 - Alert if guard post is unattended for more than 5 minutes.
 - Track visitor movements through secured zones.
 - Monitor perimeter areas for breaches.`,
+
+  home: `HOME SECURITY ANALYSIS:
+- Identify all persons visible. Match against registered family members and domestic staff.
+- Any person NOT matching a known face at the gate/entrance = flag as UNKNOWN VISITOR with high priority.
+- Track domestic staff (maid, cook, driver): note arrival time, departure time, and zones visited.
+- After-hours (23:00-06:00): ANY human motion is a potential intrusion — flag immediately as security alert.
+- Check for packages/deliveries left at gate or entrance area.
+- Monitor for elderly person inactivity: if living room or common area shows no person for 2+ hours during daytime (07:00-22:00), flag as welfare check.
+- Note vehicles entering or leaving parking/garage area.
+- Do NOT flag known family members moving around their own home during normal hours — this is routine, not an alert.
+- Status for known persons: "at_home", "arrived", "left".
+- Status for unknown persons: "at_gate", "on_property", "left_property", "loitering".
+- Status for domestic staff: "arrived", "working", "idle", "left".`,
 };
 
 // ─── Industry-specific output fields ─────────────────────────────────────────

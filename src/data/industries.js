@@ -620,6 +620,67 @@ export const INDUSTRIES = [
     meta_description:
       'White-label AI for security companies: post-adherence, patrol verification, branded client SLA reports.',
   },
+
+  // ─── 11. Home Security ──────────────────────────────────────────────
+  {
+    slug: 'home',
+    name: 'Home Security',
+    icon: '🏠',
+    accent: '#3b82f6',
+    accentDark: '#2563eb',
+    dashboard_slug: 'home',
+    db_industry: 'home',
+    hero: {
+      headline: 'Know who\'s at your gate before they ring the bell.',
+      subheadline:
+        'AI-powered home security that works with your existing CCTV. Know when the maid came, when the kids got home, and if anyone was at your gate at 3 AM — all on WhatsApp.',
+      cta_text: 'Book a Demo',
+      cta_plan: 'home',
+    },
+    pains: [
+      'Your CCTV records 24/7 but nobody watches the footage until after something goes wrong',
+      'You don\'t know if the maid came today, what time she left, or if she let someone in while you were at work',
+      'Your elderly parent lives alone and you worry about falls or medical emergencies with no way to know',
+      'Packages and deliveries disappear from your gate and you only check the DVR when it\'s too late',
+    ],
+    roi_scenarios: [
+      {
+        label: 'Replace the security guard',
+        problem: 'Monthly security guard who sleeps on duty',
+        cost: '₹15,000–25,000/month for a human guard',
+        solution: 'AI watches all cameras 24/7, sends WhatsApp alerts in 15 seconds, never sleeps',
+        net_value: 'Save ₹13,000–23,000/month — AI guard at 1/10th the cost',
+      },
+      {
+        label: 'Stop maid overpayment',
+        problem: 'Maid charges for 26 days, actually came 22 days',
+        cost: '₹2,000–4,000/month in overpaid wages',
+        solution: 'Auto-tracked arrival/departure with daily WhatsApp summary',
+        net_value: 'StaffLenz pays for itself from maid accountability alone',
+      },
+      {
+        label: 'One burglary prevented',
+        problem: 'Unknown person at your gate at 2 AM — CCTV recorded it but nobody saw',
+        cost: '₹2–20 lakh in stolen goods + damage + trauma',
+        solution: 'Instant WhatsApp alert with photo the moment an unknown person appears',
+        net_value: 'One prevented incident saves 10+ years of subscription',
+      },
+    ],
+    features: [
+      { title: 'Unknown person alert', desc: 'AI knows your family and staff by face. Anyone else at the gate triggers an instant WhatsApp with their photo.' },
+      { title: 'Maid & staff attendance', desc: 'Auto-tracked clock-in, clock-out, and duration for every domestic worker. Daily summary on WhatsApp at 10 PM.' },
+      { title: 'Overnight all-clear', desc: 'Green badge in the morning if nothing happened overnight. Red alert with footage if something did.' },
+      { title: 'Elderly wellness check', desc: 'If no movement detected in the living room for 2+ hours during daytime, you get an alert to check on your parent.' },
+      { title: 'Daily "who came today" summary', desc: 'Every evening: who visited, when the maid came, when the kids got home, any packages delivered.' },
+      { title: '3-day evidence archive', desc: 'Every frame saved for 3 days. If something happens, you have police-ready footage with timestamps.' },
+    ],
+    recommended_plan: 'home',
+    upsell_plan: 'pro',
+    typical_size: '2–4 cameras · 1–3 domestic staff',
+    buyers: 'Homeowner · Family · NRI with property in India',
+    meta_description:
+      'AI home security using your existing CCTV. Intruder alerts, maid attendance tracking, elderly wellness, and daily summaries on WhatsApp.',
+  },
 ];
 
 // ─── Lookup helpers ──────────────────────────────────────────────────────

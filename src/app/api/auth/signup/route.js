@@ -15,9 +15,9 @@ const TRIAL_DAYS = 14;
 // Aligned with supabase/migration-industry-packs.sql (clients.industry CHECK).
 const VALID_INDUSTRIES = [
   'gym', 'factory', 'construction', 'retail', 'warehouse',
-  'hotel', 'restaurant', 'hospital', 'school', 'security',
+  'hotel', 'restaurant', 'hospital', 'school', 'security', 'home',
 ];
-const VALID_PLANS = ['starter', 'standard', 'pro', 'scale', 'enterprise'];
+const VALID_PLANS = ['starter', 'standard', 'pro', 'scale', 'enterprise', 'home'];
 
 // After creating a client, apply the industry pack's zone templates so
 // they see a pre-populated workspace instead of a blank dashboard. Runs

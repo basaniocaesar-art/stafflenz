@@ -13,6 +13,9 @@ import Script from 'next/script';
 // DB `plan_limits.features` jsonb drives the actual runtime config, this list
 // drives the marketing copy.
 const PLANS_INR = [
+  { key: 'home',       name: 'Home',          price: 1499,  credits: null,
+    tagline: 'AI home security', highlight: false,
+    features: ['4 cameras · 15 known persons', '24/7 monitoring + motion alerts', 'Intruder detection on WhatsApp', 'Maid/staff attendance tracking', '3-day evidence archive', 'Daily summary'] },
   { key: 'starter',    name: 'Pay as you go', price: 999,   credits: null,
     tagline: 'Try it, no commitment', highlight: false,
     features: ['4 cameras · 10 workers', 'Self-setup with your device', '15-min AI checks', 'Business hours', 'Email alerts', 'Top up anytime'] },
@@ -25,6 +28,9 @@ const PLANS_INR = [
 ];
 
 const PLANS_USD = [
+  { key: 'home',       name: 'Home',          price: 18,   credits: null,
+    tagline: 'AI home security', highlight: false,
+    features: ['4 cameras · 15 known persons', '24/7 monitoring + motion alerts', 'Intruder detection on WhatsApp', 'Maid/staff attendance tracking', '3-day evidence archive', 'Daily summary'] },
   { key: 'starter',    name: 'Pay as you go', price: 12,   credits: null,
     tagline: 'Try it, no commitment', highlight: false,
     features: ['4 cameras · 10 workers', 'Self-setup with your device', '15-min AI checks', 'Business hours', 'Email alerts', 'Top up anytime'] },
@@ -208,7 +214,7 @@ export default function CheckoutPage() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {plans.map((p) => {
               const isHighlight = p.highlight;
               const isCurrent = client?.plan === p.key;
