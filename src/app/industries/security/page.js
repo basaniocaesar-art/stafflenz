@@ -22,6 +22,7 @@ const PRICING = [
 const FRAMES = [
   {
     sceneLabel: 'Post Abandoned',
+    video_query: 'security guard post gate entrance booth empty',
     sceneIcon: '🏢',
     sceneDescription: 'Server room guard post scan — monitoring for guard presence at critical infrastructure',
     zone: 'Server Room Post · CAM 05',
@@ -44,6 +45,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Patrol Missed',
+    video_query: 'security guard walking patrol corridor night',
     sceneIcon: '🗺️',
     sceneDescription: 'Car park checkpoint scan — verifying guard completed the 02:16 patrol checkpoint',
     zone: 'Car Park Checkpoint · CAM 07',
@@ -66,6 +68,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Handover Gap',
+    video_query: 'security shift change handover guards meeting',
     sceneIcon: '🔄',
     sceneDescription: 'Car park post handover scan — verifying incoming guard arrived before outgoing left',
     zone: 'Car Park Post · CAM 07',
@@ -88,6 +91,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Fast Response',
+    video_query: 'security guard running responding alarm emergency',
     sceneIcon: '⚡',
     sceneDescription: 'Perimeter gate — measuring guard response time from alert trigger to arrival',
     zone: 'Perimeter Gate N · CAM 03',

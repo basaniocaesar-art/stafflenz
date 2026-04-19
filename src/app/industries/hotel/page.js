@@ -22,6 +22,7 @@ const PRICING = [
 const FRAMES = [
   {
     sceneLabel: 'Reception Unmanned',
+    video_query: 'hotel reception lobby front desk empty',
     sceneIcon: '🏨',
     sceneDescription: 'Lobby camera scan — monitoring front desk staffing during check-in hours',
     zone: 'Lobby Reception · CAM 01',
@@ -45,6 +46,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Room Turnover Delay',
+    video_query: 'hotel corridor hallway housekeeping cart',
     sceneIcon: '🛏️',
     sceneDescription: 'Floor 3 housekeeping scan — tracking room turnover progress vs checkout time',
     zone: 'Floor 3 Corridor · CAM 07',
@@ -68,6 +70,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Restaurant Cover Ratio',
+    video_query: 'hotel restaurant dining guests tables',
     sceneIcon: '🍽️',
     sceneDescription: 'Restaurant floor scan — checking waiter-to-cover ratio during lunch service',
     zone: 'Restaurant Floor · CAM 04',
@@ -91,6 +94,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Banquet Staffing',
+    video_query: 'hotel banquet hall event wedding setup',
     sceneIcon: '🎊',
     sceneDescription: 'Banquet hall pre-event check — verifying staffing level before guests arrive',
     zone: 'Banquet Hall A · CAM 08',

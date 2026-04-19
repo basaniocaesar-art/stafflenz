@@ -22,6 +22,7 @@ const PRICING = [
 const FRAMES = [
   {
     sceneLabel: 'ICU Ratio Breach',
+    video_query: 'hospital ICU intensive care unit nurse patient monitor',
     sceneIcon: '🩺',
     sceneDescription: 'ICU Bay 2 scan — checking nurse-to-patient ratio against minimum 1:2 requirement',
     zone: 'ICU Bay 2 · CAM 04',
@@ -45,6 +46,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Pharmacy Breach',
+    video_query: 'hospital pharmacy medicine shelf restricted access',
     sceneIcon: '💊',
     sceneDescription: 'Pharmacy restricted zone — monitoring access during dispensing hours',
     zone: 'Pharmacy Store · CAM 11',
@@ -67,6 +69,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Ward Coverage Gap',
+    video_query: 'hospital ward corridor nurse walking patient room',
     sceneIcon: '🏥',
     sceneDescription: 'General Ward C nurse station scan — checking for staff presence during rounds',
     zone: 'Ward C Nurse Station · CAM 06',
@@ -89,6 +92,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'PPE Violation — ICU',
+    video_query: 'hospital doctor surgeon mask gloves PPE gown',
     sceneIcon: '🧤',
     sceneDescription: 'ICU Bay 1 hygiene check — verifying gloves and mask compliance for all staff',
     zone: 'ICU Bay 1 · CAM 03',

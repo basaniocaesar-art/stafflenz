@@ -14,6 +14,7 @@ const PRICING = [
 const FRAMES = [
   {
     sceneLabel: 'PPE Violation',
+    video_query: 'factory workers safety helmet hard hat production line',
     sceneIcon: '⛑️',
     sceneDescription: 'Worker detected at welding bay — helmet and face shield check in progress',
     zone: 'Welding Bay · CAM 02',
@@ -37,6 +38,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Line Understaffed',
+    video_query: 'manufacturing assembly line workers machines',
     sceneIcon: '🏗️',
     sceneDescription: 'Production Line B scan — checking operator count against minimum requirement',
     zone: 'Line B — Weaving · CAM 05',
@@ -61,6 +63,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Ghost Worker',
+    video_query: 'factory gate entrance workers morning shift',
     sceneIcon: '📋',
     sceneDescription: 'End-of-day contractor headcount — comparing on-site staff vs agency invoice',
     zone: 'Assembly Floor · CAM 03',
@@ -85,6 +88,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Night Shift Check',
+    video_query: 'factory night shift dark industrial warehouse',
     sceneIcon: '🌙',
     sceneDescription: 'Night shift 2 AM scan — monitoring all stations without a supervisor present',
     zone: 'Production Floor · CAM 01',

@@ -22,6 +22,7 @@ const PRICING = [
 const FRAMES = [
   {
     sceneLabel: 'Bay Unmanned',
+    video_query: 'warehouse loading dock forklift bay',
     sceneIcon: '🚚',
     sceneDescription: 'Loading Bay 3 scan — monitoring for staff presence during active dispatch window',
     zone: 'Loading Bay 3 · CAM 05',
@@ -44,6 +45,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Cold Store Breach',
+    video_query: 'cold storage freezer warehouse door open',
     sceneIcon: '❄️',
     sceneDescription: 'Cold Storage A scan — monitoring authorised access to temperature-controlled zone',
     zone: 'Cold Storage A · CAM 08',
@@ -66,6 +68,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Wrong Zone',
+    video_query: 'warehouse picker worker shelves inventory',
     sceneIcon: '📍',
     sceneDescription: 'Warehouse floor scan — verifying pickers are working in their assigned aisles',
     zone: 'Aisle C · CAM 04',
@@ -88,6 +91,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Overtime Audit',
+    video_query: 'warehouse night shift workers late',
     sceneIcon: '⏱️',
     sceneDescription: 'Post-shift scan — verifying which staff are still present vs overtime claimed on timesheets',
     zone: 'Warehouse Floor · CAM 01',

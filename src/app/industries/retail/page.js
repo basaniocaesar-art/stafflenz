@@ -22,6 +22,7 @@ const PRICING = [
 const FRAMES = [
   {
     sceneLabel: 'Section Uncovered',
+    video_query: 'retail store aisle shopping empty shelves',
     sceneIcon: '🛍️',
     sceneDescription: 'Electronics section camera scan — monitoring staff presence in high-value area',
     zone: 'Electronics · CAM 06',
@@ -45,6 +46,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Counter Closed',
+    video_query: 'retail checkout counter cashier billing',
     sceneIcon: '🏪',
     sceneDescription: 'Billing area scan — monitoring counter staffing during peak shopping hours',
     zone: 'Billing Area · CAM 03',
@@ -69,6 +71,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Stock Room Access',
+    video_query: 'store stockroom warehouse door inventory',
     sceneIcon: '📦',
     sceneDescription: 'Stock room camera scan — monitoring access to restricted storage area',
     zone: 'Stock Room · CAM 10',
@@ -91,6 +94,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Overtime Check',
+    video_query: 'retail store closing night staff exit',
     sceneIcon: '⏱️',
     sceneDescription: 'End-of-day scan — verifying which staff are still present vs overtime claimed',
     zone: 'Store Floor · CAM 01',

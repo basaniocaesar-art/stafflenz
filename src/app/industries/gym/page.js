@@ -22,6 +22,7 @@ const PRICING = [
 const FRAMES = [
   {
     sceneLabel: 'Reception Unmanned',
+    video_query: 'gym reception desk front counter empty',
     sceneIcon: '🏋️',
     sceneDescription: 'Reception camera scan — checking front desk during peak evening hours',
     zone: 'Reception · CAM 01',
@@ -45,6 +46,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Trainer Off Floor',
+    video_query: 'gym weights floor people working out',
     sceneIcon: '💪',
     sceneDescription: 'Weights area scan — verifying floor trainer presence during peak hours',
     zone: 'Weights Floor · CAM 03',
@@ -68,6 +70,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Peak Hour Footfall',
+    video_query: 'busy gym cardio treadmill people exercising',
     sceneIcon: '📊',
     sceneDescription: 'Cardio section headcount — verifying expected evening peak attendance',
     zone: 'Cardio Area · CAM 05',

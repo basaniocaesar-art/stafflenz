@@ -22,6 +22,7 @@ const PRICING = [
 const FRAMES = [
   {
     sceneLabel: 'Harness Violation',
+    video_query: 'construction worker scaffolding safety harness building',
     sceneIcon: '⛑️',
     sceneDescription: 'Scaffold Level 4 scan — checking harness compliance for elevated work zones',
     zone: 'Scaffold Level 4 · CAM 07',
@@ -45,6 +46,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Morning Muster',
+    video_query: 'construction workers gathering morning site entrance',
     sceneIcon: '👷',
     sceneDescription: '07:00 morning muster scan — verifying all contracted workers are on-site before work begins',
     zone: 'Site Assembly Point · CAM 01',
@@ -68,6 +70,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Danger Zone Breach',
+    video_query: 'construction crane heavy machinery danger zone',
     sceneIcon: '⚡',
     sceneDescription: 'Electrical panel zone — monitoring for unauthorised entry into exclusion zone',
     zone: 'Electrical Zone · CAM 09',
@@ -90,6 +93,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Ghost Worker Audit',
+    video_query: 'construction site workers counting headcount',
     sceneIcon: '💰',
     sceneDescription: 'End-of-day contractor headcount — comparing verified presence against invoice',
     zone: 'Ground Level · CAM 03',

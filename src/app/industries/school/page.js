@@ -22,6 +22,7 @@ const PRICING = [
 const FRAMES = [
   {
     sceneLabel: 'Class Unattended',
+    video_query: 'empty classroom school desks chairs students',
     sceneIcon: '🏫',
     sceneDescription: 'Class 8C camera scan — checking for teacher presence during Period 3',
     zone: 'Class Block B · CAM 02',
@@ -45,6 +46,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Canteen Supervision',
+    video_query: 'school cafeteria canteen students eating lunch',
     sceneIcon: '🍱',
     sceneDescription: 'Canteen scan during lunch break — checking supervision count for 200+ students',
     zone: 'School Canteen · CAM 05',
@@ -68,6 +70,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Exam Hall Check',
+    video_query: 'exam hall students writing test invigilator',
     sceneIcon: '📝',
     sceneDescription: 'Exam Hall 2 scan — verifying invigilator count before exam begins',
     zone: 'Exam Hall 2 · CAM 09',
@@ -91,6 +94,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Gate Duty Gap',
+    video_query: 'school gate entrance children leaving dismissal',
     sceneIcon: '🚌',
     sceneDescription: 'School gate scan at 4 PM — checking for duty teacher during student dispersal',
     zone: 'Main Gate · CAM 01',

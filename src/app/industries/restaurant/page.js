@@ -22,6 +22,7 @@ const PRICING = [
 const FRAMES = [
   {
     sceneLabel: 'Grill Unmanned',
+    video_query: 'restaurant kitchen grill cooking station chef',
     sceneIcon: '🔥',
     sceneDescription: 'Kitchen grill station scan — checking staffing during Saturday dinner service',
     zone: 'Kitchen Grill Station · CAM 02',
@@ -44,6 +45,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Hygiene Violation',
+    video_query: 'restaurant kitchen hygiene gloves hairnet food safety',
     sceneIcon: '🧤',
     sceneDescription: 'Prep station hygiene scan — verifying hairnet and gloves for all prep staff',
     zone: 'Prep Station · CAM 03',
@@ -67,6 +69,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Break Overlap',
+    video_query: 'restaurant staff break room employees sitting',
     sceneIcon: '⏰',
     sceneDescription: 'Break room scan during Friday dinner peak — monitoring simultaneous breaks',
     zone: 'Staff Break Room · CAM 06',
@@ -91,6 +94,7 @@ const FRAMES = [
   },
   {
     sceneLabel: 'Floor Ratio Alert',
+    video_query: 'busy restaurant dining room tables guests waiters',
     sceneIcon: '🍷',
     sceneDescription: 'Restaurant floor scan — checking waiter-to-cover ratio during lunch rush',
     zone: 'Restaurant Floor · CAM 01',
