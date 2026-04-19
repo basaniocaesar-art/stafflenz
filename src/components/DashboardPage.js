@@ -31,7 +31,14 @@ function randomBox() {
 
 /* ── Weekly Activity Chart (SVG) ────────────────────────────────────────────── */
 function WeeklyChart({ weekData }) {
-  const days  = weekData?.length ? weekData : [{present_count:6},{present_count:12},{present_count:9},{present_count:17},{present_count:14},{present_count:11},{present_count:7}];
+  if (!weekData?.length) {
+    return (
+      <div className="flex items-center justify-center" style={{height:'110px'}}>
+        <span className="text-xs" style={{color:'#475569'}}>Weekly data will appear after a few days of monitoring</span>
+      </div>
+    );
+  }
+  const days = weekData;
   const vals  = days.map(d => d.present_count || 0);
   const max   = Math.max(...vals, 1);
   const labels= ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -70,10 +77,9 @@ function WeeklyChart({ weekData }) {
 
 /* ── Performance Heatmap ────────────────────────────────────────────────────── */
 function Heatmap({ workers, recentEvents, weekData }) {
-  const cols  = 28;
   function heatColor(v) {
-    if (v<0.2) return '#0f2744'; if (v<0.4) return '#1e3a5f';
-    if (v<0.6) return '#1d6fa4'; if (v<0.8) return '#22a8d4'; return '#22d3ee';
+    if (v<0.15) return '#0f2744'; if (v<0.3) return '#1e3a5f';
+    if (v<0.5) return '#1d6fa4'; if (v<0.75) return '#22a8d4'; return '#22d3ee';
   }
 
   if (!workers?.length) {
@@ -84,41 +90,60 @@ function Heatmap({ workers, recentEvents, weekData }) {
     );
   }
 
-  // Count events per worker from recent_events
-  const eventCounts = {};
+  // Build real data: group events by worker + hour of day
+  // Each cell = one hour (0-23), each row = one worker
+  const cols = 24;
+  const eventsByWorkerHour = {};
   (recentEvents || []).forEach(e => {
     const name = e.worker_name || 'Unknown';
-    eventCounts[name] = (eventCounts[name] || 0) + 1;
+    if (name === 'Unknown Person') return;
+    const h = new Date(e.occurred_at).getHours();
+    const key = `${name}_${h}`;
+    eventsByWorkerHour[key] = (eventsByWorkerHour[key] || 0) + 1;
   });
-  const maxEvents = Math.max(...Object.values(eventCounts), 1);
+  const maxVal = Math.max(1, ...Object.values(eventsByWorkerHour));
 
   const workerNames = workers.slice(0, 5).map(w => w.full_name || w.name || 'Worker');
 
-  // Build grid: for each worker, create 28 cells based on their event share
-  // Cells closer to "now" (right side) are weighted by actual event count
+  // Build grid from real data only — no random, no fake
   const grid = workerNames.map(name => {
-    const count = eventCounts[name] || 0;
-    const base = count / maxEvents; // 0..1
-    return Array.from({ length: cols }, (_, di) => {
-      // Taper activity towards recent days (right side = more recent)
-      const recency = (di + 1) / cols;
-      return Math.min(1, base * recency * (0.6 + Math.random() * 0.4));
+    return Array.from({ length: cols }, (_, h) => {
+      const count = eventsByWorkerHour[`${name}_${h}`] || 0;
+      return count / maxVal;
     });
   });
+
+  const hasData = Object.keys(eventsByWorkerHour).length > 0;
+
+  if (!hasData) {
+    return (
+      <div className="text-center py-8 text-xs" style={{color:'#475569'}}>
+        No activity data yet — heatmap will populate as the AI detects staff
+      </div>
+    );
+  }
 
   return (
     <div className="overflow-x-auto">
       <div style={{minWidth:'480px'}}>
         {workerNames.map((name,ei)=>(
-          <div key={ei} className="flex items-center gap-1 mb-1">
+          <div key={ei} className="flex items-center gap-0.5 mb-1">
             <div className="text-xs font-mono w-16 text-right pr-2 shrink-0 truncate" style={{color:'#64748b'}}>{name.split(' ').slice(0,2).join(' ')}</div>
-            {grid[ei].map((v,di)=>(
-              <div key={di} className="rounded-sm shrink-0 hover:scale-125 transition-transform cursor-default"
+            {grid[ei].map((v,hi)=>(
+              <div key={hi} className="rounded-sm shrink-0 hover:scale-125 transition-transform cursor-default"
+                title={`${name} · ${hi}:00 — ${eventsByWorkerHour[`${name}_${hi}`] || 0} detections`}
                 style={{width:'14px',height:'14px',background:heatColor(v),boxShadow:v>0.7?`0 0 4px ${heatColor(v)}80`:undefined}}/>
             ))}
           </div>
         ))}
-        <div className="flex items-center gap-1 mt-2 ml-[72px]">
+        <div className="flex items-center gap-0.5 mt-2 ml-[72px]">
+          {Array.from({length:24},(_,h)=>(
+            <div key={h} className="text-center shrink-0" style={{width:'14px'}}>
+              {h%3===0 && <span className="text-[6px] font-mono" style={{color:'#475569'}}>{h}</span>}
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center gap-1 mt-1 ml-[72px]">
           <span className="text-[9px] mr-1" style={{color:'#475569'}}>Low</span>
           {['#0f2744','#1e3a5f','#1d6fa4','#22a8d4','#22d3ee'].map((c,i)=>(
             <div key={i} className="w-3 h-3 rounded-sm" style={{background:c}}/>
@@ -450,7 +475,14 @@ export default function DashboardPage({ industry }) {
                 <div className="text-[11px] font-medium uppercase tracking-wider mb-2" style={{color:S.muted}}>{k.label}</div>
                 <div className="text-3xl font-extrabold mb-1" style={{color:k.color,textShadow:`0 0 20px ${k.color}60`}}>{k.value}</div>
                 <svg viewBox="0 0 80 20" className="w-full mb-1" style={{height:'18px'}}>
-                  <polyline points="0,16 13,10 26,13 39,6 52,9 65,4 80,7" fill="none" stroke={k.color} strokeWidth="1.5" strokeLinecap="round" style={{filter:`drop-shadow(0 0 3px ${k.color})`}}/>
+                  {(() => {
+                    // Real sparkline from last 7 days of week_chart data
+                    const vals = (week_chart || []).map(d => d.total_events || d.present_count || 0);
+                    if (vals.length < 2) return <polyline points="0,10 80,10" fill="none" stroke={k.color} strokeWidth="1" opacity="0.3"/>;
+                    const mx = Math.max(1, ...vals);
+                    const pts = vals.map((v,i) => `${(i/(vals.length-1))*80},${18 - (v/mx)*14}`).join(' ');
+                    return <polyline points={pts} fill="none" stroke={k.color} strokeWidth="1.5" strokeLinecap="round" style={{filter:`drop-shadow(0 0 3px ${k.color})`}}/>;
+                  })()}
                 </svg>
                 <div className="text-[10px]" style={{color:S.muted}}>{k.sub}</div>
               </div>
