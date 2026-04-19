@@ -457,6 +457,125 @@ export default function DashboardPage({ industry }) {
             ))}
           </div>
 
+          {/* ── Charts row: Pie + Daily Bar + Weekly Bar ── */}
+          <div className="grid lg:grid-cols-3 gap-4">
+            {/* Pie chart — staff status breakdown */}
+            <div className="rounded-2xl p-5 border" style={{background:S.card,borderColor:S.border}}>
+              <h2 className="text-sm font-bold text-white mb-1">Staff Status</h2>
+              <p className="text-[11px] mb-4" style={{color:S.muted}}>Right now</p>
+              {(() => {
+                const present = today?.present_count || 0;
+                const absent = (client?.total_workers || 0) - present;
+                const onBreak = Math.min(present, Math.floor((recent_events || []).filter(e => e.activity === 'on_break').length));
+                const working = Math.max(0, present - onBreak);
+                const total = Math.max(1, (client?.total_workers || 1));
+                const segments = [
+                  { label: 'Working', value: working, color: '#22c55e' },
+                  { label: 'On break', value: onBreak, color: '#f59e0b' },
+                  { label: 'Absent', value: Math.max(0, absent), color: '#ef4444' },
+                ].filter(s => s.value > 0);
+                let cumAngle = 0;
+                const paths = segments.map(s => {
+                  const pct = s.value / total;
+                  const startAngle = cumAngle;
+                  cumAngle += pct * 360;
+                  const endAngle = cumAngle;
+                  const large = pct > 0.5 ? 1 : 0;
+                  const sr = Math.PI / 180;
+                  const x1 = 50 + 40 * Math.cos((startAngle - 90) * sr);
+                  const y1 = 50 + 40 * Math.sin((startAngle - 90) * sr);
+                  const x2 = 50 + 40 * Math.cos((endAngle - 90) * sr);
+                  const y2 = 50 + 40 * Math.sin((endAngle - 90) * sr);
+                  if (pct >= 0.999) return { ...s, d: `M 50 10 A 40 40 0 1 1 49.99 10 Z` };
+                  return { ...s, d: `M 50 50 L ${x1} ${y1} A 40 40 0 ${large} 1 ${x2} ${y2} Z` };
+                });
+                return (
+                  <div className="flex items-center gap-4">
+                    <svg viewBox="0 0 100 100" className="w-28 h-28 shrink-0">
+                      {paths.map((p, i) => <path key={i} d={p.d} fill={p.color} opacity={0.85} />)}
+                      <circle cx="50" cy="50" r="22" fill="#0d1631" />
+                      <text x="50" y="48" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold">{present}</text>
+                      <text x="50" y="60" textAnchor="middle" fill="#64748b" fontSize="7">present</text>
+                    </svg>
+                    <div className="space-y-2">
+                      {segments.map(s => (
+                        <div key={s.label} className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: s.color }} />
+                          <span className="text-xs text-gray-400">{s.label}</span>
+                          <span className="text-xs font-bold text-white ml-auto">{s.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Daily bar chart — hourly activity today */}
+            <div className="rounded-2xl p-5 border" style={{background:S.card,borderColor:S.border}}>
+              <h2 className="text-sm font-bold text-white mb-1">Today&apos;s Activity</h2>
+              <p className="text-[11px] mb-4" style={{color:S.muted}}>Detections per hour</p>
+              {(() => {
+                const hours = Array(24).fill(0);
+                (recent_events || []).forEach(e => {
+                  const h = new Date(e.occurred_at).getHours();
+                  hours[h]++;
+                });
+                const maxH = Math.max(1, ...hours);
+                const activeHours = hours.map((v, i) => ({ h: i, v })).filter(x => x.v > 0 || (x.h >= 6 && x.h <= 22));
+                const display = activeHours.length > 0 ? activeHours : Array.from({ length: 17 }, (_, i) => ({ h: i + 6, v: 0 }));
+                return (
+                  <div className="flex items-end gap-0.5" style={{ height: '120px' }}>
+                    {display.map(({ h, v }) => (
+                      <div key={h} className="flex-1 flex flex-col items-center justify-end h-full">
+                        <div className="w-full rounded-t transition-all duration-500" style={{
+                          height: `${Math.max(2, (v / maxH) * 100)}%`,
+                          background: v > 0 ? 'linear-gradient(to top, #3b82f6, #60a5fa)' : '#1e2d4a',
+                          boxShadow: v > 0 ? '0 0 8px #3b82f640' : 'none',
+                          minHeight: '2px',
+                        }} />
+                        <span className="text-[7px] mt-1 font-mono" style={{ color: '#475569' }}>{h % 12 || 12}{h < 12 ? 'a' : 'p'}</span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* 7-day bar chart — daily detections this week */}
+            <div className="rounded-2xl p-5 border" style={{background:S.card,borderColor:S.border}}>
+              <h2 className="text-sm font-bold text-white mb-1">This Week</h2>
+              <p className="text-[11px] mb-4" style={{color:S.muted}}>Daily activity · 7 days</p>
+              {(() => {
+                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                const weekData = (week_chart || []).map(d => ({
+                  day: days[new Date(d.summary_date + 'T00:00:00').getDay()],
+                  events: d.total_events || 0,
+                  present: d.present_count || 0,
+                }));
+                // Pad to 7 days if less
+                while (weekData.length < 7) weekData.unshift({ day: '—', events: 0, present: 0 });
+                const maxE = Math.max(1, ...weekData.map(d => d.events));
+                return (
+                  <div className="flex items-end gap-1.5" style={{ height: '120px' }}>
+                    {weekData.map((d, i) => (
+                      <div key={i} className="flex-1 flex flex-col items-center justify-end h-full">
+                        <div className="w-full rounded-t transition-all duration-500" style={{
+                          height: `${Math.max(2, (d.events / maxE) * 100)}%`,
+                          background: d.events > 0 ? 'linear-gradient(to top, #8b5cf6, #a78bfa)' : '#1e2d4a',
+                          boxShadow: d.events > 0 ? '0 0 8px #8b5cf640' : 'none',
+                          minHeight: '2px',
+                        }} />
+                        <span className="text-[8px] mt-1 font-mono" style={{ color: '#475569' }}>{d.day}</span>
+                        {d.events > 0 && <span className="text-[7px] font-bold" style={{ color: '#a78bfa' }}>{d.events}</span>}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+
           {/* Weekly chart + Timeline */}
           <div className="grid lg:grid-cols-3 gap-4">
             <div className="lg:col-span-2 rounded-2xl p-5 border" style={{background:S.card,borderColor:S.border}}>
