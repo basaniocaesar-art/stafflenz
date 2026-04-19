@@ -72,10 +72,10 @@ export default function DashboardLayout({ children, industry, clientName, userNa
         <div className="p-4 border-b" style={{borderColor:'#1e2d4a'}}>
           <Link href="/" className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center font-extrabold text-sm text-white shadow-lg" style={{background:'linear-gradient(135deg,#3b82f6,#8b5cf6)'}}>
-              S
+              LA
             </div>
             <div>
-              <div className="font-extrabold text-white text-sm tracking-tight">Stafflenz</div>
+              <div className="font-extrabold text-white text-sm tracking-tight">LenzAI</div>
               <div className="text-[10px] truncate max-w-[110px]" style={{color:'#475569'}}>{clientName}</div>
             </div>
           </Link>
@@ -143,7 +143,7 @@ export default function DashboardLayout({ children, industry, clientName, userNa
           <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-lg" style={{color:'#64748b'}}>
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </button>
-          <span className="font-extrabold text-white tracking-tight">Stafflenz</span>
+          <span className="font-extrabold text-white tracking-tight">LenzAI</span>
           <div className="w-8" />
         </header>
 
