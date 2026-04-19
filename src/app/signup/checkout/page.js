@@ -13,39 +13,27 @@ import Script from 'next/script';
 // DB `plan_limits.features` jsonb drives the actual runtime config, this list
 // drives the marketing copy.
 const PLANS_INR = [
-  { key: 'starter',    name: 'Starter',    price: 4999,  credits: 3500,
-    tagline: 'Attendance + compliance', highlight: false,
-    features: ['4 cameras · 15 workers', '15-min attendance checks', 'Business hours (12h)', 'Email alerts', '3,500 credits included'] },
-  { key: 'standard',   name: 'Standard',   price: 9999,  credits: 10000,
-    tagline: 'Live workforce monitoring', highlight: true,
-    features: ['8 cameras · 50 workers', '5-min live checks', 'Business hours (12h)', 'Email + WhatsApp alerts', '24h forensic archive', '10,000 credits included'] },
-  { key: 'pro',        name: 'Pro',        price: 19999, credits: 30000,
-    tagline: 'Theft + incident response', highlight: false,
-    features: ['16 cameras · 150 workers', '3-second capture', 'Motion-triggered bursts', '7-day forensic archive', 'Voice + WhatsApp alerts', '30,000 credits included'] },
-  { key: 'scale',      name: 'Scale',      price: 39999, credits: 75000,
-    tagline: 'Multi-site, 24/7', highlight: false,
-    features: ['32 cameras · 500 workers', '3-sec + 1-min analysis', '24/7 coverage', '30-day forensic archive', 'All alerts + webhooks', '75,000 credits included'] },
-  { key: 'enterprise', name: 'Enterprise', price: 75000, credits: null,
-    tagline: 'Custom SLA + dedicated support', highlight: false,
-    features: ['Unlimited cameras + workers', '3-sec capture + 1-min analysis', '24/7 coverage + dedicated AM', 'White-label option', 'Custom integrations', 'Unlimited credits'] },
+  { key: 'starter',    name: 'Pay as you go', price: 999,   credits: null,
+    tagline: 'Try it, no commitment', highlight: false,
+    features: ['4 cameras · 10 workers', 'Self-setup with your device', '15-min AI checks', 'Business hours', 'Email alerts', 'Top up anytime'] },
+  { key: 'standard',   name: 'Standard',      price: 4999,  credits: null,
+    tagline: 'Daily workforce monitoring', highlight: true,
+    features: ['8 cameras · 50 workers', '10-min AI checks', 'Business hours', 'Email + WhatsApp alerts', '24h forensic archive', 'Self-setup or device'] },
+  { key: 'pro',        name: 'Pro',           price: 8999,  credits: null,
+    tagline: 'Full monitoring + LenzAI device', highlight: false,
+    features: ['16 cameras · 150 workers', '5-sec capture', '10-min AI analysis', '7-day forensic archive', 'WhatsApp + voice alerts', 'LenzAI device included'] },
 ];
 
 const PLANS_USD = [
-  { key: 'starter',    name: 'Starter',    price: 59,  credits: 3500,
-    tagline: 'Attendance + compliance', highlight: false,
-    features: ['4 cameras · 15 workers', '15-min attendance checks', 'Business hours (12h)', 'Email alerts', '3,500 credits included'] },
-  { key: 'standard',   name: 'Standard',   price: 119, credits: 10000,
-    tagline: 'Live workforce monitoring', highlight: true,
-    features: ['8 cameras · 50 workers', '5-min live checks', 'Business hours (12h)', 'Email + WhatsApp alerts', '24h forensic archive', '10,000 credits included'] },
-  { key: 'pro',        name: 'Pro',        price: 239, credits: 30000,
-    tagline: 'Theft + incident response', highlight: false,
-    features: ['16 cameras · 150 workers', '3-second capture', 'Motion-triggered bursts', '7-day forensic archive', 'Voice + WhatsApp alerts', '30,000 credits included'] },
-  { key: 'scale',      name: 'Scale',      price: 479, credits: 75000,
-    tagline: 'Multi-site, 24/7', highlight: false,
-    features: ['32 cameras · 500 workers', '3-sec + 1-min analysis', '24/7 coverage', '30-day forensic archive', 'All alerts + webhooks', '75,000 credits included'] },
-  { key: 'enterprise', name: 'Enterprise', price: 899, credits: null,
-    tagline: 'Custom SLA + dedicated support', highlight: false,
-    features: ['Unlimited cameras + workers', '3-sec capture + 1-min analysis', '24/7 coverage + dedicated AM', 'White-label option', 'Custom integrations', 'Unlimited credits'] },
+  { key: 'starter',    name: 'Pay as you go', price: 12,   credits: null,
+    tagline: 'Try it, no commitment', highlight: false,
+    features: ['4 cameras · 10 workers', 'Self-setup with your device', '15-min AI checks', 'Business hours', 'Email alerts', 'Top up anytime'] },
+  { key: 'standard',   name: 'Standard',      price: 59,   credits: null,
+    tagline: 'Daily workforce monitoring', highlight: true,
+    features: ['8 cameras · 50 workers', '10-min AI checks', 'Business hours', 'Email + WhatsApp alerts', '24h forensic archive', 'Self-setup or device'] },
+  { key: 'pro',        name: 'Pro',           price: 109,  credits: null,
+    tagline: 'Full monitoring + LenzAI device', highlight: false,
+    features: ['16 cameras · 150 workers', '5-sec capture', '10-min AI analysis', '7-day forensic archive', 'WhatsApp + voice alerts', 'LenzAI device included'] },
 ];
 
 function formatINR(n) { return '₹' + n.toLocaleString('en-IN'); }
@@ -161,11 +149,6 @@ export default function CheckoutPage() {
   }
 
   function startCheckout(planKey) {
-    // Enterprise is custom-negotiated — route to sales rather than self-checkout
-    if (planKey === 'enterprise') {
-      window.location.href = '/#contact';
-      return;
-    }
     if (currency === 'USD') return startStripe(planKey);
     return startRazorpay(planKey);
   }
@@ -225,7 +208,7 @@ export default function CheckoutPage() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {plans.map((p) => {
               const isHighlight = p.highlight;
               const isCurrent = client?.plan === p.key;
@@ -270,8 +253,8 @@ export default function CheckoutPage() {
                       ? 'Opening…'
                       : isCurrent
                         ? 'Subscribe'
-                        : p.key === 'enterprise'
-                          ? 'Contact sales'
+                        : p.key === 'starter'
+                          ? 'Start now'
                           : 'Choose plan'}
                   </button>
                 </div>
@@ -280,9 +263,7 @@ export default function CheckoutPage() {
           </div>
 
           <div className="mt-6 text-center text-xs text-gray-500 max-w-3xl mx-auto">
-            Each plan includes a monthly credit allowance. Overages are billed at your tier&apos;s rate
-            (₹1.00–₹2.00 per extra credit / $0.012–$0.024 at the USD equivalent) with a hard cap before we throttle — you&apos;ll never be hit with a surprise bill.
-            <a href="/pricing" className="text-indigo-600 hover:underline ml-1">See how credits work</a>
+            All plans include AI-powered monitoring using your existing CCTV. Cancel anytime.
           </div>
 
           <div className="mt-6 text-center text-xs text-gray-500">
