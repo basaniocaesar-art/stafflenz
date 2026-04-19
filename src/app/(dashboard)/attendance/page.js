@@ -49,8 +49,9 @@ export default function AttendancePage() {
           </div>
         </div>
 
-        {/* Range toggle */}
-        <div className="flex gap-1 mb-6 rounded-lg p-1 w-fit" style={{ background: '#0d1631', border: '1px solid #1e2d4a' }}>
+        {/* Range toggle + download button */}
+        <div className="flex items-center gap-3 mb-6 flex-wrap">
+        <div className="flex gap-1 rounded-lg p-1 w-fit" style={{ background: '#0d1631', border: '1px solid #1e2d4a' }}>
           {[
             { key: 'day', label: 'Today' },
             { key: 'week', label: 'This week' },
@@ -66,6 +67,18 @@ export default function AttendancePage() {
               {r.label}
             </button>
           ))}
+        </div>
+        {(range === 'week' || range === 'month') && (
+          <a
+            href={`/api/reports/attendance?range=${range}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition"
+            style={{ background: 'rgba(34,211,238,0.1)', color: '#22d3ee', border: '1px solid rgba(34,211,238,0.3)' }}
+          >
+            📄 Download Report
+          </a>
+        )}
         </div>
 
         {loading ? (
