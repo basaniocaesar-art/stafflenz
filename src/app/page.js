@@ -404,7 +404,7 @@ export default function HomePage() {
                 for Your Business
               </h1>
               <p className="text-lg text-slate-400 mb-8 leading-relaxed max-w-xl">
-                StaffLenz turns your existing CCTV into a real-time AI workforce intelligence platform — tracking attendance, compliance, and operational gaps across 10 industries. Self-serve setup takes 5 minutes. No new cameras, no rewiring, no downtime.
+                StaffLenz turns your existing CCTV into a real-time AI workforce intelligence platform — tracking attendance, compliance, and operational gaps across 10 industries. We handle the setup. No new cameras, no rewiring, no downtime.
               </p>
               <div className="flex flex-wrap gap-4 mb-10">
                 <a href="#contact" className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold px-8 py-4 rounded-xl hover:opacity-90 transition-all shadow-2xl shadow-blue-900/40 text-base">
@@ -728,33 +728,33 @@ export default function HomePage() {
           <div className="text-center mb-14">
             <div className="section-label mb-4">How You Get Started</div>
             <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight">
-              Pick how you want to set up.<br />
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-violet-600">Live in 5 minutes or hands-off.</span>
+              Simple pricing.<br />
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-violet-600">Start small or go all-in.</span>
             </h2>
             <p className="mt-4 text-gray-500 text-lg max-w-2xl mx-auto">
-              Monthly subscription is separate from setup. Pick a setup option below based on how hands-on you want to be. All options include the same AI features.
+              Works with your existing CCTV. No new cameras, no rewiring. We handle the setup — you see results within 24 hours.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
-            {/* Self-Serve */}
+            {/* Pay as you go */}
             <div className="relative rounded-3xl p-8 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-              <div className="absolute -top-3 left-6 bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow">MOST POPULAR</div>
               <div className="text-4xl mb-3">⚡</div>
-              <h3 className="text-xl font-extrabold text-gray-900 mb-1">Self-Serve Setup</h3>
-              <div className="text-sm text-gray-500 mb-5">Do it yourself in 5 minutes</div>
+              <h3 className="text-xl font-extrabold text-gray-900 mb-1">Pay as you go</h3>
+              <div className="text-sm text-gray-500 mb-5">Try it, no commitment</div>
               <div className="flex items-baseline gap-1 mb-1">
-                <span className="text-5xl font-extrabold text-gray-900">Free</span>
+                <span className="text-5xl font-extrabold text-gray-900">₹999</span>
+                <span className="text-gray-500 text-sm">top-up</span>
               </div>
-              <div className="text-xs text-gray-500 mb-6">No setup fee · Monthly plan separate</div>
+              <div className="text-xs text-gray-500 mb-6">No monthly fee · Use as needed</div>
               <ul className="space-y-2.5 mb-8">
                 {[
-                  'Guided 5-minute onboarding wizard',
-                  'Paste-in email settings for your DVR',
-                  'Step-by-step guides for Hikvision, Dahua, CP Plus',
-                  'Live connection test',
-                  'Worker photo upload walkthrough',
-                  'Email + chat support',
+                  '4 cameras · 10 workers',
+                  'Self-setup with your own device',
+                  '15-min AI monitoring checks',
+                  'Business hours coverage',
+                  'Email alerts',
+                  'Top up anytime',
                 ].map((f) => (
                   <li key={f} className="flex items-start gap-2 text-sm text-gray-700">
                     <span className="text-green-600 font-bold mt-0.5">✓</span> {f}
@@ -764,27 +764,28 @@ export default function HomePage() {
               <Link href="/#contact" className="block text-center py-3.5 rounded-2xl bg-green-600 text-white font-bold text-sm hover:bg-green-700 transition-all">
                 Book a Demo →
               </Link>
-              <div className="text-center text-xs text-gray-400 mt-3">Ready in 5 minutes</div>
+              <div className="text-center text-xs text-gray-400 mt-3">Start monitoring today</div>
             </div>
 
-            {/* White-Glove */}
-            <div className="relative rounded-3xl p-8 bg-gradient-to-br from-blue-50 to-violet-50 border-2 border-blue-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-              <div className="text-4xl mb-3">🧑‍💻</div>
-              <h3 className="text-xl font-extrabold text-gray-900 mb-1">White-Glove Setup</h3>
-              <div className="text-sm text-gray-500 mb-5">We do it remotely via TeamViewer</div>
+            {/* Standard */}
+            <div className="relative rounded-3xl p-8 bg-gradient-to-br from-blue-50 to-violet-50 border-2 border-blue-300 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+              <div className="absolute -top-3 left-6 bg-gradient-to-r from-blue-600 to-violet-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow">MOST POPULAR</div>
+              <div className="text-4xl mb-3">🔍</div>
+              <h3 className="text-xl font-extrabold text-gray-900 mb-1">Standard</h3>
+              <div className="text-sm text-gray-500 mb-5">Daily workforce monitoring</div>
               <div className="flex items-baseline gap-1 mb-1">
-                <span className="text-5xl font-extrabold text-gray-900">$99</span>
-                <span className="text-gray-500 text-sm">one-time</span>
+                <span className="text-5xl font-extrabold text-gray-900">₹4,999</span>
+                <span className="text-gray-500 text-sm">/month</span>
               </div>
-              <div className="text-xs text-gray-500 mb-6">Waived on Enterprise plans</div>
+              <div className="text-xs text-gray-500 mb-6">Cancel anytime</div>
               <ul className="space-y-2.5 mb-8">
                 {[
-                  '30-min remote session via TeamViewer / AnyDesk',
-                  'We configure your DVR email/FTP settings',
-                  'We add your workers and zones for you',
-                  'We run live connection test with you',
-                  'You never touch any technical setting',
-                  'Priority email + WhatsApp support',
+                  '8 cameras · 50 workers',
+                  '10-min AI monitoring checks',
+                  'Business hours coverage',
+                  'Email + WhatsApp alerts',
+                  '24-hour forensic archive',
+                  'Attendance + break tracking',
                 ].map((f) => (
                   <li key={f} className="flex items-start gap-2 text-sm text-gray-700">
                     <span className="text-blue-600 font-bold mt-0.5">✓</span> {f}
@@ -792,30 +793,30 @@ export default function HomePage() {
                 ))}
               </ul>
               <Link href="/#contact" className="block text-center py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold text-sm hover:opacity-90 transition-all">
-                Book Setup Session →
+                Book a Demo →
               </Link>
-              <div className="text-center text-xs text-gray-400 mt-3">Scheduled within 24 hours</div>
+              <div className="text-center text-xs text-gray-400 mt-3">We handle the setup</div>
             </div>
 
-            {/* LenzAI Device */}
+            {/* Pro */}
             <div className="relative rounded-3xl p-8 bg-gradient-to-br from-slate-900 to-gray-950 border-2 border-gray-800 text-white hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-              <div className="absolute -top-3 left-6 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow">PREMIUM</div>
+              <div className="absolute -top-3 left-6 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow">INCLUDES DEVICE</div>
               <div className="text-4xl mb-3">📦</div>
-              <h3 className="text-xl font-extrabold text-white mb-1">LenzAI Device</h3>
-              <div className="text-sm text-gray-400 mb-5">We ship a pre-configured device</div>
+              <h3 className="text-xl font-extrabold text-white mb-1">Pro</h3>
+              <div className="text-sm text-gray-400 mb-5">Full monitoring + LenzAI device</div>
               <div className="flex items-baseline gap-1 mb-1">
-                <span className="text-5xl font-extrabold text-white">$249</span>
-                <span className="text-gray-400 text-sm">one-time</span>
+                <span className="text-5xl font-extrabold text-white">₹8,999</span>
+                <span className="text-gray-400 text-sm">/month</span>
               </div>
-              <div className="text-xs text-gray-400 mb-6">Includes device + shipping + setup</div>
+              <div className="text-xs text-gray-400 mb-6">LenzAI device included · Cancel anytime</div>
               <ul className="space-y-2.5 mb-8">
                 {[
-                  'Pre-configured LenzAI device',
-                  'Plug into your network — zero DVR config',
-                  'Auto-discovers cameras via ONVIF',
-                  'Works offline if your internet drops',
-                  '2-year hardware warranty',
-                  'Priority 24/7 support',
+                  '16 cameras · 150 workers',
+                  '5-second capture rate',
+                  '10-min AI analysis',
+                  '7-day forensic archive',
+                  'WhatsApp + voice alerts',
+                  'LenzAI device shipped to you',
                 ].map((f) => (
                   <li key={f} className="flex items-start gap-2 text-sm text-gray-300">
                     <span className="text-amber-400 font-bold mt-0.5">✓</span> {f}
@@ -823,15 +824,15 @@ export default function HomePage() {
                 ))}
               </ul>
               <Link href="/#contact" className="block text-center py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-gray-900 font-bold text-sm hover:opacity-90 transition-all">
-                Order Device →
+                Book a Demo →
               </Link>
-              <div className="text-center text-xs text-gray-500 mt-3">Shipped within 3 business days</div>
+              <div className="text-center text-xs text-gray-500 mt-3">Device shipped in 3 business days</div>
             </div>
           </div>
 
           <div className="mt-10 rounded-2xl border border-blue-200 bg-blue-50 px-6 py-5 text-center text-sm text-blue-900 max-w-3xl mx-auto">
-            <span className="font-bold">Not sure which is right?</span> 90% of customers pick <b>Self-Serve</b>. If you're not comfortable touching your DVR settings, <b>White-Glove</b> is the stress-free option. Multi-site chains go with the <b>LenzAI Device</b>.
-            &nbsp;<Link href="/#contact" className="underline font-semibold hover:text-blue-700">Talk to a human →</Link>
+            <span className="font-bold">Works with your existing CCTV.</span> No new cameras, no rewiring. We connect to your Hikvision, Dahua, or CP Plus DVR and start monitoring within 24 hours.
+            &nbsp;<Link href="/#contact" className="underline font-semibold hover:text-blue-700">Talk to us →</Link>
           </div>
         </div>
       </section>
