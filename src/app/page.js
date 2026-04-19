@@ -484,14 +484,16 @@ export default function HomePage() {
           </h2>
           <p className="text-gray-500 mb-10 max-w-xl mx-auto">Watch how StaffLenz turns your existing CCTV into a live workforce intelligence system — no new cameras, no new hardware.</p>
           <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-100 bg-gray-950" style={{aspectRatio:'16/9'}}>
-            <iframe
-              src="https://www.youtube.com/embed/YFoiPUUBlqI?rel=0&modestbranding=1"
-              title="StaffLenz Product Demo"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              className="absolute inset-0 w-full h-full"
-              style={{border:0}}
-            />
+            <video
+              controls
+              playsInline
+              preload="metadata"
+              poster=""
+              className="absolute inset-0 w-full h-full object-cover"
+            >
+              <source src="https://rquozwjrzmvlcwbicegr.supabase.co/storage/v1/object/sign/frames/demo-video.mp4?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV80MDA3YTkwZS1kZTczLTQzNDYtYjY5OC0wYjQ3ZWJlNWM4MmEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJmcmFtZXMvZGVtby12aWRlby5tcDQiLCJpYXQiOjE3NzY1Nzg4NDgsImV4cCI6MTgwODExNDg0OH0.8Aef-Tdkl1HYyR1XftgZVVNAqwoDZp0eNZOYDZ_gPyU" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
           </div>
           <p className="mt-4 text-xs text-gray-400">No sign-up required to watch · Full demo available on request</p>
           <div className="mt-6">
