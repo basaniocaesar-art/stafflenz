@@ -165,6 +165,22 @@ const INDUSTRIES = [
     ],
     zone: 'Main Floor · Camera 01',
   },
+  {
+    id: 'home',
+    label: 'Home',
+    icon: '🏠',
+    headline: 'Intruder Alerts & Maid Attendance',
+    sub: 'Know who\'s at your gate, when the maid came, and if your elderly parent is safe — on WhatsApp.',
+    color: 'text-blue-400',
+    border: 'border-blue-500',
+    bg: 'bg-blue-500',
+    detections: [
+      { label: '⚠ Unknown Person', sub: 'Main Gate · 2:47 AM', color: '#ef4444', x: '30%', y: '15%', w: '40%', h: '60%' },
+      { label: 'Lakshmi (Maid) ✓', sub: 'Arrived 8:32 AM', color: '#10b981', x: '5%', y: '25%', w: '22%', h: '50%' },
+      { label: 'No activity 2h', sub: 'Living Room · Wellness check', color: '#f59e0b', x: '60%', y: '50%', w: '35%', h: '35%' },
+    ],
+    zone: 'Main Gate · Camera 01',
+  },
 ];
 
 const TICKER = [
