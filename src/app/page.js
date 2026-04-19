@@ -181,6 +181,22 @@ const INDUSTRIES = [
     ],
     zone: 'Main Gate · Camera 01',
   },
+  {
+    id: 'staff',
+    label: 'Staff',
+    icon: '👥',
+    headline: 'Attendance, Breaks & Productivity',
+    sub: 'Auto clock-in by face, break tracking to the minute, idle detection, payroll-ready reports.',
+    color: 'text-violet-400',
+    border: 'border-violet-500',
+    bg: 'bg-violet-500',
+    detections: [
+      { label: 'Rahul — Late 23 min', sub: 'Entrance · 9:23 AM', color: '#ef4444', x: '30%', y: '15%', w: '35%', h: '55%' },
+      { label: 'Priya — Break 47 min', sub: 'Break Room · Exceeded', color: '#f59e0b', x: '5%', y: '40%', w: '22%', h: '40%' },
+      { label: '3 staff working ✓', sub: 'Open Floor · Active', color: '#10b981', x: '65%', y: '25%', w: '30%', h: '45%' },
+    ],
+    zone: 'Main Entrance · Camera 01',
+  },
 ];
 
 const TICKER = [
@@ -627,6 +643,7 @@ export default function HomePage() {
               { id:'security', label:'Security & Guard Services', icon:'🔒', color:'from-slate-600 to-gray-700', bg:'bg-slate-50', border:'border-slate-200', tag:'bg-slate-100 text-slate-700', points:['Live post abandonment alerts','Patrol route verification','Shift handover timestamps','Response time tracking'] },
               { id:'gym', label:'Gym & Fitness', icon:'🏋️', color:'from-green-500 to-emerald-600', bg:'bg-green-50', border:'border-green-200', tag:'bg-green-100 text-green-700', points:['Trainer presence tracking','Peak hour footfall count','Unattended equipment alerts','Class attendance auto-count'] },
               { id:'home', label:'Home Security', icon:'🏠', color:'from-blue-500 to-indigo-600', bg:'bg-blue-50', border:'border-blue-200', tag:'bg-blue-100 text-blue-700', points:['Intruder alert on WhatsApp','Maid/cook/driver attendance','Elderly parent wellness check','Daily "who came today" summary'] },
+              { id:'staff', label:'Staff Monitoring', icon:'👥', color:'from-violet-500 to-purple-600', bg:'bg-violet-50', border:'border-violet-200', tag:'bg-violet-100 text-violet-700', points:['Auto clock-in/clock-out by face','Break tracking to the minute','Late arrival & early departure alerts','Weekly payroll-ready reports'] },
             ].map(ind => (
               <Link key={ind.id} href={`/industries/${ind.id}`} className={`card-hover p-6 flex flex-col group ${ind.bg} border ${ind.border}`}>
                 <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${ind.color} flex items-center justify-center text-2xl shadow-lg mb-4`}>{ind.icon}</div>

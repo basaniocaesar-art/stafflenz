@@ -13,6 +13,7 @@ const QUERIES = {
   security:     'security guard office',
   gym:          'gym fitness workout',
   home:         'home security camera entrance gate',
+  staff:        'office workers employees desk workplace',
 };
 
 // 8 different queries per industry for camera grid variety
@@ -28,6 +29,7 @@ const GRID_QUERIES = {
   security:     ['security guard','office building entrance','security checkpoint','parking lot surveillance','security patrol','building lobby security','night security','access control'],
   gym:          ['gym weights workout','cardio gym','gym trainer','fitness class studio','gym reception','treadmill running','gym floor members','yoga studio'],
   home:         ['home front door entrance','living room interior home','backyard garden home','home garage parking','home kitchen cooking','house gate entrance','elderly person home','home security doorbell camera'],
+  staff:        ['office entrance employees arriving morning','office desk workers computer typing','office break room coffee employees','office meeting room discussion','office corridor walking staff','office reception front desk','office empty desk chair','office manager supervisor'],
 };
 
 function pickFile(video) {
