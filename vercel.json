@@ -7,6 +7,10 @@
     {
       "path": "/api/monitor/prune-queue",
       "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/daily-summary",
+      "schedule": "30 16 * * *"
     }
   ]
 }

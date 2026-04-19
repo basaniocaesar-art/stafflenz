@@ -46,7 +46,7 @@ export function alertMessage(type, details) {
     staff_absent: `⚠️ *ZONE UNATTENDED*\n\n${zone} has been empty for too long.\nCamera: ${camera}\nTime: ${t}\n\nPlease send staff immediately.`,
     attendance: `✅ *ATTENDANCE ALERT*\n\n${name} detected at ${zone}\nCamera: ${camera}\nTime: ${t}`,
     breach: `🔴 *SECURITY BREACH*\n\nUnauthorised access detected.\nZone: ${zone}\nCamera: ${camera}\nTime: ${t}\n\nPlease investigate immediately.`,
-    custom: `📢 *STAFFLENZ ALERT*\n\n${violation}\nZone: ${zone || 'N/A'}\nTime: ${t}`,
+    custom: `📢 *LENZAI ALERT*\n\n${violation}\nZone: ${zone || 'N/A'}\nTime: ${t}`,
   };
 
   return templates[type] || templates.custom;
