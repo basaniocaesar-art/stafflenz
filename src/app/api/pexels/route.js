@@ -12,6 +12,7 @@ const QUERIES = {
   restaurant:   'restaurant kitchen cooking',
   security:     'security guard office',
   gym:          'gym fitness workout',
+  home:         'home security camera entrance gate',
 };
 
 // 8 different queries per industry for camera grid variety
@@ -26,6 +27,7 @@ const GRID_QUERIES = {
   restaurant:   ['restaurant kitchen','restaurant dining','restaurant bar','restaurant staff','food preparation','restaurant service','restaurant entrance','chef cooking'],
   security:     ['security guard','office building entrance','security checkpoint','parking lot surveillance','security patrol','building lobby security','night security','access control'],
   gym:          ['gym weights workout','cardio gym','gym trainer','fitness class studio','gym reception','treadmill running','gym floor members','yoga studio'],
+  home:         ['home front door entrance','living room interior home','backyard garden home','home garage parking','home kitchen cooking','house gate entrance','elderly person home','home security doorbell camera'],
 };
 
 function pickFile(video) {
