@@ -9,19 +9,46 @@ export default function PipelineDemoSection({ frames, accentColor = '#3b82f6', s
   const [phase, setPhase] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [videoUrl, setVideoUrl] = useState(null);
+  const [videoUrls, setVideoUrls] = useState([]);
   const elapsedRef = useRef(0);
   const pausedRef = useRef(false);
 
   useEffect(() => { pausedRef.current = paused; }, [paused]);
 
-  // Fetch Pexels video for this industry
+  // Fetch a different Pexels video per scene using each frame's video_query
+  // or fall back to the grid queries for this industry (one per camera slot).
   useEffect(() => {
-    fetch(`/api/pexels?industry=${industry}`)
-      .then(r => r.json())
-      .then(d => { if (d.url) setVideoUrl(d.url); })
-      .catch(() => {});
-  }, [industry]);
+    async function loadVideos() {
+      // If frames have video_query fields, use those for per-scene videos
+      const hasPerScene = frames.some(f => f.video_query);
+      if (hasPerScene) {
+        const urls = await Promise.all(frames.map(async (f) => {
+          if (!f.video_query) return null;
+          try {
+            const r = await fetch(`/api/pexels?industry=${industry}&query=${encodeURIComponent(f.video_query)}`);
+            const d = await r.json();
+            return d.url || null;
+          } catch { return null; }
+        }));
+        setVideoUrls(urls);
+      } else {
+        // Fall back to grid queries (8 different videos for variety)
+        try {
+          const r = await fetch(`/api/pexels?industry=${industry}&count=4`);
+          const d = await r.json();
+          setVideoUrls(d.urls || []);
+        } catch {
+          // Last fallback: single video
+          try {
+            const r = await fetch(`/api/pexels?industry=${industry}`);
+            const d = await r.json();
+            setVideoUrls(d.url ? [d.url, d.url, d.url, d.url] : []);
+          } catch { setVideoUrls([]); }
+        }
+      }
+    }
+    loadVideos();
+  }, [industry, frames]);
 
   useEffect(() => {
     const iv = setInterval(() => {
@@ -50,6 +77,7 @@ export default function PipelineDemoSection({ frames, accentColor = '#3b82f6', s
   }
 
   const frame = frames[activeFrame];
+  const videoUrl = videoUrls[activeFrame] || videoUrls[0] || null;
   const progress = (elapsed / TOTAL_MS) * 100;
   const scanY = ((elapsed % 1200) / 1200) * 100;
   const dotCount = Math.floor(((elapsed - PHASE_MS[0]) % 900) / 300) + 1;

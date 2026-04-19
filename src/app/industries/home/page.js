@@ -17,6 +17,7 @@ const FRAMES = [
     sceneDescription: 'Main gate camera scan — checking if person matches registered family or staff',
     zone: 'Main Gate · CAM 01',
     camId: '01',
+    video_query: 'person walking to house front door night security camera',
     aiPrompt: 'Is the person at the gate a registered family member or domestic staff?',
     detections: [
       { label: '⚠ UNKNOWN PERSON', color: '#ef4444', x: '30%', y: '15%', w: '40%', h: '65%' },
@@ -39,6 +40,7 @@ const FRAMES = [
     sceneDescription: 'Gate camera scan — domestic staff arrival check against registered faces',
     zone: 'Main Gate · CAM 01',
     camId: '01',
+    video_query: 'woman entering house door morning domestic helper',
     aiPrompt: 'Has the registered domestic staff (maid) arrived? What time?',
     detections: [
       { label: 'Lakshmi (Maid) ✓', color: '#10b981', x: '35%', y: '18%', w: '30%', h: '60%' },
@@ -61,6 +63,7 @@ const FRAMES = [
     sceneDescription: 'Living room scan — checking for elderly family member activity during daytime',
     zone: 'Living Room · CAM 02',
     camId: '02',
+    video_query: 'empty living room home interior couch sofa',
     aiPrompt: 'Is there any person present in the living room? When was the last detected activity?',
     detections: [
       { label: '⚠ No activity 2+ hours', color: '#f59e0b', x: '10%', y: '10%', w: '80%', h: '70%' },
@@ -83,6 +86,7 @@ const FRAMES = [
     sceneDescription: 'Gate camera scan — verifying child arrival during school pickup window',
     zone: 'Main Gate · CAM 01',
     camId: '01',
+    video_query: 'child walking to house front door school backpack',
     aiPrompt: 'Has a registered family member (child) arrived at the gate during school pickup time?',
     detections: [
       { label: 'Aarav (Son) ✓', color: '#3b82f6', x: '40%', y: '20%', w: '25%', h: '55%' },

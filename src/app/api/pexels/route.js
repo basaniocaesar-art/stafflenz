@@ -44,7 +44,8 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const industry = searchParams.get('industry') || 'factory';
   const count = parseInt(searchParams.get('count') || '1', 10);
-  const query = QUERIES[industry] || QUERIES.factory;
+  const customQuery = searchParams.get('query');
+  const query = customQuery || QUERIES[industry] || QUERIES.factory;
 
   const res = await fetch(
     `https://api.pexels.com/videos/search?query=${encodeURIComponent(query)}&per_page=15&orientation=landscape`,
