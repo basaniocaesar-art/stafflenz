@@ -3,7 +3,7 @@ import { getAdminClient } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://stafflenz.com';
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://lenzai.org';
 const ANALYSIS_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes between Claude calls
 
 // Vercel Cron calls this with: Authorization: Bearer CRON_SECRET

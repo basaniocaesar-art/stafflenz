@@ -73,7 +73,7 @@ export default function IndustryLandingPage({ industry }) {
             </div>
             <h2 className="text-3xl md:text-4xl font-extrabold">ROI that pays for itself in weeks</h2>
             <p className="mt-3 text-gray-600 max-w-2xl mx-auto">
-              Three concrete scenarios showing how StaffLenz saves more than it costs.
+              Three concrete scenarios showing how LenzAI saves more than it costs.
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
@@ -91,7 +91,7 @@ export default function IndustryLandingPage({ industry }) {
                   <p className="font-bold text-red-600">{s.cost}</p>
                 </div>
                 <div className="mb-4">
-                  <div className="text-sm text-gray-500 mb-1">What StaffLenz does</div>
+                  <div className="text-sm text-gray-500 mb-1">What LenzAI does</div>
                   <p className="text-gray-900">{s.solution}</p>
                 </div>
                 <div className="mt-auto pt-4 border-t border-gray-100">
@@ -129,7 +129,7 @@ export default function IndustryLandingPage({ industry }) {
       <section className="bg-gray-50 py-16 md:py-24">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: i.accentDark }}>
-            Who buys StaffLenz
+            Who buys LenzAI
           </div>
           <h2 className="text-3xl md:text-4xl font-extrabold mb-8">Is this you?</h2>
           <div className="grid sm:grid-cols-2 gap-4">

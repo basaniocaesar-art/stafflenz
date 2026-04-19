@@ -328,7 +328,7 @@ async function processClientFolder(ftp, folderName, db) {
           if (highAlerts.length > 0) {
             try {
               const { sendWhatsApp } = await import('@/lib/whatsapp');
-              const msg = `🚨 StaffLenz Alert — ${client.name}\n${highAlerts.map(a => a.message).join('\n')}`;
+              const msg = `🚨 LenzAI Alert — ${client.name}\n${highAlerts.map(a => a.message).join('\n')}`;
               await sendWhatsApp(whatsappNumber, msg);
               log.push(`WhatsApp sent to ${whatsappNumber}`);
             } catch (e) {
@@ -371,7 +371,7 @@ async function processClientFolder(ftp, folderName, db) {
     log.push(`Cleaned ${jpegs.length} files from FTP`);
 
     // ── v2: also trigger sequence analysis if due ──────────────────
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://stafflenz.vercel.app';
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://lenzai.org';
     const seqResult = await maybeRunSequenceAnalysis({
       client_id: client.id,
       analyze_interval_min: 5,

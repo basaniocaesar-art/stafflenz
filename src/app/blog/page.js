@@ -33,7 +33,7 @@ function Navbar() {
           <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-violet-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-200">
             SL
           </div>
-          <span className="font-extrabold text-xl text-gray-900 tracking-tight">StaffLenz</span>
+          <span className="font-extrabold text-xl text-gray-900 tracking-tight">LenzAI</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-500">
@@ -64,7 +64,7 @@ function Navbar() {
             href="/#contact"
             className="text-sm font-bold px-5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 text-white hover:from-blue-700 hover:to-violet-700 transition-all shadow-md shadow-blue-200"
           >
-            Try StaffLenz →
+            Try LenzAI →
           </Link>
         </div>
       </div>
@@ -82,7 +82,7 @@ function Footer() {
               <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">
                 SL
               </div>
-              <span className="font-extrabold text-white text-lg">StaffLenz</span>
+              <span className="font-extrabold text-white text-lg">LenzAI</span>
             </div>
             <p className="text-sm text-gray-500 max-w-xs">
               AI-powered workforce intelligence. Real-time alerts. No new cameras.
@@ -104,7 +104,7 @@ function Footer() {
           </div>
         </div>
         <div className="border-t border-gray-800 pt-6 text-center text-xs text-gray-600">
-          © {new Date().getFullYear()} StaffLenz · AI-Powered Workforce Intelligence
+          © {new Date().getFullYear()} LenzAI · AI-Powered Workforce Intelligence
         </div>
       </div>
     </footer>
@@ -126,7 +126,7 @@ export default function BlogPage() {
       <section className="bg-[#0a0a0f] text-white py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-blue-500/15 border border-blue-400/25 rounded-full px-5 py-2 text-sm font-semibold text-blue-300 mb-6">
-            StaffLenz Blog
+            LenzAI Blog
           </div>
           <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight mb-5 leading-[1.1]">
             Workforce Intelligence<br />

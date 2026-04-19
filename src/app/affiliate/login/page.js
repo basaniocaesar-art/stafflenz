@@ -35,8 +35,8 @@ export default function AffiliateLoginPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2.5 mb-6">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-violet-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg shadow-blue-900/40">SL</div>
-            <span className="font-extrabold text-xl text-white tracking-tight">StaffLenz</span>
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-violet-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg shadow-blue-900/40">LA</div>
+            <span className="font-extrabold text-xl text-white tracking-tight">LenzAI</span>
           </Link>
           <h1 className="text-2xl font-extrabold text-white mb-1">Affiliate Portal</h1>
           <p className="text-gray-400 text-sm">Sign in to view your stats and earnings</p>
@@ -93,7 +93,7 @@ export default function AffiliateLoginPage() {
         </div>
 
         <p className="text-center mt-6 text-xs text-gray-600">
-          <Link href="/" className="hover:text-gray-400 transition-colors">← Back to StaffLenz</Link>
+          <Link href="/" className="hover:text-gray-400 transition-colors">← Back to LenzAI</Link>
         </p>
       </div>
     </div>

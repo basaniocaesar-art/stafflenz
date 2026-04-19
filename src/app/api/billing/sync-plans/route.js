@@ -34,7 +34,7 @@ export async function POST(request) {
     }
     try {
       const rpPlan = await createPlan({
-        name: `StaffLenz ${p.plan.charAt(0).toUpperCase() + p.plan.slice(1)}`,
+        name: `LenzAI ${p.plan.charAt(0).toUpperCase() + p.plan.slice(1)}`,
         amountInPaise: p.price_inr * 100,
         description: `Up to ${p.max_workers} workers, ${p.max_cameras} cameras`,
         period: p.billing_period === 'yearly' ? 'yearly' : 'monthly',

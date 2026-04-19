@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getAdminClient } from '@/lib/supabase';
 import { sendWhatsApp, alertMessage } from '@/lib/whatsapp';
 
-// CORS headers for StaffLenz Edge Node (not a browser)
+// CORS headers for LenzAI Edge Node (not a browser)
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -14,7 +14,7 @@ export async function OPTIONS() {
 }
 
 export async function POST(request) {
-  // Auth: StaffLenz Edge Node sends Authorization: Bearer <camera_key>
+  // Auth: LenzAI Edge Node sends Authorization: Bearer <camera_key>
   const authHeader = request.headers.get('authorization') || '';
   const cameraKey = authHeader.replace('Bearer ', '').trim();
 

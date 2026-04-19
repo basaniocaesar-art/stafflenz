@@ -142,7 +142,7 @@ function Sidebar({ activeTab, setActiveTab, onLogout }) {
         <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-violet-600 rounded-xl flex items-center justify-center text-white font-extrabold text-sm shadow-lg">
           SL
         </div>
-        <span className="text-white font-extrabold tracking-tight text-lg">StaffLenz</span>
+        <span className="text-white font-extrabold tracking-tight text-lg">LenzAI</span>
       </div>
 
       {/* Nav */}

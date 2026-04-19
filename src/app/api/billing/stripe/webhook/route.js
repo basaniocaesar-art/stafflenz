@@ -3,9 +3,9 @@ import { getAdminClient } from '@/lib/supabase';
 import { constructWebhookEvent } from '@/lib/stripe';
 
 // POST /api/billing/stripe/webhook
-// Stripe → StaffLenz webhook. Configure in Stripe Dashboard → Developers →
+// Stripe → LenzAI webhook. Configure in Stripe Dashboard → Developers →
 // Webhooks → Add endpoint:
-//   URL: https://www.stafflenz.com/api/billing/stripe/webhook
+//   URL: https://www.lenzai.org/api/billing/stripe/webhook
 //   Events:
 //     customer.subscription.created
 //     customer.subscription.updated

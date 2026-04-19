@@ -27,7 +27,7 @@ export function stripePublishableKey() {
 }
 
 // ─── Products + Prices ────────────────────────────────────────────────────────
-// One Product per StaffLenz plan, one recurring Price per product. We
+// One Product per LenzAI plan, one recurring Price per product. We
 // create them idempotently by name → if a product with the exact name
 // already exists we reuse it. This keeps sync-plans safe to re-run.
 

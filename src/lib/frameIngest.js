@@ -52,7 +52,7 @@ export async function ingestFrame({ client_id, camera_channel, buffer, captured_
  *
  * @param {string} client_id
  * @param {number} analyze_interval_min - how often to analyze (e.g. 5)
- * @param {string} api_url - base URL (e.g. https://stafflenz.vercel.app)
+ * @param {string} api_url - base URL (e.g. https://lenzai.org)
  * @param {string} agent_key
  * @returns {{ triggered: boolean, result?: object }}
  */

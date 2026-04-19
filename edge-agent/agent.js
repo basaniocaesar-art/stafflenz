@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // ═══════════════════════════════════════════════════════════════════════════════
-// StaffLenz Edge Agent v1.0
+// LenzAI Edge Agent v1.0
 // Runs on a Raspberry Pi (or any device) on the client's local network.
-// Captures camera snapshots via ONVIF/ISAPI and uploads to StaffLenz cloud.
+// Captures camera snapshots via ONVIF/ISAPI and uploads to LenzAI cloud.
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const fs = require('fs');
@@ -24,11 +24,11 @@ function loadConfig() {
 
 const config = loadConfig();
 const {
-  agent_key,        // API key for authenticating with StaffLenz cloud
+  agent_key,        // API key for authenticating with LenzAI cloud
   api_url,          // e.g. https://www.stafflenz.com
   supabase_url,     // e.g. https://xxx.supabase.co
   supabase_key,     // service role key for storage uploads
-  client_id,        // client UUID in StaffLenz
+  client_id,        // client UUID in LenzAI
   dvr_ip,           // DVR local IP
   dvr_port = 80,    // DVR HTTP port
   dvr_username,     // DVR login
@@ -344,7 +344,7 @@ async function runCycle(channelCount) {
 // ─── Start ───────────────────────────────────────────────────────────────────
 async function main() {
   log('═══════════════════════════════════════════════');
-  log('  StaffLenz Edge Agent v1.0');
+  log('  LenzAI Edge Agent v1.0');
   log(`  DVR: ${dvr_ip}:${dvr_port}`);
   log(`  API: ${api_url}`);
   log(`  Client: ${client_id}`);

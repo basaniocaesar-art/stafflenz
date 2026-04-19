@@ -57,7 +57,7 @@ const PREVIEWS = {
     company_name: 'Grand Hotel Group',
     industry: 'Hotel',
     admin_email: 'sarah@grandhotel.com',
-    login_url: 'https://stafflenz.com/login',
+    login_url: 'https://lenzai.org/login',
   }),
 };
 

@@ -31,7 +31,7 @@ function Navbar() {
           <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-violet-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-200">
             SL
           </div>
-          <span className="font-extrabold text-xl text-gray-900 tracking-tight">StaffLenz</span>
+          <span className="font-extrabold text-xl text-gray-900 tracking-tight">LenzAI</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-500">
@@ -62,7 +62,7 @@ function Navbar() {
             href="/#contact"
             className="text-sm font-bold px-5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 text-white hover:from-blue-700 hover:to-violet-700 transition-all shadow-md shadow-blue-200"
           >
-            Try StaffLenz →
+            Try LenzAI →
           </Link>
         </div>
       </div>
@@ -80,7 +80,7 @@ function Footer() {
               <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">
                 SL
               </div>
-              <span className="font-extrabold text-white text-lg">StaffLenz</span>
+              <span className="font-extrabold text-white text-lg">LenzAI</span>
             </div>
             <p className="text-sm text-gray-500 max-w-xs">
               AI-powered workforce intelligence. Real-time alerts. No new cameras.
@@ -102,7 +102,7 @@ function Footer() {
           </div>
         </div>
         <div className="border-t border-gray-800 pt-6 text-center text-xs text-gray-600">
-          © {new Date().getFullYear()} StaffLenz · AI-Powered Workforce Intelligence
+          © {new Date().getFullYear()} LenzAI · AI-Powered Workforce Intelligence
         </div>
       </div>
     </footer>
@@ -202,7 +202,7 @@ export default function BlogPostPage() {
                 Live Demo Available
               </div>
               <h2 className="text-2xl md:text-3xl font-extrabold text-white mb-3 leading-snug">
-                See StaffLenz in Action
+                See LenzAI in Action
               </h2>
               <p className="text-gray-400 mb-7 leading-relaxed max-w-lg">
                 Connect your existing CCTV cameras and get real-time AI alerts for attendance issues, PPE violations, and coverage gaps — within 48 hours of setup. No new hardware required.

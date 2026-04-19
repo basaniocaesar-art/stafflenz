@@ -53,7 +53,7 @@ async function runSmtpTest({ host, port, user, pass, from, to, subject }) {
     from,
     to,
     subject,
-    text: 'StaffLenz SMTP diagnostic — if you can see this, the server-side SMTP path works.',
+    text: 'LenzAI SMTP diagnostic — if you can see this, the server-side SMTP path works.',
     attachments: [
       {
         filename: 'smtp-test.jpg',
@@ -84,7 +84,7 @@ export async function GET(request) {
 
   const { searchParams } = new URL(request.url);
 
-  const host = searchParams.get('host') || process.env.DVR_SMTP_HOST || process.env.DVR_IMAP_HOST || 'mail.stafflenz.com';
+  const host = searchParams.get('host') || process.env.DVR_SMTP_HOST || process.env.DVR_IMAP_HOST || 'mail.lenzai.org';
   const port = Number(searchParams.get('port') || process.env.DVR_SMTP_PORT || 465);
   const user = process.env.DVR_IMAP_USER;
   const pass = process.env.DVR_IMAP_PASSWORD;

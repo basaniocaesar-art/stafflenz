@@ -1,5 +1,5 @@
 #!/bin/bash
-# StaffLenz end-to-end health check — run from project root.
+# LenzAI end-to-end health check — run from project root.
 # Requires: .env.local with SUPABASE vars; Mac on gym LAN to hit DVR.
 
 set -e
@@ -8,7 +8,7 @@ cd "$(dirname "$0")"
 SUPA_URL=$(grep '^NEXT_PUBLIC_SUPABASE_URL=' .env.local | cut -d= -f2-)
 SUPA_KEY=$(grep '^SUPABASE_SERVICE_ROLE_KEY=' .env.local | cut -d= -f2-)
 CID="dc20bf56-01e3-4a10-90e8-cb45e5c3e971"
-APP="https://www.stafflenz.com"
+APP="https://www.lenzai.org"
 
 pass() { echo "  ✅ $1"; }
 fail() { echo "  ❌ $1"; }

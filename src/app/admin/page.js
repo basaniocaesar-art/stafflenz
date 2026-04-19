@@ -2033,7 +2033,7 @@ function EdgeAgentsTab() {
                 <div className="mb-4">
                   <label className="block text-xs font-medium text-gray-600 mb-1">One-liner install (run on LenzAI device)</label>
                   <div className="bg-gray-900 text-yellow-300 text-xs p-3 rounded-lg font-mono break-all">
-                    curl -sL https://www.stafflenz.com/install.sh | sudo bash
+                    curl -sL https://www.lenzai.org/install.sh | sudo bash
                   </div>
                 </div>
 
@@ -2061,7 +2061,7 @@ function EdgeAgentsTab() {
 /* ─── Tab: System ────────────────────────────────────────────────────────── */
 function SystemTab() {
   const info = [
-    { label: 'Platform Version', value: 'StaffLenz v1.0 · Next.js 14', icon: '🚀' },
+    { label: 'Platform Version', value: 'LenzAI v1.0 · Next.js 14', icon: '🚀' },
     { label: 'Database',         value: 'Supabase PostgreSQL',          icon: '🗄️' },
     { label: 'AI Engine',        value: 'LenzAI',                       icon: '🤖' },
     { label: 'Cache',            value: '24h Pexels video cache',        icon: '⚡' },
@@ -2120,7 +2120,7 @@ function DemoViewTab() {
         </a>
       </div>
       <div className="bg-gray-900/50 border border-white/5 rounded-2xl overflow-hidden" style={{height:'80vh'}}>
-        <iframe src="/demo" className="w-full h-full border-0" title="StaffLenz Demo" />
+        <iframe src="/demo" className="w-full h-full border-0" title="LenzAI Demo" />
       </div>
     </div>
   );
@@ -2186,8 +2186,8 @@ export default function AdminPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center gap-3 shrink-0">
-            <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center text-white font-bold text-sm select-none">SL</div>
-            <span className="font-bold text-gray-900 hidden sm:block">StaffLenz Super Admin</span>
+            <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center text-white font-bold text-sm select-none">LA</div>
+            <span className="font-bold text-gray-900 hidden sm:block">LenzAI Super Admin</span>
           </div>
 
           {/* Tab Pills + Sign Out */}

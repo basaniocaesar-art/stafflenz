@@ -125,8 +125,8 @@ export default function SchoolPage() {
       <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-gray-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-violet-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-200">SL</div>
-            <span className="font-extrabold text-xl text-gray-900 tracking-tight">StaffLenz</span>
+            <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-violet-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-200">LA</div>
+            <span className="font-extrabold text-xl text-gray-900 tracking-tight">LenzAI</span>
           </Link>
           <div className="hidden md:flex items-center gap-4 text-sm font-medium text-gray-500">
             <div className="relative group">
@@ -165,7 +165,7 @@ export default function SchoolPage() {
                 Know if every<br />class period is<br /><span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-teal-400">covered right now.</span>
               </h1>
               <p className="text-lg text-slate-300 mb-8 leading-relaxed">
-                StaffLenz monitors each classroom block, lab, canteen, and gate as separate zones. The principal sees a live period-by-period coverage grid, gets an alert the moment a class is unattended, and knows how many staff are in the canteen during lunch — not after a parent complains.
+                LenzAI monitors each classroom block, lab, canteen, and gate as separate zones. The principal sees a live period-by-period coverage grid, gets an alert the moment a class is unattended, and knows how many staff are in the canteen during lunch — not after a parent complains.
               </p>
               <div className="flex flex-wrap gap-4">
                 <a href="#demo" className="inline-flex items-center gap-2 bg-emerald-600 text-white font-bold px-8 py-4 rounded-xl hover:bg-emerald-700 transition-all shadow-2xl shadow-emerald-900/40 text-base">Book a Free Demo <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg></a>
@@ -202,14 +202,14 @@ export default function SchoolPage() {
           <div className="text-center mb-14">
             <div className="section-label mb-4">School-Specific Intelligence</div>
             <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight">Built around the school timetable. <br/>Not a generic clock-in system.</h2>
-            <p className="mt-4 text-gray-500 max-w-2xl mx-auto">Schools don't run on shifts — they run on periods, duties, and timetables. StaffLenz understands that and monitors the things that actually matter in a school environment.</p>
+            <p className="mt-4 text-gray-500 max-w-2xl mx-auto">Schools don't run on shifts — they run on periods, duties, and timetables. LenzAI understands that and monitors the things that actually matter in a school environment.</p>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-8">
             <div className="card p-7 border-l-4 border-l-emerald-400">
               <div className="text-3xl mb-3">📚</div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Period-by-Period Class Coverage Grid</h3>
-              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Each classroom block is a camera zone. StaffLenz maps teachers to their scheduled rooms and shows a live coverage grid — which period, which class, which teacher is present or absent. The principal sees it all on one screen, updated every 5 minutes throughout the school day.</p>
+              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Each classroom block is a camera zone. LenzAI maps teachers to their scheduled rooms and shows a live coverage grid — which period, which class, which teacher is present or absent. The principal sees it all on one screen, updated every 5 minutes throughout the school day.</p>
               <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-sm">
                 <div className="font-bold text-emerald-800 mb-2">Period 3 (10:30 – 11:15 AM) status:</div>
                 <ul className="space-y-1 text-emerald-700">
@@ -240,7 +240,7 @@ export default function SchoolPage() {
             <div className="card p-7 border-l-4 border-l-cyan-400">
               <div className="text-3xl mb-3">📝</div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Exam Hall Invigilation Count</h3>
-              <p className="text-gray-500 text-sm mb-4 leading-relaxed">During exams, each exam hall needs a set number of invigilators per the board guidelines. StaffLenz counts invigilators in each exam room and alerts the exam controller if any room is short before the exam begins — not after a complaint is filed.</p>
+              <p className="text-gray-500 text-sm mb-4 leading-relaxed">During exams, each exam hall needs a set number of invigilators per the board guidelines. LenzAI counts invigilators in each exam room and alerts the exam controller if any room is short before the exam begins — not after a complaint is filed.</p>
               <div className="bg-cyan-50 border border-cyan-200 rounded-xl p-4 text-sm">
                 <div className="font-bold text-cyan-800 mb-2">Annual exam — today 9 AM:</div>
                 <ul className="space-y-1 text-cyan-700">
@@ -255,7 +255,7 @@ export default function SchoolPage() {
             <div className="card p-7 border-l-4 border-l-green-400">
               <div className="text-3xl mb-3">🚌</div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Bus Duty & Gate Coverage</h3>
-              <p className="text-gray-500 text-sm mb-4 leading-relaxed">The morning drop-off and afternoon pick-up zones are the highest-risk periods of the school day. StaffLenz confirms that duty teachers are in the bus bay and gate zones at the right times — so you always have documented proof that supervision was in place, if ever questioned.</p>
+              <p className="text-gray-500 text-sm mb-4 leading-relaxed">The morning drop-off and afternoon pick-up zones are the highest-risk periods of the school day. LenzAI confirms that duty teachers are in the bus bay and gate zones at the right times — so you always have documented proof that supervision was in place, if ever questioned.</p>
               <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-sm">
                 <div className="font-bold text-green-800 mb-2">Today's duty log (auto-generated):</div>
                 <ul className="space-y-1 text-green-700">
@@ -281,13 +281,13 @@ export default function SchoolPage() {
           <div className="bg-gray-900 rounded-3xl border border-gray-700 overflow-hidden shadow-2xl">
             <div className="bg-gray-800 px-4 py-3 flex items-center gap-2 border-b border-gray-700">
               <div className="flex gap-1.5"><div className="w-3 h-3 rounded-full bg-red-500"/><div className="w-3 h-3 rounded-full bg-yellow-500"/><div className="w-3 h-3 rounded-full bg-green-500"/></div>
-              <div className="flex-1 bg-gray-700 rounded-lg px-3 py-1 text-xs text-gray-400 text-center mx-4">app.stafflenz.com/school</div>
+              <div className="flex-1 bg-gray-700 rounded-lg px-3 py-1 text-xs text-gray-400 text-center mx-4">app.lenzai.org/school</div>
             </div>
             <div className="flex h-[640px]">
               <div className="w-52 bg-gray-950 border-r border-gray-800 p-4 shrink-0 flex flex-col">
                 <div className="flex items-center gap-2 mb-5 px-1">
-                  <div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">SL</div>
-                  <span className="font-bold text-white text-sm">StaffLenz</span>
+                  <div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">LA</div>
+                  <span className="font-bold text-white text-sm">LenzAI</span>
                 </div>
                 <div className="bg-emerald-500/20 border border-emerald-500/30 rounded-xl px-3 py-2 mb-4">
                   <div className="text-xs font-bold text-emerald-400">🏫 School</div>
@@ -394,14 +394,14 @@ export default function SchoolPage() {
       </section>
 
       <footer className="py-8 px-4 bg-gray-950 border-t border-gray-900 text-center text-sm text-gray-600">
-        <div className="flex items-center justify-center gap-2 mb-3"><div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">SL</div><span className="font-extrabold text-white">StaffLenz</span></div>
+        <div className="flex items-center justify-center gap-2 mb-3"><div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">LA</div><span className="font-extrabold text-white">LenzAI</span></div>
         <div className="flex flex-wrap items-center justify-center gap-4 mb-2">
           <Link href="/" className="hover:text-white">Home</Link>
           <Link href="/industries/factory" className="hover:text-white">Factory</Link>
           <Link href="/industries/hotel" className="hover:text-white">Hotel</Link>
           <Link href="/industries/retail" className="hover:text-white">Retail</Link>
         </div>
-        <p>© {new Date().getFullYear()} StaffLenz · AI-Powered Workforce Intelligence</p>
+        <p>© {new Date().getFullYear()} LenzAI · AI-Powered Workforce Intelligence</p>
       </footer>
     </div>
   );

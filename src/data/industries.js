@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// StaffLenz industry configs.
+// LenzAI industry configs.
 // One entry per vertical — drives:
 //   - marketing landing page at /industries/<slug>
 //   - default zones / alert rules / report templates (industry_packs in DB)
@@ -656,7 +656,7 @@ export const INDUSTRIES = [
         problem: 'Maid charges for 26 days, actually came 22 days',
         cost: '₹2,000–4,000/month in overpaid wages',
         solution: 'Auto-tracked arrival/departure with daily WhatsApp summary',
-        net_value: 'StaffLenz pays for itself from maid accountability alone',
+        net_value: 'LenzAI pays for itself from maid accountability alone',
       },
       {
         label: 'One burglary prevented',

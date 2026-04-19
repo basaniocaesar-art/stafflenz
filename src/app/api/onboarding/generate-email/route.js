@@ -4,7 +4,7 @@ import { getAdminClient } from '@/lib/supabase';
 
 // POST /api/onboarding/generate-email
 // Returns SMTP settings the client should enter into their DVR's email config.
-// Our email-receiver polls the single inbox (admin@stafflenz.com) and routes
+// Our email-receiver polls the single inbox (admin@lenzai.org) and routes
 // emails to the right client by matching on:
 //   1. analysis_config.dvr_email_from  (the DVR's sender address)
 //   2. client name appearing in email subject
@@ -20,13 +20,13 @@ export async function POST(request) {
   const db = getAdminClient();
 
   // These are the SMTP settings the DVR should use to SEND emails to us.
-  // The user's DVR connects to mail.stafflenz.com SMTP and sends snapshots to
-  // admin@stafflenz.com (or a dedicated ingest address).
-  const smtp_host        = process.env.DVR_SMTP_HOST || 'mail.stafflenz.com';
+  // The user's DVR connects to mail.lenzai.org SMTP and sends snapshots to
+  // admin@lenzai.org (or a dedicated ingest address).
+  const smtp_host        = process.env.DVR_SMTP_HOST || 'mail.lenzai.org';
   const smtp_port        = Number(process.env.DVR_SMTP_PORT || 465);
-  const smtp_username    = process.env.DVR_SMTP_USERNAME || 'admin@stafflenz.com';
+  const smtp_username    = process.env.DVR_SMTP_USERNAME || 'admin@lenzai.org';
   const smtp_password    = process.env.DVR_SMTP_PASSWORD || '';
-  const recipient_email  = process.env.DVR_RECIPIENT_EMAIL || 'admin@stafflenz.com';
+  const recipient_email  = process.env.DVR_RECIPIENT_EMAIL || 'admin@lenzai.org';
 
   // Mark the client's site as using email connection method (best-effort)
   try {

@@ -69,7 +69,7 @@ function timingSafeEqual(a, b) {
 }
 
 // ─── Plans ────────────────────────────────────────────────────────────────────
-// Razorpay "Plan" objects hold price + interval. We create one per StaffLenz
+// Razorpay "Plan" objects hold price + interval. We create one per LenzAI
 // plan (starter/standard/pro/enterprise) and persist the returned ID in
 // plan_limits.razorpay_plan_id. Sync is idempotent — re-running is safe.
 

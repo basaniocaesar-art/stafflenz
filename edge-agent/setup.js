@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // ═══════════════════════════════════════════════════════════════════════════════
-// StaffLenz Edge Agent — Interactive Setup
+// LenzAI Edge Agent — Interactive Setup
 // Run: node setup.js
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -14,7 +14,7 @@ const ask = (q) => new Promise((resolve) => rl.question(q, resolve));
 
 async function main() {
   console.log('\n═══════════════════════════════════════════════');
-  console.log('  StaffLenz Edge Agent Setup');
+  console.log('  LenzAI Edge Agent Setup');
   console.log('═══════════════════════════════════════════════\n');
 
   // Check if config already exists
@@ -28,9 +28,9 @@ async function main() {
     }
   }
 
-  console.log('Enter your StaffLenz cloud details:\n');
+  console.log('Enter your LenzAI cloud details:\n');
 
-  const api_url = (await ask('StaffLenz URL [https://www.stafflenz.com]: ')).trim() || 'https://www.stafflenz.com';
+  const api_url = (await ask('LenzAI URL [https://www.lenzai.com]: ')).trim() || 'https://www.lenzai.com';
   const agent_key = (await ask('Agent Key (from admin panel): ')).trim();
   const client_id = (await ask('Client ID (from admin panel): ')).trim();
   const supabase_url = (await ask('Supabase URL: ')).trim();

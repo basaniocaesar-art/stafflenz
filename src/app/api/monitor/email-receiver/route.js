@@ -23,7 +23,7 @@ function isAuthorized(request) {
 async function connectImap() {
   const { ImapFlow } = await import('imapflow');
   const client = new ImapFlow({
-    host: process.env.DVR_IMAP_HOST || 'mail.stafflenz.com',
+    host: process.env.DVR_IMAP_HOST || 'mail.lenzai.org',
     port: Number(process.env.DVR_IMAP_PORT || 993),
     secure: true,
     // cPanel mail servers often use a cert for cpanel.<domain> even when
@@ -33,7 +33,7 @@ async function connectImap() {
     // reading our own mailbox — no sensitive user data is crossing.
     tls: { rejectUnauthorized: false },
     auth: {
-      user: process.env.DVR_IMAP_USER,     // e.g. admin@stafflenz.com
+      user: process.env.DVR_IMAP_USER,     // e.g. admin@lenzai.org
       pass: process.env.DVR_IMAP_PASSWORD,
     },
     logger: false,
@@ -308,7 +308,7 @@ async function processClientBatch(clientAttachments, client, db) {
           if (highAlerts.length > 0) {
             try {
               const { sendWhatsApp } = await import('@/lib/whatsapp');
-              const msg = `🚨 StaffLenz Alert — ${client.name}\n${highAlerts.map(a => a.message).join('\n')}`;
+              const msg = `🚨 LenzAI Alert — ${client.name}\n${highAlerts.map(a => a.message).join('\n')}`;
               await sendWhatsApp(whatsappNumber, msg);
               log.push(`WhatsApp sent to ${whatsappNumber}`);
             } catch (e) {

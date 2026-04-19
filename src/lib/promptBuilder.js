@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// StaffLenz Dynamic Prompt Builder
+// LenzAI Dynamic Prompt Builder
 // Generates per-client Claude analysis prompts based on industry, zones, rules
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -232,7 +232,7 @@ export function buildAnalysisPrompt(client, config, zones, workers, frameCount) 
     : 'You are provided a single frame. Analyze everything visible.';
 
   // Build the full prompt
-  return `You are StaffLenz AI — a workplace safety and compliance monitoring system for ${clientName} (${industry}), site: ${siteName}.
+  return `You are LenzAI AI — a workplace safety and compliance monitoring system for ${clientName} (${industry}), site: ${siteName}.
 
 CURRENT TIME: ${new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
 CURRENT SHIFT: ${shift.toUpperCase()}

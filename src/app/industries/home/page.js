@@ -31,7 +31,7 @@ const FRAMES = [
         { icon: '📍', text: 'Main Gate · Cam 01 · 2:47 AM' },
       ],
       action: '⚡ WhatsApp alert sent to homeowner with photo',
-      whatsapp: '🚨 *INTRUDER ALERT*\n\nUnknown person at your main gate\nTime: 2:47 AM\n\nThis is during quiet hours.\nCheck your StaffLenz app immediately.',
+      whatsapp: '🚨 *INTRUDER ALERT*\n\nUnknown person at your main gate\nTime: 2:47 AM\n\nThis is during quiet hours.\nCheck your LenzAI app immediately.',
     },
   },
   {
@@ -112,8 +112,8 @@ export default function HomePage() {
       <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-gray-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-violet-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-200">SL</div>
-            <span className="font-extrabold text-xl text-gray-900 tracking-tight">StaffLenz</span>
+            <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-violet-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-200">LA</div>
+            <span className="font-extrabold text-xl text-gray-900 tracking-tight">LenzAI</span>
           </Link>
           <div className="hidden md:flex items-center gap-4 text-sm font-medium text-gray-500">
             <Link href="/" className="hover:text-gray-900 transition-colors">Home</Link>
@@ -140,7 +140,7 @@ export default function HomePage() {
                 Know who&apos;s at your<br />gate before they<br /><span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400">ring the bell.</span>
               </h1>
               <p className="text-lg text-slate-300 mb-8 leading-relaxed">
-                Your CCTV already records everything — StaffLenz makes it intelligent. Get instant WhatsApp alerts for intruders, track your maid&apos;s attendance automatically, and know your elderly parent is safe — all from your existing cameras.
+                Your CCTV already records everything — LenzAI makes it intelligent. Get instant WhatsApp alerts for intruders, track your maid&apos;s attendance automatically, and know your elderly parent is safe — all from your existing cameras.
               </p>
               <div className="flex flex-wrap gap-4">
                 <a href="#demo" className="inline-flex items-center gap-2 bg-blue-600 text-white font-bold px-8 py-4 rounded-xl hover:bg-blue-700 transition-all shadow-2xl shadow-blue-900/40 text-base">Book a Demo →</a>
@@ -175,7 +175,7 @@ export default function HomePage() {
           <div className="text-center mb-14">
             <div className="section-label mb-4">What You Get</div>
             <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight">Your home, actually watched.<br/>Not just recorded.</h2>
-            <p className="mt-4 text-gray-500 max-w-2xl mx-auto">Most CCTV just records. Nobody watches until after something happens. StaffLenz watches in real-time and alerts you the moment something needs your attention.</p>
+            <p className="mt-4 text-gray-500 max-w-2xl mx-auto">Most CCTV just records. Nobody watches until after something happens. LenzAI watches in real-time and alerts you the moment something needs your attention.</p>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-8">
@@ -260,7 +260,7 @@ export default function HomePage() {
               </ul>
             </div>
             <div className="bg-blue-950/30 border border-blue-800/40 rounded-2xl p-6">
-              <h3 className="text-lg font-bold text-blue-400 mb-4">✅ StaffLenz Home — ₹1,499/mo</h3>
+              <h3 className="text-lg font-bold text-blue-400 mb-4">✅ LenzAI Home — ₹1,499/mo</h3>
               <ul className="space-y-2 text-sm text-gray-300">
                 <li>💰 10× cheaper than a guard</li>
                 <li>🌙 Never sleeps — 24/7 AI monitoring</li>
@@ -288,7 +288,7 @@ export default function HomePage() {
       </section>
 
       <footer className="py-8 px-4 bg-gray-950 border-t border-gray-900 text-center text-sm text-gray-600">
-        <div className="flex items-center justify-center gap-2 mb-3"><div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">SL</div><span className="font-extrabold text-white">StaffLenz</span></div>
+        <div className="flex items-center justify-center gap-2 mb-3"><div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">LA</div><span className="font-extrabold text-white">LenzAI</span></div>
         <div className="flex flex-wrap items-center justify-center gap-4 mb-2">
           <Link href="/" className="hover:text-white">Home</Link>
           <Link href="/industries" className="hover:text-white">Industries</Link>
@@ -296,7 +296,7 @@ export default function HomePage() {
           <Link href="/industries/factory" className="hover:text-white">Factory</Link>
           <Link href="/industries/restaurant" className="hover:text-white">Restaurant</Link>
         </div>
-        <p>© {new Date().getFullYear()} StaffLenz · AI-Powered Home & Workforce Intelligence</p>
+        <p>© {new Date().getFullYear()} LenzAI · AI-Powered Home & Workforce Intelligence</p>
       </footer>
     </div>
   );

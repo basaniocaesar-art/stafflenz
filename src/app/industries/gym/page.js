@@ -103,8 +103,8 @@ export default function GymPage() {
       <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-gray-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-violet-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-200">SL</div>
-            <span className="font-extrabold text-xl text-gray-900 tracking-tight">StaffLenz</span>
+            <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-violet-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-200">LA</div>
+            <span className="font-extrabold text-xl text-gray-900 tracking-tight">LenzAI</span>
           </Link>
           <div className="hidden md:flex items-center gap-4 text-sm font-medium text-gray-500">
             <Link href="/" className="hover:text-gray-900 transition-colors">Home</Link>
@@ -144,7 +144,7 @@ export default function GymPage() {
                 Know when your trainer is<br />off the floor. See your real<br /><span className="bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-emerald-400">peak hour footfall.</span>
               </h1>
               <p className="text-lg text-slate-300 mb-8 leading-relaxed">
-                StaffLenz turns your gym CCTV into a live operations dashboard — tracking trainer presence on every floor, counting members in each zone, flagging unmanned reception at peak, and verifying cleaning compliance. No new hardware. Live in 5 minutes.
+                LenzAI turns your gym CCTV into a live operations dashboard — tracking trainer presence on every floor, counting members in each zone, flagging unmanned reception at peak, and verifying cleaning compliance. No new hardware. Live in 5 minutes.
               </p>
               <div className="flex flex-wrap gap-4">
                 <a href="#demo" className="inline-flex items-center gap-2 bg-green-600 text-white font-bold px-8 py-4 rounded-xl hover:bg-green-700 transition-all shadow-2xl shadow-green-900/40 text-base">Book a Free Demo <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg></a>
@@ -179,14 +179,14 @@ export default function GymPage() {
           <div className="text-center mb-14">
             <div className="section-label mb-4">Gym-Specific Intelligence</div>
             <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight">Built around how a gym actually runs.<br/>Not how a software company thinks it runs.</h2>
-            <p className="mt-4 text-gray-500 max-w-2xl mx-auto">From trainer presence on the weights floor to real peak hour footfall to cleaning compliance — StaffLenz tracks the things that directly affect member experience and retention.</p>
+            <p className="mt-4 text-gray-500 max-w-2xl mx-auto">From trainer presence on the weights floor to real peak hour footfall to cleaning compliance — LenzAI tracks the things that directly affect member experience and retention.</p>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-8">
             <div className="card p-7 border-l-4 border-l-green-400">
               <div className="text-3xl mb-3">💪</div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Trainer On-Floor Verification</h3>
-              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Members pay for a trainer on the floor. StaffLenz checks every 5 minutes whether a trainer is visible in the weights area, cardio zone, and studio — and alerts you the moment the floor goes unattended during peak hours.</p>
+              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Members pay for a trainer on the floor. LenzAI checks every 5 minutes whether a trainer is visible in the weights area, cardio zone, and studio — and alerts you the moment the floor goes unattended during peak hours.</p>
               <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-sm">
                 <div className="font-bold text-green-800 mb-2">Live trainer status at 7 PM:</div>
                 <ul className="space-y-1 text-green-700">
@@ -201,7 +201,7 @@ export default function GymPage() {
             <div className="card p-7 border-l-4 border-l-emerald-400">
               <div className="text-3xl mb-3">📊</div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Real Peak Hour Footfall</h3>
-              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Stop guessing when your real peak hours are. StaffLenz counts members in every zone every 5 minutes and builds an hour-by-hour footfall chart — so you know when to staff more, when to run classes, and whether your 18:00–20:00 peak is actually your peak.</p>
+              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Stop guessing when your real peak hours are. LenzAI counts members in every zone every 5 minutes and builds an hour-by-hour footfall chart — so you know when to staff more, when to run classes, and whether your 18:00–20:00 peak is actually your peak.</p>
               <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-sm">
                 <div className="font-bold text-emerald-800 mb-2">Mon Apr 12 — Member count by hour:</div>
                 <ul className="space-y-1 text-emerald-700">
@@ -216,7 +216,7 @@ export default function GymPage() {
             <div className="card p-7 border-l-4 border-l-teal-400">
               <div className="text-3xl mb-3">🧹</div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Cleaning Compliance</h3>
-              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Cleanliness directly affects member retention. StaffLenz monitors cleaning staff presence in changing rooms, around equipment, and in common areas — and alerts you if a scheduled cleaning round wasn't performed.</p>
+              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Cleanliness directly affects member retention. LenzAI monitors cleaning staff presence in changing rooms, around equipment, and in common areas — and alerts you if a scheduled cleaning round wasn't performed.</p>
               <div className="bg-teal-50 border border-teal-200 rounded-xl p-4 text-sm">
                 <div className="font-bold text-teal-800 mb-2">Cleaning schedule — Today:</div>
                 <ul className="space-y-1 text-teal-700">
@@ -257,13 +257,13 @@ export default function GymPage() {
           <div className="bg-gray-900 rounded-3xl border border-gray-700 overflow-hidden shadow-2xl">
             <div className="bg-gray-800 px-4 py-3 flex items-center gap-2 border-b border-gray-700">
               <div className="flex gap-1.5"><div className="w-3 h-3 rounded-full bg-red-500"/><div className="w-3 h-3 rounded-full bg-yellow-500"/><div className="w-3 h-3 rounded-full bg-green-500"/></div>
-              <div className="flex-1 bg-gray-700 rounded-lg px-3 py-1 text-xs text-gray-400 text-center mx-4">app.stafflenz.com/gym</div>
+              <div className="flex-1 bg-gray-700 rounded-lg px-3 py-1 text-xs text-gray-400 text-center mx-4">app.lenzai.org/gym</div>
             </div>
             <div className="flex h-[640px]">
               <div className="w-52 bg-gray-950 border-r border-gray-800 p-4 shrink-0 flex flex-col">
                 <div className="flex items-center gap-2 mb-5 px-1">
-                  <div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">SL</div>
-                  <span className="font-bold text-white text-sm">StaffLenz</span>
+                  <div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">LA</div>
+                  <span className="font-bold text-white text-sm">LenzAI</span>
                 </div>
                 <div className="bg-green-500/20 border border-green-500/30 rounded-xl px-3 py-2 mb-4">
                   <div className="text-xs font-bold text-green-400">🏋️ Gym</div>
@@ -369,14 +369,14 @@ export default function GymPage() {
       </section>
 
       <footer className="py-8 px-4 bg-gray-950 border-t border-gray-900 text-center text-sm text-gray-600">
-        <div className="flex items-center justify-center gap-2 mb-3"><div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">SL</div><span className="font-extrabold text-white">StaffLenz</span></div>
+        <div className="flex items-center justify-center gap-2 mb-3"><div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">LA</div><span className="font-extrabold text-white">LenzAI</span></div>
         <div className="flex flex-wrap items-center justify-center gap-4 mb-2">
           <Link href="/" className="hover:text-white">Home</Link>
           <Link href="/industries/factory" className="hover:text-white">Factory</Link>
           <Link href="/industries/hotel" className="hover:text-white">Hotel</Link>
           <Link href="/industries/school" className="hover:text-white">School</Link>
         </div>
-        <p>© {new Date().getFullYear()} StaffLenz · AI-Powered Workforce Intelligence</p>
+        <p>© {new Date().getFullYear()} LenzAI · AI-Powered Workforce Intelligence</p>
       </footer>
     </div>
   );

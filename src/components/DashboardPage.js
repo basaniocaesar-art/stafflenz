@@ -157,7 +157,7 @@ function SetupChecklist({ workersCount, zonesCount, hasFrames, alertsCount }) {
             <h2 className="text-base font-bold text-white">Setup Checklist</h2>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{background:'rgba(34,211,238,0.15)',color:'#22d3ee'}}>{completed}/{total}</span>
           </div>
-          <p className="text-xs" style={{color:'#94a3b8'}}>Complete these steps to get the most out of StaffLenz</p>
+          <p className="text-xs" style={{color:'#94a3b8'}}>Complete these steps to get the most out of LenzAI</p>
         </div>
         <button onClick={()=>setDismissed(true)} className="text-xs hover:text-white transition-colors" style={{color:'#475569'}}>Dismiss</button>
       </div>

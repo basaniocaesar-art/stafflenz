@@ -7,7 +7,7 @@
 #   1. Raspberry Pi Imager installed (brew install --cask raspberry-pi-imager)
 #      OR a pre-flashed base SD card with Raspberry Pi OS Lite 64-bit
 #   2. SD card inserted in your Mac
-#   3. Client already created in StaffLenz admin panel
+#   3. Client already created in LenzAI admin panel
 #
 # Usage:
 #   ./flash-device.sh \
@@ -39,7 +39,7 @@ DVR_IP="192.168.1.64"
 DVR_PORT="80"
 DVR_USER="admin"
 DVR_PASS=""
-API_URL="https://stafflenz.vercel.app"
+API_URL="https://lenzai.vercel.app"
 MAX_CHANNELS=8
 CAPTURE_SEC=5
 ANALYZE_MIN=10
@@ -130,8 +130,8 @@ echo "✅ SSH enabled"
 # ─── 3. Write agent config ───────────────────────────────────────────────────
 AGENT_KEY="slz_$(openssl rand -hex 24)"
 
-mkdir -p "$BOOT_VOL/stafflenz"
-cat > "$BOOT_VOL/stafflenz/config.json" << CFGEOF
+mkdir -p "$BOOT_VOL/lenzai"
+cat > "$BOOT_VOL/lenzai/config.json" << CFGEOF
 {
   "agent_key": "$AGENT_KEY",
   "api_url": "$API_URL",
@@ -158,12 +158,12 @@ echo "✅ Agent config written"
 # ─── 4. Write firstboot install script ───────────────────────────────────────
 # This runs once on first boot — installs Node.js, clones the agent,
 # copies the config, and sets up a systemd service.
-cat > "$BOOT_VOL/stafflenz/firstboot.sh" << 'FBEOF'
+cat > "$BOOT_VOL/lenzai/firstboot.sh" << 'FBEOF'
 #!/bin/bash
 # LenzAI Device — First Boot Setup
 # This runs automatically on the Pi's first boot.
 
-LOG="/var/log/stafflenz-setup.log"
+LOG="/var/log/lenzai-setup.log"
 exec > >(tee -a "$LOG") 2>&1
 echo "=== LenzAI Setup started at $(date) ==="
 
@@ -186,19 +186,19 @@ echo "Node.js: $(node --version)"
 sudo apt-get install -y build-essential python3
 
 # Clone agent (or update if already exists)
-AGENT_DIR="/opt/stafflenz-agent"
+AGENT_DIR="/opt/lenzai-agent"
 if [ -d "$AGENT_DIR" ]; then
   cd "$AGENT_DIR" && git pull
 else
-  git clone https://github.com/basaniocaesar-art/stafflenz.git /tmp/stafflenz-clone
+  git clone https://github.com/basaniocaesar-art/lenzai.git /tmp/lenzai-clone
   mkdir -p "$AGENT_DIR"
-  cp -r /tmp/stafflenz-clone/edge-agent/* "$AGENT_DIR/"
-  rm -rf /tmp/stafflenz-clone
+  cp -r /tmp/lenzai-clone/edge-agent/* "$AGENT_DIR/"
+  rm -rf /tmp/lenzai-clone
 fi
 
 # Copy config from boot partition
-if [ -f /boot/stafflenz/config.json ] || [ -f /boot/firmware/stafflenz/config.json ]; then
-  CONFIG_SRC=$([ -f /boot/firmware/stafflenz/config.json ] && echo /boot/firmware/stafflenz/config.json || echo /boot/stafflenz/config.json)
+if [ -f /boot/lenzai/config.json ] || [ -f /boot/firmware/lenzai/config.json ]; then
+  CONFIG_SRC=$([ -f /boot/firmware/lenzai/config.json ] && echo /boot/firmware/lenzai/config.json || echo /boot/lenzai/config.json)
   cp "$CONFIG_SRC" "$AGENT_DIR/config.json"
   echo "Config copied from boot partition"
 fi
@@ -208,7 +208,7 @@ cd "$AGENT_DIR"
 npm install --production
 
 # Create systemd service
-cat > /etc/systemd/system/stafflenz.service << SVCEOF
+cat > /etc/systemd/system/lenzai.service << SVCEOF
 [Unit]
 Description=LenzAI Monitoring Agent
 After=network-online.target
@@ -217,12 +217,12 @@ Wants=network-online.target
 [Service]
 Type=simple
 User=pi
-WorkingDirectory=/opt/stafflenz-agent
+WorkingDirectory=/opt/lenzai-agent
 ExecStart=/usr/bin/node agent-v2.js
 Restart=always
 RestartSec=10
-StandardOutput=append:/var/log/stafflenz.log
-StandardError=append:/var/log/stafflenz.log
+StandardOutput=append:/var/log/lenzai.log
+StandardError=append:/var/log/lenzai.log
 Environment=NODE_ENV=production
 
 [Install]
@@ -231,24 +231,24 @@ SVCEOF
 
 # Enable and start
 systemctl daemon-reload
-systemctl enable stafflenz.service
-systemctl start stafflenz.service
+systemctl enable lenzai.service
+systemctl start lenzai.service
 
 echo "=== LenzAI Setup complete at $(date) ==="
 echo "Service status:"
-systemctl status stafflenz.service --no-pager
+systemctl status lenzai.service --no-pager
 
 # Remove firstboot from cron (one-time only)
 sed -i '/firstboot/d' /etc/rc.local 2>/dev/null || true
 FBEOF
-chmod +x "$BOOT_VOL/stafflenz/firstboot.sh"
+chmod +x "$BOOT_VOL/lenzai/firstboot.sh"
 
 # ─── 5. Schedule firstboot to run on first power-on ──────────────────────────
 # We create a simple rc.local entry that runs the firstboot script once.
-cat > "$BOOT_VOL/stafflenz/rc-local-addition.txt" << 'RCEOF'
+cat > "$BOOT_VOL/lenzai/rc-local-addition.txt" << 'RCEOF'
 
 # Add this line to /etc/rc.local (before 'exit 0') on the Pi after first SSH:
-#   /boot/stafflenz/firstboot.sh &
+#   /boot/lenzai/firstboot.sh &
 # OR: the Raspberry Pi Imager can set a firstrun script that does this automatically.
 RCEOF
 
@@ -271,9 +271,9 @@ echo "  frames appear in dashboard within ~5 minutes"
 echo ""
 echo "IF FIRSTBOOT DOESN'T AUTO-RUN:"
 echo "  SSH into the Pi (ssh pi@<ip>) and run:"
-echo "    sudo /boot/stafflenz/firstboot.sh"
+echo "    sudo /boot/lenzai/firstboot.sh"
 echo ""
 echo "MONITORING:"
 echo "  ssh pi@<ip>"
-echo "  sudo journalctl -u stafflenz -f"
+echo "  sudo journalctl -u lenzai -f"
 echo "═══════════════════════════════════════════════════════════════"

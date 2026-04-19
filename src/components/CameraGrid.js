@@ -90,7 +90,7 @@ export default function CameraGrid({ industry, accentColor = '#3b82f6', alertCam
             All 8 cameras. One view. Every zone covered.
           </h2>
           <p className="mt-3 text-gray-400 max-w-xl mx-auto text-sm">
-            StaffLenz monitors every camera simultaneously — no switching, no blind spots. Any violation triggers an instant alert on the highlighted feed.
+            LenzAI monitors every camera simultaneously — no switching, no blind spots. Any violation triggers an instant alert on the highlighted feed.
           </p>
         </div>
 
@@ -102,7 +102,7 @@ export default function CameraGrid({ industry, accentColor = '#3b82f6', alertCam
               <div className="w-3 h-3 rounded-full bg-yellow-500" />
               <div className="w-3 h-3 rounded-full bg-green-500" />
             </div>
-            <span className="text-xs text-gray-400 font-mono">StaffLenz NVR · 8-Channel DVR · All Zones Active</span>
+            <span className="text-xs text-gray-400 font-mono">LenzAI NVR · 8-Channel DVR · All Zones Active</span>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-xs font-mono text-green-400">{time}</span>

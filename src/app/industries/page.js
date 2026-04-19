@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { INDUSTRIES } from '@/data/industries';
 
 export const metadata = {
-  title: 'Industries — StaffLenz',
+  title: 'Industries — LenzAI',
   description: 'Pick your industry. Each gets a pack of alert rules, zone templates, and reports built specifically for that vertical.',
 };
 

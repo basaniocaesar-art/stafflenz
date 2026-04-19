@@ -125,8 +125,8 @@ export default function RetailPage() {
       <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-gray-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-violet-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-200">SL</div>
-            <span className="font-extrabold text-xl text-gray-900 tracking-tight">StaffLenz</span>
+            <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-violet-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-200">LA</div>
+            <span className="font-extrabold text-xl text-gray-900 tracking-tight">LenzAI</span>
           </Link>
           <div className="hidden md:flex items-center gap-4 text-sm font-medium text-gray-500">
             <div className="relative group">
@@ -165,7 +165,7 @@ export default function RetailPage() {
                 See which aisle<br />has no staff and<br /><span className="bg-clip-text text-transparent bg-gradient-to-r from-rose-400 to-pink-400">how many tills are open.</span>
               </h1>
               <p className="text-lg text-slate-300 mb-8 leading-relaxed">
-                StaffLenz monitors each section of your store independently — how many staff are in electronics vs grocery vs billing, which counters are open, how long the electronics section has been without coverage, and whether the stock room was accessed without authorisation.
+                LenzAI monitors each section of your store independently — how many staff are in electronics vs grocery vs billing, which counters are open, how long the electronics section has been without coverage, and whether the stock room was accessed without authorisation.
               </p>
               <div className="flex flex-wrap gap-4">
                 <a href="#demo" className="inline-flex items-center gap-2 bg-rose-600 text-white font-bold px-8 py-4 rounded-xl hover:bg-rose-700 transition-all shadow-2xl shadow-rose-900/40 text-base">Book a Free Demo <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg></a>
@@ -201,14 +201,14 @@ export default function RetailPage() {
           <div className="text-center mb-14">
             <div className="section-label mb-4">Retail-Specific Intelligence</div>
             <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight">Not just "who came to work."<br/>Which section is uncovered right now.</h2>
-            <p className="mt-4 text-gray-500 max-w-2xl mx-auto">Retail is about floor coverage, not headcount. StaffLenz tells you the Electronics section has been without staff for 22 minutes during peak Saturday hours, before a customer walks out without buying.</p>
+            <p className="mt-4 text-gray-500 max-w-2xl mx-auto">Retail is about floor coverage, not headcount. LenzAI tells you the Electronics section has been without staff for 22 minutes during peak Saturday hours, before a customer walks out without buying.</p>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-8">
             <div className="card p-7 border-l-4 border-l-rose-400">
               <div className="text-3xl mb-3">🗺️</div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Section-by-Section Staff Heatmap</h3>
-              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Every section of your store is configured as a zone — Electronics, Grocery, Ladies Fashion, Kids, Billing, Back Office. StaffLenz shows you how many staff are in each zone in real time, and alerts you when any section drops below its minimum required coverage.</p>
+              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Every section of your store is configured as a zone — Electronics, Grocery, Ladies Fashion, Kids, Billing, Back Office. LenzAI shows you how many staff are in each zone in real time, and alerts you when any section drops below its minimum required coverage.</p>
               <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 text-sm">
                 <div className="font-bold text-rose-800 mb-2">Saturday 3 PM — Peak hour status:</div>
                 <ul className="space-y-1 text-rose-700">
@@ -224,7 +224,7 @@ export default function RetailPage() {
             <div className="card p-7 border-l-4 border-l-pink-400">
               <div className="text-3xl mb-3">🏧</div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Billing Counter Coverage — Open vs Closed</h3>
-              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Each billing counter is a zone. StaffLenz detects which counters are staffed and which are empty. During peak hours, if the number of open counters drops below your set threshold, you get an immediate WhatsApp alert to send staff from the floor to billing — before queues form.</p>
+              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Each billing counter is a zone. LenzAI detects which counters are staffed and which are empty. During peak hours, if the number of open counters drops below your set threshold, you get an immediate WhatsApp alert to send staff from the floor to billing — before queues form.</p>
               <div className="bg-pink-50 border border-pink-200 rounded-xl p-4 text-sm">
                 <div className="font-bold text-pink-800 mb-2">Billing status right now (6 counters total):</div>
                 <ul className="space-y-1 text-pink-700">
@@ -241,7 +241,7 @@ export default function RetailPage() {
             <div className="card p-7 border-l-4 border-l-red-400">
               <div className="text-3xl mb-3">🔐</div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Stock Room & Back Office Access Log</h3>
-              <p className="text-gray-500 text-sm mb-4 leading-relaxed">The stock room, cash office, and CCTV room are high-risk zones. StaffLenz logs every person who enters these zones with a timestamp. Any access outside normal hours or by a non-authorised staff member triggers an immediate alert — giving you a tamper-proof access record for every single entry.</p>
+              <p className="text-gray-500 text-sm mb-4 leading-relaxed">The stock room, cash office, and CCTV room are high-risk zones. LenzAI logs every person who enters these zones with a timestamp. Any access outside normal hours or by a non-authorised staff member triggers an immediate alert — giving you a tamper-proof access record for every single entry.</p>
               <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm">
                 <div className="font-bold text-red-800 mb-2">Today&apos;s stock room access log:</div>
                 <ul className="space-y-1 text-red-700">
@@ -256,7 +256,7 @@ export default function RetailPage() {
             <div className="card p-7 border-l-4 border-l-orange-400">
               <div className="text-3xl mb-3">⏰</div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Overstay & Ghost Overtime Detection</h3>
-              <p className="text-gray-500 text-sm mb-4 leading-relaxed">StaffLenz tracks when each staff member was last seen on camera and compares it against their scheduled shift end time. If someone's shift ended at 6 PM but they're still being detected at 7 PM, that's recorded as overtime — with AI-verified timestamps, not self-reported timesheet entries.</p>
+              <p className="text-gray-500 text-sm mb-4 leading-relaxed">LenzAI tracks when each staff member was last seen on camera and compares it against their scheduled shift end time. If someone's shift ended at 6 PM but they're still being detected at 7 PM, that's recorded as overtime — with AI-verified timestamps, not self-reported timesheet entries.</p>
               <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-sm">
                 <div className="font-bold text-orange-800 mb-2">This week&apos;s overtime verification:</div>
                 <ul className="space-y-1 text-orange-700">
@@ -282,13 +282,13 @@ export default function RetailPage() {
           <div className="bg-gray-900 rounded-3xl border border-gray-700 overflow-hidden shadow-2xl">
             <div className="bg-gray-800 px-4 py-3 flex items-center gap-2 border-b border-gray-700">
               <div className="flex gap-1.5"><div className="w-3 h-3 rounded-full bg-red-500"/><div className="w-3 h-3 rounded-full bg-yellow-500"/><div className="w-3 h-3 rounded-full bg-green-500"/></div>
-              <div className="flex-1 bg-gray-700 rounded-lg px-3 py-1 text-xs text-gray-400 text-center mx-4">app.stafflenz.com/retail</div>
+              <div className="flex-1 bg-gray-700 rounded-lg px-3 py-1 text-xs text-gray-400 text-center mx-4">app.lenzai.org/retail</div>
             </div>
             <div className="flex h-[640px]">
               <div className="w-52 bg-gray-950 border-r border-gray-800 p-4 shrink-0 flex flex-col">
                 <div className="flex items-center gap-2 mb-5 px-1">
-                  <div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">SL</div>
-                  <span className="font-bold text-white text-sm">StaffLenz</span>
+                  <div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">LA</div>
+                  <span className="font-bold text-white text-sm">LenzAI</span>
                 </div>
                 <div className="bg-rose-500/20 border border-rose-500/30 rounded-xl px-3 py-2 mb-4">
                   <div className="text-xs font-bold text-rose-400">🛍️ Retail</div>
@@ -405,14 +405,14 @@ export default function RetailPage() {
       </section>
 
       <footer className="py-8 px-4 bg-gray-950 border-t border-gray-900 text-center text-sm text-gray-600">
-        <div className="flex items-center justify-center gap-2 mb-3"><div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">SL</div><span className="font-extrabold text-white">StaffLenz</span></div>
+        <div className="flex items-center justify-center gap-2 mb-3"><div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">LA</div><span className="font-extrabold text-white">LenzAI</span></div>
         <div className="flex flex-wrap items-center justify-center gap-4 mb-2">
           <Link href="/" className="hover:text-white">Home</Link>
           <Link href="/industries/factory" className="hover:text-white">Factory</Link>
           <Link href="/industries/hotel" className="hover:text-white">Hotel</Link>
           <Link href="/industries/school" className="hover:text-white">School</Link>
         </div>
-        <p>© {new Date().getFullYear()} StaffLenz · AI-Powered Workforce Intelligence</p>
+        <p>© {new Date().getFullYear()} LenzAI · AI-Powered Workforce Intelligence</p>
       </footer>
     </div>
   );

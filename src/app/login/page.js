@@ -55,8 +55,8 @@ function LoginForm() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2">
-            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold">SL</div>
-            <span className="text-2xl font-bold text-gray-900">StaffLenz</span>
+            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold">LA</div>
+            <span className="text-2xl font-bold text-gray-900">LenzAI</span>
           </Link>
           <p className="mt-3 text-gray-500">Sign in to your workforce dashboard</p>
         </div>
@@ -109,7 +109,7 @@ function LoginForm() {
         </div>
 
         <p className="mt-6 text-center text-xs text-gray-400">
-          © {new Date().getFullYear()} StaffLenz · AI-Powered Workforce Intelligence
+          © {new Date().getFullYear()} LenzAI · AI-Powered Workforce Intelligence
         </p>
       </div>
     </div>

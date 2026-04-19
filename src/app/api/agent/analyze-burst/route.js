@@ -334,7 +334,7 @@ Return ONLY valid JSON:
       try {
         const { sendWhatsApp } = await import('@/lib/whatsapp');
         const msg = [
-          `🚨 StaffLenz Motion Alert — ${clientData.name}`,
+          `🚨 LenzAI Motion Alert — ${clientData.name}`,
           `Camera ${camera_channel} · ${new Date(detected_at || Date.now()).toLocaleString('en-IN')}`,
           '',
           analysis.incident_summary || 'Motion event detected',

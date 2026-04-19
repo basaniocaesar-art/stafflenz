@@ -123,8 +123,8 @@ export default function WarehousePage() {
       <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-gray-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-violet-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-200">SL</div>
-            <span className="font-extrabold text-xl text-gray-900 tracking-tight">StaffLenz</span>
+            <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-violet-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-200">LA</div>
+            <span className="font-extrabold text-xl text-gray-900 tracking-tight">LenzAI</span>
           </Link>
           <div className="hidden md:flex items-center gap-4 text-sm font-medium text-gray-500">
             <div className="relative group">
@@ -163,7 +163,7 @@ export default function WarehousePage() {
                 Every bay staffed.<br />Every cold store<br /><span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-blue-400">accessed by the right person.</span>
               </h1>
               <p className="text-lg text-slate-300 mb-8 leading-relaxed">
-                StaffLenz monitors your warehouse floor in real time — tracking loading bay coverage, authorised cold storage access, picker zone assignment, and overtime hours across every shift. Stop managing by spreadsheet and start seeing it live.
+                LenzAI monitors your warehouse floor in real time — tracking loading bay coverage, authorised cold storage access, picker zone assignment, and overtime hours across every shift. Stop managing by spreadsheet and start seeing it live.
               </p>
               <div className="flex flex-wrap gap-4">
                 <a href="#demo" className="inline-flex items-center gap-2 bg-indigo-600 text-white font-bold px-8 py-4 rounded-xl hover:bg-indigo-700 transition-all shadow-2xl shadow-indigo-900/40 text-base">Book a Free Demo <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg></a>
@@ -199,14 +199,14 @@ export default function WarehousePage() {
           <div className="text-center mb-14">
             <div className="section-label mb-4">Warehouse-Specific Intelligence</div>
             <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight">Not just "shift started." <br/>Which bay is empty. Who is in cold storage right now. Are the pickers in the right aisles.</h2>
-            <p className="mt-4 text-gray-500 max-w-2xl mx-auto">Generic workforce tools tell you a shift began. StaffLenz tells you Bay 3 has been unstaffed for 34 minutes, someone entered cold storage without authorisation, and Picker 7 has been idle in the break area for 22 minutes during a peak dispatch window.</p>
+            <p className="mt-4 text-gray-500 max-w-2xl mx-auto">Generic workforce tools tell you a shift began. LenzAI tells you Bay 3 has been unstaffed for 34 minutes, someone entered cold storage without authorisation, and Picker 7 has been idle in the break area for 22 minutes during a peak dispatch window.</p>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-8">
             <div className="card p-7 border-l-4 border-l-indigo-400">
               <div className="text-3xl mb-3">🚚</div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Loading Bay Coverage by Bay</h3>
-              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Each loading bay is configured as a zone. StaffLenz tracks which bays are actively staffed, how long each bay has been unstaffed, and alerts when a bay goes unmanned during a scheduled dispatch window — so trucks are not kept waiting and SLAs are not breached.</p>
+              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Each loading bay is configured as a zone. LenzAI tracks which bays are actively staffed, how long each bay has been unstaffed, and alerts when a bay goes unmanned during a scheduled dispatch window — so trucks are not kept waiting and SLAs are not breached.</p>
               <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-sm">
                 <div className="font-bold text-indigo-800 mb-2">Bay coverage right now:</div>
                 <ul className="space-y-1 text-indigo-700">
@@ -220,7 +220,7 @@ export default function WarehousePage() {
             <div className="card p-7 border-l-4 border-l-blue-400">
               <div className="text-3xl mb-3">❄️</div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Cold Storage & Restricted Zone Access</h3>
-              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Cold storage, pharmaceutical areas, and high-value goods zones require controlled access. StaffLenz logs every person who enters these areas with a timestamp and staff ID. Any unrecognised individual triggers an immediate alert — providing full traceability for audits and stock discrepancy investigations.</p>
+              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Cold storage, pharmaceutical areas, and high-value goods zones require controlled access. LenzAI logs every person who enters these areas with a timestamp and staff ID. Any unrecognised individual triggers an immediate alert — providing full traceability for audits and stock discrepancy investigations.</p>
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm">
                 <div className="font-bold text-blue-800 mb-2">Today&apos;s access log — Cold Store A:</div>
                 <ul className="space-y-1 text-blue-700">
@@ -234,7 +234,7 @@ export default function WarehousePage() {
             <div className="card p-7 border-l-4 border-l-violet-400">
               <div className="text-3xl mb-3">📍</div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Picker Zone Assignment & Idle Detection</h3>
-              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Every picker is assigned to a zone for each shift. StaffLenz monitors whether pickers are working in their assigned aisles and flags anyone who has been idle in a non-work area for more than 10 minutes during peak dispatch hours — giving supervisors visibility without walking the floor.</p>
+              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Every picker is assigned to a zone for each shift. LenzAI monitors whether pickers are working in their assigned aisles and flags anyone who has been idle in a non-work area for more than 10 minutes during peak dispatch hours — giving supervisors visibility without walking the floor.</p>
               <div className="bg-violet-50 border border-violet-200 rounded-xl p-4 text-sm">
                 <div className="font-bold text-violet-800 mb-2">Zone assignment status:</div>
                 <ul className="space-y-1 text-violet-700">
@@ -248,7 +248,7 @@ export default function WarehousePage() {
             <div className="card p-7 border-l-4 border-l-sky-400">
               <div className="text-3xl mb-3">⏱️</div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Overtime Verification vs Timesheets</h3>
-              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Overtime is a major cost driver in warehouses, especially around peak season. StaffLenz compares actual AI-detected presence on the warehouse floor with self-reported overtime on timesheets — flagging discrepancies for payroll and providing camera-verified evidence for dispute resolution.</p>
+              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Overtime is a major cost driver in warehouses, especially around peak season. LenzAI compares actual AI-detected presence on the warehouse floor with self-reported overtime on timesheets — flagging discrepancies for payroll and providing camera-verified evidence for dispute resolution.</p>
               <div className="bg-sky-50 border border-sky-200 rounded-xl p-4 text-sm">
                 <div className="font-bold text-sky-800 mb-2">This week&apos;s overtime audit:</div>
                 <ul className="space-y-1 text-sky-700">
@@ -273,13 +273,13 @@ export default function WarehousePage() {
           <div className="bg-gray-900 rounded-3xl border border-gray-700 overflow-hidden shadow-2xl">
             <div className="bg-gray-800 px-4 py-3 flex items-center gap-2 border-b border-gray-700">
               <div className="flex gap-1.5"><div className="w-3 h-3 rounded-full bg-red-500"/><div className="w-3 h-3 rounded-full bg-yellow-500"/><div className="w-3 h-3 rounded-full bg-green-500"/></div>
-              <div className="flex-1 bg-gray-700 rounded-lg px-3 py-1 text-xs text-gray-400 text-center mx-4">app.stafflenz.com/warehouse</div>
+              <div className="flex-1 bg-gray-700 rounded-lg px-3 py-1 text-xs text-gray-400 text-center mx-4">app.lenzai.org/warehouse</div>
             </div>
             <div className="flex h-[640px]">
               <div className="w-52 bg-gray-950 border-r border-gray-800 p-4 shrink-0 flex flex-col">
                 <div className="flex items-center gap-2 mb-5 px-1">
-                  <div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">SL</div>
-                  <span className="font-bold text-white text-sm">StaffLenz</span>
+                  <div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">LA</div>
+                  <span className="font-bold text-white text-sm">LenzAI</span>
                 </div>
                 <div className="bg-indigo-500/20 border border-indigo-500/30 rounded-xl px-3 py-2 mb-4">
                   <div className="text-xs font-bold text-indigo-400">📦 Warehouse</div>
@@ -391,13 +391,13 @@ export default function WarehousePage() {
       <section id="demo" className="py-20 px-4 bg-gradient-to-br from-indigo-600 to-blue-700">
         <div className="max-w-4xl mx-auto text-center text-white">
           <h2 className="text-4xl font-extrabold mb-4">See every bay, every aisle, every access event — live.</h2>
-          <p className="text-indigo-100 text-lg mb-8">We configure StaffLenz for your warehouse layout and deliver live bay and zone data within 48 hours.</p>
+          <p className="text-indigo-100 text-lg mb-8">We configure LenzAI for your warehouse layout and deliver live bay and zone data within 48 hours.</p>
           <Link href="/#contact" className="inline-flex items-center gap-2 bg-white text-indigo-700 font-bold px-10 py-4 rounded-xl hover:bg-indigo-50 transition-all shadow-2xl text-base">Book Free On-Site Demo <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg></Link>
         </div>
       </section>
 
       <footer className="py-8 px-4 bg-gray-950 border-t border-gray-900 text-center text-sm text-gray-600">
-        <div className="flex items-center justify-center gap-2 mb-3"><div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">SL</div><span className="font-extrabold text-white">StaffLenz</span></div>
+        <div className="flex items-center justify-center gap-2 mb-3"><div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">LA</div><span className="font-extrabold text-white">LenzAI</span></div>
         <div className="flex flex-wrap items-center justify-center gap-4 mb-2">
           <Link href="/" className="hover:text-white">Home</Link>
           <Link href="/industries/factory" className="hover:text-white">Factory</Link>
@@ -406,7 +406,7 @@ export default function WarehousePage() {
           <Link href="/industries/hospital" className="hover:text-white">Hospital</Link>
           <Link href="/industries/security" className="hover:text-white">Security</Link>
         </div>
-        <p>© {new Date().getFullYear()} StaffLenz · AI-Powered Workforce Intelligence</p>
+        <p>© {new Date().getFullYear()} LenzAI · AI-Powered Workforce Intelligence</p>
       </footer>
     </div>
   );

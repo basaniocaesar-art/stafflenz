@@ -89,7 +89,7 @@ function DVRWizard({ onClose, onDone }) {
             <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-5 flex gap-3">
               <span className="text-blue-500 text-lg mt-0.5">ℹ️</span>
               <p className="text-sm text-blue-700">
-                Enter your DVR&apos;s local IP address and login credentials. StaffLenz will automatically find all connected cameras.
+                Enter your DVR&apos;s local IP address and login credentials. LenzAI will automatically find all connected cameras.
               </p>
             </div>
 
@@ -178,7 +178,7 @@ function DVRWizard({ onClose, onDone }) {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="font-bold text-gray-900">🎉 Found {cameras.length} camera{cameras.length !== 1 ? 's' : ''}!</h3>
-                <p className="text-xs text-gray-500 mt-0.5">Select which ones to add to StaffLenz</p>
+                <p className="text-xs text-gray-500 mt-0.5">Select which ones to add to LenzAI</p>
               </div>
               <button onClick={toggleAll} className="text-xs text-blue-600 hover:underline font-medium">
                 {cameras.every(c => selected[c.channel]) ? 'Deselect all' : 'Select all'}
@@ -234,7 +234,7 @@ function DVRWizard({ onClose, onDone }) {
             <p className="text-sm text-gray-600 mb-1">
               <span className="font-semibold text-green-600">{savedCount} camera{savedCount !== 1 ? 's' : ''}</span> added and ready for monitoring.
             </p>
-            <p className="text-xs text-gray-400 mb-6">StaffLenz will start analysing footage on the next scheduled capture.</p>
+            <p className="text-xs text-gray-400 mb-6">LenzAI will start analysing footage on the next scheduled capture.</p>
             <button onClick={onDone} className="btn-primary w-full py-3">View My Cameras</button>
           </div>
         )}
@@ -285,7 +285,7 @@ function ZoneModal({ zone, onClose, onSave }) {
           <div className="text-4xl mb-3">🔑</div>
           <h2 className="text-lg font-bold text-gray-900 mb-2">Zone Created!</h2>
           <p className="text-sm text-gray-600 mb-4">
-            Copy this Camera Key to your StaffLenz Edge Node config. It will not be shown again.
+            Copy this Camera Key to your LenzAI Edge Node config. It will not be shown again.
           </p>
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 font-mono text-xs text-gray-700 break-all select-all mb-4">
             {cameraKey}
@@ -415,7 +415,7 @@ export default function ZonesPage() {
           <div className="text-5xl mb-4">📹</div>
           <h3 className="text-xl font-bold text-gray-900 mb-2">Connect your DVR or NVR</h3>
           <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">
-            Have a Hikvision DVR or any ONVIF-compatible recorder? Click below and StaffLenz will automatically find all your cameras.
+            Have a Hikvision DVR or any ONVIF-compatible recorder? Click below and LenzAI will automatically find all your cameras.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button onClick={() => setDvrWizardOpen(true)} className="btn-primary px-8 py-3 text-base">

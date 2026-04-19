@@ -62,12 +62,12 @@ export async function POST(request) {
   // Send emails (non-blocking — don't await, don't let failure affect response)
   sendEmail({
     to: email,
-    subject: "We've received your demo request — StaffLenz",
+    subject: "We've received your demo request — LenzAI",
     html: emailDemoRequestConfirmation({ name, industry: industry || 'your industry' }),
   }).catch(() => {});
 
   sendEmail({
-    to: process.env.INTERNAL_NOTIFY_EMAIL || 'team@stafflenz.com',
+    to: process.env.INTERNAL_NOTIFY_EMAIL || 'team@lenzai.org',
     subject: `🔔 New Demo Request — ${name} (${industry || 'Unknown'})`,
     html: emailDemoRequestInternal({ name, email, company, industry, phone, message, affiliate_code }),
   }).catch(() => {});

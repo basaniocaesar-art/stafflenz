@@ -55,7 +55,7 @@ const PARTNER_TIERS = [
       'Priority onboarding support',
       'Volume pricing discounts',
       'Quarterly business reviews',
-      'Co-sell with StaffLenz team',
+      'Co-sell with LenzAI team',
     ],
     cta: 'Apply as Reseller',
     ctaHref: '#apply',
@@ -98,7 +98,7 @@ const HOW_STEPS = [
   {
     number: '3',
     title: 'Refer Clients',
-    description: 'Share StaffLenz with your network using your unique tracking link.',
+    description: 'Share LenzAI with your network using your unique tracking link.',
   },
   {
     number: '4',
@@ -166,10 +166,10 @@ const FAQ_ITEMS = [
   },
   {
     question: 'Do you offer co-selling support?',
-    answer: 'Reseller and White Label partners can request joint sales calls with a StaffLenz account executive for strategic accounts.',
+    answer: 'Reseller and White Label partners can request joint sales calls with a LenzAI account executive for strategic accounts.',
   },
   {
-    question: 'What industries does StaffLenz support?',
+    question: 'What industries does LenzAI support?',
     answer: '9 industries: Factory, Hotel, School, Retail, Hospital, Construction, Warehouse, Restaurant, and Security.',
   },
 ];
@@ -227,7 +227,7 @@ export default function PartnersPage() {
             <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-violet-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-200">
               SL
             </div>
-            <span className="font-extrabold text-xl text-gray-900 tracking-tight">StaffLenz</span>
+            <span className="font-extrabold text-xl text-gray-900 tracking-tight">LenzAI</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-500">
@@ -286,7 +286,7 @@ export default function PartnersPage() {
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.08] mb-6">
             Grow Your Revenue<br />
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-violet-400">
-              With StaffLenz
+              With LenzAI
             </span>
           </h1>
 
@@ -697,7 +697,7 @@ export default function PartnersPage() {
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">
                   SL
                 </div>
-                <span className="font-extrabold text-white text-lg">StaffLenz</span>
+                <span className="font-extrabold text-white text-lg">LenzAI</span>
               </div>
               <p className="text-sm text-gray-500 max-w-xs">
                 AI-powered workforce intelligence. Real-time alerts. No new cameras.
@@ -720,7 +720,7 @@ export default function PartnersPage() {
             </div>
           </div>
           <div className="border-t border-gray-800 pt-6 text-center text-xs text-gray-600">
-            © {new Date().getFullYear()} StaffLenz · AI-Powered Workforce Intelligence
+            © {new Date().getFullYear()} LenzAI · AI-Powered Workforce Intelligence
           </div>
         </div>
       </footer>

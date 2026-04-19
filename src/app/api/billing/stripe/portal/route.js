@@ -32,7 +32,7 @@ export async function POST(request) {
 
   const appUrl =
     process.env.NEXT_PUBLIC_APP_URL ||
-    `https://${request.headers.get('host') || 'www.stafflenz.com'}`;
+    `https://${request.headers.get('host') || 'www.lenzai.org'}`;
 
   try {
     const portal = await createPortalSession({

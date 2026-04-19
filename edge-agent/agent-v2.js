@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // ═══════════════════════════════════════════════════════════════════════════════
-// StaffLenz Edge Agent v2 — Temporal Sequence + Motion Bursts
+// LenzAI Edge Agent v2 — Temporal Sequence + Motion Bursts
 // ─────────────────────────────────────────────────────────────────────────────
 // Two independent loops sharing the same DVR:
 //
@@ -432,7 +432,7 @@ async function analyzeCycle(channelCount) {
 // ─── Main ──────────────────────────────────────────────────────────────────
 async function main() {
   log('═══════════════════════════════════════════════');
-  log('  StaffLenz Edge Agent v2 (temporal + motion)');
+  log('  LenzAI Edge Agent v2 (temporal + motion)');
   log(`  DVR:          ${dvr_ip}:${dvr_port}`);
   log(`  API:          ${api_url}`);
   log(`  Client:       ${client_id}`);

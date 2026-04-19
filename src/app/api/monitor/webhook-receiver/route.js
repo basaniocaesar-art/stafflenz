@@ -6,7 +6,7 @@ import { getAdminClient } from '@/lib/supabase';
 // Works with Hikvision "HTTP Listening", Dahua "HTTP Upload", etc.
 //
 // The DVR is configured with:
-//   URL: https://app.stafflenz.com/api/monitor/webhook-receiver?key=<client-secret>
+//   URL: https://app.lenzai.org/api/monitor/webhook-receiver?key=<client-secret>
 //   Method: POST
 //   Content-Type: multipart/form-data OR image/jpeg (raw binary)
 //
@@ -183,7 +183,7 @@ export async function POST(request) {
 // DVRs that use GET with a query string for testing
 export async function GET(request) {
   return NextResponse.json({
-    service: 'StaffLenz Webhook Receiver',
+    service: 'LenzAI Webhook Receiver',
     usage: 'POST image to this URL with ?key=<your-webhook-key>',
     supported_formats: ['multipart/form-data', 'image/jpeg', 'application/json (base64)'],
   });

@@ -4,8 +4,8 @@ import { getAdminClient } from '@/lib/supabase';
 import { verifyWebhookSignature } from '@/lib/razorpay';
 
 // POST /api/billing/webhook
-// Razorpay → StaffLenz webhook handler. Configure in Razorpay Dashboard:
-//   URL:     https://www.stafflenz.com/api/billing/webhook
+// Razorpay → LenzAI webhook handler. Configure in Razorpay Dashboard:
+//   URL:     https://www.lenzai.org/api/billing/webhook
 //   Secret:  value you set as RAZORPAY_WEBHOOK_SECRET
 //   Events:  payment.captured, payment.failed,
 //            subscription.activated, subscription.charged,

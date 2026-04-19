@@ -34,7 +34,7 @@ export async function POST(request) {
       note: 'Run migration to add agent_key column to clients table',
       config: {
         agent_key,
-        api_url: process.env.NEXT_PUBLIC_APP_URL || 'https://www.stafflenz.com',
+        api_url: process.env.NEXT_PUBLIC_APP_URL || 'https://www.lenzai.org',
         supabase_url: process.env.NEXT_PUBLIC_SUPABASE_URL,
         supabase_key: process.env.SUPABASE_SERVICE_ROLE_KEY,
         client_id,
@@ -49,7 +49,7 @@ export async function POST(request) {
     client_id,
     config: {
       agent_key,
-      api_url: process.env.NEXT_PUBLIC_APP_URL || 'https://www.stafflenz.com',
+      api_url: process.env.NEXT_PUBLIC_APP_URL || 'https://www.lenzai.org',
       supabase_url: process.env.NEXT_PUBLIC_SUPABASE_URL,
       supabase_key: process.env.SUPABASE_SERVICE_ROLE_KEY,
       client_id,

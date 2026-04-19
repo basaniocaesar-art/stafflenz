@@ -126,8 +126,8 @@ export default function ConstructionPage() {
       <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-gray-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-violet-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-200">SL</div>
-            <span className="font-extrabold text-xl text-gray-900 tracking-tight">StaffLenz</span>
+            <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-violet-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-200">LA</div>
+            <span className="font-extrabold text-xl text-gray-900 tracking-tight">LenzAI</span>
           </Link>
           <div className="hidden md:flex items-center gap-4 text-sm font-medium text-gray-500">
             <div className="relative group">
@@ -166,7 +166,7 @@ export default function ConstructionPage() {
                 Every worker on-site<br />is safe, accounted<br /><span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-amber-400">for, and helmeted.</span>
               </h1>
               <p className="text-lg text-slate-300 mb-8 leading-relaxed">
-                StaffLenz monitors every zone of your construction site — verifying PPE per area, catching unauthorised entry into dangerous zones, verifying contractor headcount against daily muster rolls, and detecting security breaches after hours.
+                LenzAI monitors every zone of your construction site — verifying PPE per area, catching unauthorised entry into dangerous zones, verifying contractor headcount against daily muster rolls, and detecting security breaches after hours.
               </p>
               <div className="flex flex-wrap gap-4">
                 <a href="#demo" className="inline-flex items-center gap-2 bg-yellow-500 text-gray-900 font-bold px-8 py-4 rounded-xl hover:bg-yellow-400 transition-all shadow-2xl shadow-yellow-900/40 text-base">Book a Free Demo <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg></a>
@@ -202,14 +202,14 @@ export default function ConstructionPage() {
           <div className="text-center mb-14">
             <div className="section-label mb-4">Construction-Specific Intelligence</div>
             <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight">Not just attendance. <br/>Who has a harness on the scaffold. Who just entered the exclusion zone.</h2>
-            <p className="mt-4 text-gray-500 max-w-2xl mx-auto">Generic workforce tools can not tell you that a worker climbed onto scaffolding without a harness, or that an unknown person entered the electrical panel zone at 11 PM. StaffLenz can.</p>
+            <p className="mt-4 text-gray-500 max-w-2xl mx-auto">Generic workforce tools can not tell you that a worker climbed onto scaffolding without a harness, or that an unknown person entered the electrical panel zone at 11 PM. LenzAI can.</p>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-8">
             <div className="card p-7 border-l-4 border-l-yellow-400">
               <div className="text-3xl mb-3">👷</div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Daily Muster & Contractor Verification</h3>
-              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Before any work begins each morning, StaffLenz runs a headcount of every worker on-site and compares it to the daily muster roll. Any worker not yet on-site is flagged. At month end, AI-verified attendance is compared to contractor invoices to catch ghost workers.</p>
+              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Before any work begins each morning, LenzAI runs a headcount of every worker on-site and compares it to the daily muster roll. Any worker not yet on-site is flagged. At month end, AI-verified attendance is compared to contractor invoices to catch ghost workers.</p>
               <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-sm">
                 <div className="font-bold text-yellow-800 mb-2">Morning muster report (07:00):</div>
                 <ul className="space-y-1 text-yellow-700">
@@ -223,7 +223,7 @@ export default function ConstructionPage() {
             <div className="card p-7 border-l-4 border-l-orange-400">
               <div className="text-3xl mb-3">⛑️</div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Zone-Specific PPE Enforcement</h3>
-              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Different areas demand different PPE. Scaffolding requires hard hat + harness. Ground level requires hard hat + hi-vis vest. The site office requires nothing. StaffLenz checks each zone independently — so you catch the exact worker, in the exact zone, missing the exact piece of equipment.</p>
+              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Different areas demand different PPE. Scaffolding requires hard hat + harness. Ground level requires hard hat + hi-vis vest. The site office requires nothing. LenzAI checks each zone independently — so you catch the exact worker, in the exact zone, missing the exact piece of equipment.</p>
               <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-sm">
                 <div className="font-bold text-orange-800 mb-2">Zone-specific violations detected:</div>
                 <ul className="space-y-1 text-orange-700">
@@ -237,7 +237,7 @@ export default function ConstructionPage() {
             <div className="card p-7 border-l-4 border-l-red-400">
               <div className="text-3xl mb-3">🚧</div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Danger Zone & Exclusion Area Enforcement</h3>
-              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Electrical panels, demolition zones, and active crane areas are flagged as exclusion zones. StaffLenz sends an immediate alert the moment any person enters these areas without clearance — giving site supervisors a real-time intervention window before an incident occurs.</p>
+              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Electrical panels, demolition zones, and active crane areas are flagged as exclusion zones. LenzAI sends an immediate alert the moment any person enters these areas without clearance — giving site supervisors a real-time intervention window before an incident occurs.</p>
               <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm">
                 <div className="font-bold text-red-800 mb-2">Exclusion zone alerts:</div>
                 <ul className="space-y-1 text-red-700">
@@ -251,7 +251,7 @@ export default function ConstructionPage() {
             <div className="card p-7 border-l-4 border-l-slate-400">
               <div className="text-3xl mb-3">🌙</div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">After-Hours Site Security</h3>
-              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Construction sites are targets for equipment theft and material pilferage at night. StaffLenz monitors all cameras after workers leave, detecting any unauthorised person on-site and sending an immediate alert to the site manager and security team — preventing losses before they happen.</p>
+              <p className="text-gray-500 text-sm mb-4 leading-relaxed">Construction sites are targets for equipment theft and material pilferage at night. LenzAI monitors all cameras after workers leave, detecting any unauthorised person on-site and sending an immediate alert to the site manager and security team — preventing losses before they happen.</p>
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm">
                 <div className="font-bold text-slate-800 mb-2">Last night&apos;s security summary:</div>
                 <ul className="space-y-1 text-slate-700">
@@ -276,13 +276,13 @@ export default function ConstructionPage() {
           <div className="bg-gray-900 rounded-3xl border border-gray-700 overflow-hidden shadow-2xl">
             <div className="bg-gray-800 px-4 py-3 flex items-center gap-2 border-b border-gray-700">
               <div className="flex gap-1.5"><div className="w-3 h-3 rounded-full bg-red-500"/><div className="w-3 h-3 rounded-full bg-yellow-500"/><div className="w-3 h-3 rounded-full bg-green-500"/></div>
-              <div className="flex-1 bg-gray-700 rounded-lg px-3 py-1 text-xs text-gray-400 text-center mx-4">app.stafflenz.com/construction</div>
+              <div className="flex-1 bg-gray-700 rounded-lg px-3 py-1 text-xs text-gray-400 text-center mx-4">app.lenzai.org/construction</div>
             </div>
             <div className="flex h-[640px]">
               <div className="w-52 bg-gray-950 border-r border-gray-800 p-4 shrink-0 flex flex-col">
                 <div className="flex items-center gap-2 mb-5 px-1">
-                  <div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">SL</div>
-                  <span className="font-bold text-white text-sm">StaffLenz</span>
+                  <div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">LA</div>
+                  <span className="font-bold text-white text-sm">LenzAI</span>
                 </div>
                 <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-xl px-3 py-2 mb-4">
                   <div className="text-xs font-bold text-yellow-400">🏗️ Construction</div>
@@ -393,13 +393,13 @@ export default function ConstructionPage() {
       <section id="demo" className="py-20 px-4 bg-gradient-to-br from-yellow-500 to-amber-600">
         <div className="max-w-4xl mx-auto text-center text-white">
           <h2 className="text-4xl font-extrabold mb-4 text-gray-900">Know who is on-site, helmeted, and in the right zone — live.</h2>
-          <p className="text-yellow-900 text-lg mb-8">We configure StaffLenz for your site layout and deliver live muster and PPE data within 48 hours.</p>
+          <p className="text-yellow-900 text-lg mb-8">We configure LenzAI for your site layout and deliver live muster and PPE data within 48 hours.</p>
           <Link href="/#contact" className="inline-flex items-center gap-2 bg-gray-900 text-yellow-400 font-bold px-10 py-4 rounded-xl hover:bg-gray-800 transition-all shadow-2xl text-base">Book Free On-Site Demo <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg></Link>
         </div>
       </section>
 
       <footer className="py-8 px-4 bg-gray-950 border-t border-gray-900 text-center text-sm text-gray-600">
-        <div className="flex items-center justify-center gap-2 mb-3"><div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">SL</div><span className="font-extrabold text-white">StaffLenz</span></div>
+        <div className="flex items-center justify-center gap-2 mb-3"><div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">LA</div><span className="font-extrabold text-white">LenzAI</span></div>
         <div className="flex flex-wrap items-center justify-center gap-4 mb-2">
           <Link href="/" className="hover:text-white">Home</Link>
           <Link href="/industries/factory" className="hover:text-white">Factory</Link>
@@ -408,7 +408,7 @@ export default function ConstructionPage() {
           <Link href="/industries/restaurant" className="hover:text-white">Restaurant</Link>
           <Link href="/industries/security" className="hover:text-white">Security</Link>
         </div>
-        <p>© {new Date().getFullYear()} StaffLenz · AI-Powered Workforce Intelligence</p>
+        <p>© {new Date().getFullYear()} LenzAI · AI-Powered Workforce Intelligence</p>
       </footer>
     </div>
   );

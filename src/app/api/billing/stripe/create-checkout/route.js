@@ -89,7 +89,7 @@ export async function POST(request) {
   }
 
   // Figure out remaining trial days (if any) so Stripe continues honouring
-  // the StaffLenz trial rather than charging immediately.
+  // the LenzAI trial rather than charging immediately.
   let trialDays = 0;
   if (body.include_trial !== false && client.trial_ends_at) {
     const msLeft = new Date(client.trial_ends_at).getTime() - Date.now();
@@ -98,7 +98,7 @@ export async function POST(request) {
 
   const appUrl =
     process.env.NEXT_PUBLIC_APP_URL ||
-    `https://${request.headers.get('host') || 'www.stafflenz.com'}`;
+    `https://${request.headers.get('host') || 'www.lenzai.org'}`;
 
   try {
     const checkout = await createCheckoutSession({

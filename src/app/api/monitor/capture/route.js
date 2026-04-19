@@ -7,7 +7,7 @@ import { getAdminClient } from '@/lib/supabase';
 //   - 'onvif'      → /api/onvif/capture  (direct DVR via port-forward + ONVIF/ISAPI)
 // The orchestrator only calls this route — it doesn't need to know which method is used.
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://stafflenz.com';
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://lenzai.org';
 
 function verifyInternalSecret(request) {
   return request.headers.get('x-internal-secret') === process.env.INTERNAL_SECRET;

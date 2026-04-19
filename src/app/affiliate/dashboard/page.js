@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://stafflenz.com';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://lenzai.org';
 
 function StatCard({ label, value, sub, accent }) {
   return (
@@ -104,8 +104,8 @@ export default function AffiliateDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs shadow-md shadow-blue-200">SL</div>
-              <span className="font-extrabold text-gray-900 tracking-tight">StaffLenz</span>
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs shadow-md shadow-blue-200">LA</div>
+              <span className="font-extrabold text-gray-900 tracking-tight">LenzAI</span>
             </Link>
             <span className="text-gray-300">|</span>
             <span className="text-sm font-semibold text-gray-500">Affiliate Dashboard</span>

@@ -109,7 +109,7 @@ export default function CheckoutPage() {
       const rzp = new window.Razorpay({
         key: data.razorpay_key_id,
         subscription_id: data.subscription_id,
-        name: 'StaffLenz',
+        name: 'LenzAI',
         description: `${data.plan} plan — ₹${data.amount_inr.toLocaleString('en-IN')}/month`,
         prefill: {
           name: data.customer?.name,
