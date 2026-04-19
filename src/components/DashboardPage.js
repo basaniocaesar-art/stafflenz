@@ -395,10 +395,10 @@ export default function DashboardPage({ industry }) {
     <DashboardLayout industry={industry} clientName={client?.name||industry} userName={client?.name||''}>
 
       {/* ── Page header ── */}
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div>
           <div className="text-xs font-medium uppercase tracking-widest mb-1" style={{color:S.muted}}>Overview</div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight">Dashboard</h1>
+          <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">Dashboard</h1>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs font-mono hidden sm:block" style={{color:S.muted}}>{time.toLocaleTimeString()}</span>
@@ -440,10 +440,10 @@ export default function DashboardPage({ industry }) {
       )}
 
       {/* ── Tab bar ── */}
-      <div className="flex gap-1 mb-5 p-1 rounded-xl w-fit" style={{background:'rgba(13,22,49,0.8)',border:'1px solid #1e2d4a'}}>
+      <div className="flex gap-1 mb-5 p-1 rounded-xl w-fit overflow-x-auto" style={{background:'rgba(13,22,49,0.8)',border:'1px solid #1e2d4a'}}>
         {tabs.map(t=>(
           <button key={t.id} onClick={()=>setActiveTab(t.id)}
-            className="relative px-4 py-1.5 text-sm font-medium rounded-lg transition-all"
+            className="relative px-4 py-1.5 text-sm font-medium rounded-lg transition-all whitespace-nowrap shrink-0"
             style={activeTab===t.id?{background:'rgba(59,130,246,0.2)',color:'#60a5fa',border:'1px solid rgba(59,130,246,0.3)'}:{color:'#64748b',border:'1px solid transparent'}}>
             {t.label}
             {t.badge>0&&<span className="absolute -top-1 -right-1 text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center" style={{background:'#ef4444',color:'white'}}>{t.badge}</span>}
@@ -726,7 +726,7 @@ export default function DashboardPage({ industry }) {
                 <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{background:'#22d3ee'}}/>Processing
               </span>
             </div>
-            <div className="grid grid-cols-4 gap-1.5">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5">
               {videoUrls.map((url,i)=>(
                 <AICamFeed key={i} camIndex={i} videoUrl={null} snapshotUrl={url} alertCam={alertCams.includes(i)}/>
               ))}
@@ -911,7 +911,7 @@ export default function DashboardPage({ industry }) {
       {/* ══════════════════ FRAME VIEWER MODAL ══════════════════ */}
       {frameModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm" onClick={()=>setFrameModal(null)}>
-          <div className="bg-gray-900 rounded-3xl border border-gray-700 shadow-2xl max-w-5xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={e=>e.stopPropagation()}>
+          <div className="bg-gray-900 rounded-2xl sm:rounded-3xl border border-gray-700 shadow-2xl max-w-5xl w-full mx-2 sm:mx-4 max-h-[95vh] sm:max-h-[90vh] overflow-y-auto" onClick={e=>e.stopPropagation()}>
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
               <div>
@@ -939,9 +939,9 @@ export default function DashboardPage({ industry }) {
                   <p className="text-sm text-gray-500">Loading camera frames...</p>
                 </div>
               ) : frameModal.frames?.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
                   {frameModal.frames.map((f, i) => (
-                    <div key={i} className="relative rounded-xl overflow-hidden bg-black border border-gray-800">
+                    <div key={i} className="relative rounded-lg sm:rounded-xl overflow-hidden bg-black border border-gray-800">
                       {f.url ? (
                         <img src={f.url} alt={`Camera ${f.camera_channel}`} className="w-full aspect-video object-cover" />
                       ) : (

@@ -164,7 +164,7 @@ export default function AttendancePage() {
                           <div className="text-xs text-gray-500">{wr.department || 'Staff'}</div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-5 text-xs">
+                      <div className="flex items-center gap-3 sm:gap-5 text-xs overflow-x-auto">
                         <MiniStat label="Days" value={`${wr.days_present}/${wr.days_present + wr.days_absent}`} />
                         <MiniStat label="Total hours" value={wr.total_active_display} highlight />
                         <MiniStat label="Avg/day" value={`${wr.avg_daily_hours}h`} />

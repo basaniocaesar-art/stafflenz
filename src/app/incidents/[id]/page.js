@@ -222,7 +222,7 @@ export default function IncidentDetailPage() {
             <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
               Burst frames analysed by AI ({burstFrames.length})
             </div>
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
               {burstFrames.map((f, i) => (
                 <div key={i} className="aspect-video rounded overflow-hidden bg-gray-700 border border-gray-600">
                   {f.url ? (
