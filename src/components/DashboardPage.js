@@ -234,6 +234,7 @@ export default function DashboardPage({ industry }) {
   const [waNumber,     setWaNumber]     = useState('');
   const [waSaving,     setWaSaving]     = useState(false);
   const [frameModal,   setFrameModal]   = useState(null); // { timeline_id, title, loading, frames, summary }
+  const [selectedLocation, setSelectedLocation] = useState(null); // null = all locations
   const [waStatus,     setWaStatus]     = useState(null);
   const [time,         setTime]         = useState(new Date());
 
@@ -257,7 +258,8 @@ export default function DashboardPage({ industry }) {
   // Real data
   const fetchData = useCallback(async()=>{
     try{
-      const r=await fetch('/api/client');
+      const locParam = selectedLocation ? `?location=${selectedLocation}` : '';
+      const r=await fetch(`/api/client${locParam}`);
       if(r.status===401){ window.location.href='/login'; return; }
       const j=await r.json();
       if(r.ok){
@@ -269,7 +271,7 @@ export default function DashboardPage({ industry }) {
       else setError(j.error);
     }catch{ setError('Failed to load'); }
     finally{ setLoading(false); }
-  },[]);
+  },[selectedLocation]);
 
   useEffect(()=>{ fetchData(); const iv=setInterval(fetchData,60000); return ()=>clearInterval(iv); },[fetchData]);
 
@@ -381,6 +383,36 @@ export default function DashboardPage({ industry }) {
           </span>
         </div>
       </div>
+
+      {/* ── Location picker (only shown if client has multiple locations) ── */}
+      {data?.has_locations && data?.locations?.length > 0 && (
+        <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
+          <button
+            onClick={() => setSelectedLocation(null)}
+            className="shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all"
+            style={!selectedLocation
+              ? { background: 'rgba(59,130,246,0.2)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.3)' }
+              : { color: '#64748b', border: '1px solid #1e2d4a' }}
+          >
+            All locations
+          </button>
+          {data.locations.map((loc) => (
+            <button
+              key={loc.id}
+              onClick={() => setSelectedLocation(loc.id)}
+              className="shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-2"
+              style={selectedLocation === loc.id
+                ? { background: 'rgba(59,130,246,0.2)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.3)' }
+                : { color: '#64748b', border: '1px solid #1e2d4a' }}
+            >
+              <span>{loc.name}</span>
+              {loc.open_alerts > 0 && (
+                <span className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold" style={{ background: '#ef4444', color: 'white' }}>{loc.open_alerts}</span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* ── Tab bar ── */}
       <div className="flex gap-1 mb-5 p-1 rounded-xl w-fit" style={{background:'rgba(13,22,49,0.8)',border:'1px solid #1e2d4a'}}>

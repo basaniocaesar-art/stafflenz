@@ -15,6 +15,25 @@ export async function GET(request) {
   const db = getAdminClient();
   const today = new Date().toISOString().slice(0, 10);
 
+  // Location filtering — ?location=<uuid> scopes everything to one site.
+  // If omitted, returns data across all locations (rollup view).
+  const { searchParams } = new URL(request.url);
+  const locationId = searchParams.get('location');
+
+  // Check if this client has any locations set up
+  const { data: locationsData } = await db
+    .from('locations')
+    .select('id, name')
+    .eq('client_id', clientId)
+    .eq('is_active', true);
+  const hasLocations = (locationsData || []).length > 0;
+
+  // Helper: add location filter to a query if applicable
+  function locFilter(query) {
+    if (locationId) return query.eq('location_id', locationId);
+    return query;
+  }
+
   // Progressive fetch of onboarding_completed flag (column may not exist yet)
   let onboardingCompleted = true; // default: assume completed so existing users aren't blocked
   try {
@@ -27,6 +46,7 @@ export async function GET(request) {
   } catch { /* column missing — leave default */ }
 
   // Run queries in parallel for performance
+  // Each query is scoped to location if ?location=<id> is set
   const [
     { data: summary },
     { data: recentEvents },
@@ -38,27 +58,27 @@ export async function GET(request) {
     { data: zonesData },
     { data: workersData },
   ] = await Promise.all([
-    // Today's summary
+    // Today's summary (daily_summary doesn't have location_id yet — skip filtering)
     db.from('daily_summary').select('*').eq('client_id', clientId).eq('summary_date', today).single(),
     // Last 50 events
-    db.from('worker_events')
+    locFilter(db.from('worker_events')
       .select('id, worker_name, activity, event_type, zone_id, confidence, zone_violation, ppe_compliant, occurred_at')
-      .eq('client_id', clientId)
+      .eq('client_id', clientId))
       .order('occurred_at', { ascending: false })
       .limit(50),
     // Open alerts (latest 20 for display)
-    db.from('alerts').select('id, alert_type, message, worker_name, zone_name, created_at')
+    locFilter(db.from('alerts').select('id, alert_type, message, worker_name, zone_name, created_at')
       .eq('client_id', clientId)
-      .eq('is_resolved', false)
+      .eq('is_resolved', false))
       .order('created_at', { ascending: false })
       .limit(20),
     // Total open alerts count
-    db.from('alerts').select('id', { count: 'exact', head: true })
+    locFilter(db.from('alerts').select('id', { count: 'exact', head: true })
       .eq('client_id', clientId)
-      .eq('is_resolved', false),
+      .eq('is_resolved', false)),
     // Total active workers
-    db.from('workers').select('*', { count: 'exact', head: true })
-      .eq('client_id', clientId).is('deleted_at', null).eq('is_active', true),
+    locFilter(db.from('workers').select('*', { count: 'exact', head: true })
+      .eq('client_id', clientId).is('deleted_at', null).eq('is_active', true)),
     // Last 7 days summary for chart
     db.from('daily_summary').select('summary_date, present_count, absent_count, late_count, violation_count, total_events')
       .eq('client_id', clientId)
@@ -81,10 +101,10 @@ export async function GET(request) {
 
   try {
     // Last 12 timeline narratives (1 hour at 5-min intervals)
-    const { data: tlData } = await db
+    const { data: tlData } = await locFilter(db
       .from('activity_timeline')
       .select('id, window_start, window_end, summary, workers_detected, alerts_created, idle_minutes, away_minutes, cost_usd')
-      .eq('client_id', clientId)
+      .eq('client_id', clientId))
       .order('window_start', { ascending: false })
       .limit(12);
     recentTimelines = tlData || [];
@@ -126,6 +146,10 @@ export async function GET(request) {
 
   const res = NextResponse.json({
     client: { ...client, total_workers: totalWorkers || 0, onboarding_completed: onboardingCompleted },
+    // Multi-location support
+    locations: locationsData || [],
+    has_locations: hasLocations,
+    current_location: locationId || null,
     today: summary || { present_count: 0, absent_count: 0, late_count: 0, violation_count: 0, total_events: 0 },
     recent_events: recentEvents || [],
     open_alerts: openAlerts || [],
