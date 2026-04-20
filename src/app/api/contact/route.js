@@ -67,9 +67,27 @@ export async function POST(request) {
   }).catch(() => {});
 
   sendEmail({
-    to: process.env.INTERNAL_NOTIFY_EMAIL || 'team@lenzai.org',
+    to: process.env.INTERNAL_NOTIFY_EMAIL || 'admin@stafflenz.com',
     subject: `🔔 New Demo Request — ${name} (${industry || 'Unknown'})`,
     html: emailDemoRequestInternal({ name, email, company, industry, phone, message, affiliate_code }),
+  }).catch(() => {});
+
+  // WhatsApp notification to owner
+  import('@/lib/whatsapp').then(({ sendWhatsApp }) => {
+    const ownerNumber = process.env.OWNER_WHATSAPP || '+919946001222';
+    const waMsg = [
+      `🔔 *New Demo Request*`,
+      ``,
+      `👤 ${name}`,
+      email ? `📧 ${email}` : '',
+      phone ? `📱 ${phone}` : '',
+      company ? `🏢 ${company}` : '',
+      industry ? `🏭 ${industry}` : '',
+      message ? `💬 ${message}` : '',
+      ``,
+      `Reply to this lead ASAP!`,
+    ].filter(Boolean).join('\n');
+    sendWhatsApp(ownerNumber, waMsg).catch(() => {});
   }).catch(() => {});
 
   // Record affiliate conversion if code present
