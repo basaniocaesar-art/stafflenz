@@ -7,11 +7,48 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://lenzai.org';
 // ---------------------------------------------------------------------------
 
 async function sendEmail({ to, subject, html, replyTo }) {
-  if (!process.env.RESEND_API_KEY) {
-    console.warn('[email] RESEND_API_KEY is not set — skipping email send');
-    return { skipped: true };
+  // Support two modes: SMTP (Verpex/cPanel) or Resend API
+  // SMTP is preferred if SMTP_HOST is set; falls back to Resend.
+  if (process.env.SMTP_HOST) {
+    return sendViaSMTP({ to, subject, html, replyTo });
   }
+  if (process.env.RESEND_API_KEY) {
+    return sendViaResend({ to, subject, html, replyTo });
+  }
+  console.warn('[email] No email provider configured — set SMTP_HOST or RESEND_API_KEY');
+  return { skipped: true };
+}
 
+async function sendViaSMTP({ to, subject, html, replyTo }) {
+  try {
+    const nodemailer = (await import('nodemailer')).default;
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT || 465),
+      secure: (process.env.SMTP_PORT || '465') === '465',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+      tls: { rejectUnauthorized: false },
+    });
+
+    const info = await transporter.sendMail({
+      from: process.env.EMAIL_FROM || `LenzAI <${process.env.SMTP_USER}>`,
+      to,
+      subject,
+      html,
+      replyTo: replyTo || undefined,
+    });
+
+    return { ok: true, messageId: info.messageId };
+  } catch (err) {
+    console.error('[email] SMTP error:', err.message);
+    return { error: true, message: err.message };
+  }
+}
+
+async function sendViaResend({ to, subject, html, replyTo }) {
   try {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -36,7 +73,7 @@ async function sendEmail({ to, subject, html, replyTo }) {
 
     return await res.json();
   } catch (err) {
-    console.error('[email] Fetch error:', err);
+    console.error('[email] Resend error:', err);
     return { error: true };
   }
 }
