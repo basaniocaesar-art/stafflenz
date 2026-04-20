@@ -371,11 +371,14 @@ export default function ZonesPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [dvrWizardOpen, setDvrWizardOpen] = useState(false);
   const [editZone, setEditZone] = useState(null);
+  const [locations, setLocations] = useState([]);
+  const [selectedLocation, setSelectedLocation] = useState(null);
 
   async function fetchZones() {
     setLoading(true);
     try {
-      const res = await fetch('/api/zones');
+      const locParam = selectedLocation ? `?location=${selectedLocation}` : '';
+      const res = await fetch(`/api/zones${locParam}`);
       if (res.status === 401) { window.location.href = '/login'; return; }
       const data = await res.json();
       setZones(data.zones || []);
@@ -384,7 +387,11 @@ export default function ZonesPage() {
     }
   }
 
-  useEffect(() => { fetchZones(); }, []);
+  useEffect(() => {
+    fetch('/api/locations').then(r => r.json()).then(d => setLocations(d.locations || [])).catch(() => {});
+  }, []);
+
+  useEffect(() => { fetchZones(); }, [selectedLocation]);
 
   async function handleDelete(id) {
     if (!confirm('Deactivate this camera zone?')) return;
@@ -428,7 +435,15 @@ export default function ZonesPage() {
         </div>
       )}
 
-      {/* Edge Node info removed — clients don't need to see internal integration details */}
+      {/* Location picker */}
+      {locations.length > 0 && (
+        <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
+          <button onClick={() => setSelectedLocation(null)} className={`shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg border transition ${!selectedLocation ? 'bg-blue-50 text-blue-700 border-blue-300' : 'text-gray-500 border-gray-200 hover:border-gray-300'}`}>All locations</button>
+          {locations.map(loc => (
+            <button key={loc.id} onClick={() => setSelectedLocation(loc.id)} className={`shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg border transition ${selectedLocation === loc.id ? 'bg-blue-50 text-blue-700 border-blue-300' : 'text-gray-500 border-gray-200 hover:border-gray-300'}`}>{loc.name}</button>
+          ))}
+        </div>
+      )}
 
       {loading ? (
         <div className="card p-12 text-center text-gray-400">Loading zones...</div>

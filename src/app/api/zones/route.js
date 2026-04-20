@@ -15,12 +15,17 @@ export async function GET(request) {
     : client?.id;
   if (!clientId) return NextResponse.json({ error: 'client_id required' }, { status: 400 });
 
+  const { searchParams } = new URL(request.url);
+  const locationId = searchParams.get('location');
+
   const db = getAdminClient();
-  const { data: zones, error } = await db
+  let query = db
     .from('camera_zones')
-    .select('id, name, camera_key, camera_ip, location_label, zone_type, is_active, created_at')
+    .select('id, name, camera_key, camera_ip, location_label, zone_type, is_active, location_id, created_at')
     .eq('client_id', clientId)
     .order('created_at');
+  if (locationId) query = query.eq('location_id', locationId);
+  const { data: zones, error } = await query;
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ zones });

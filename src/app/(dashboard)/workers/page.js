@@ -240,11 +240,14 @@ export default function WorkersPage() {
   const [editWorker, setEditWorker] = useState(null);
   const [search, setSearch] = useState('');
   const [clientIndustry, setClientIndustry] = useState('factory');
+  const [locations, setLocations] = useState([]);
+  const [selectedLocation, setSelectedLocation] = useState(null);
 
   async function fetchWorkers() {
     setLoading(true);
     try {
-      const res = await fetch('/api/workers');
+      const locParam = selectedLocation ? `?location=${selectedLocation}` : '';
+      const res = await fetch(`/api/workers${locParam}`);
       if (res.status === 401) { window.location.href = '/login'; return; }
       const data = await res.json();
       setWorkers(data.workers || []);
@@ -253,7 +256,11 @@ export default function WorkersPage() {
     }
   }
 
-  useEffect(() => { fetchWorkers(); }, []);
+  useEffect(() => {
+    fetch('/api/locations').then(r => r.json()).then(d => setLocations(d.locations || [])).catch(() => {});
+  }, []);
+
+  useEffect(() => { fetchWorkers(); }, [selectedLocation]);
 
   async function handleDelete(id) {
     if (!confirm('Remove this worker? Their event history will be preserved.')) return;
@@ -284,6 +291,16 @@ export default function WorkersPage() {
           + Enrol Worker
         </button>
       </div>
+
+      {/* Location picker */}
+      {locations.length > 0 && (
+        <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
+          <button onClick={() => setSelectedLocation(null)} className={`shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg border transition ${!selectedLocation ? 'bg-blue-50 text-blue-700 border-blue-300' : 'text-gray-500 border-gray-200 hover:border-gray-300'}`}>All locations</button>
+          {locations.map(loc => (
+            <button key={loc.id} onClick={() => setSelectedLocation(loc.id)} className={`shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg border transition ${selectedLocation === loc.id ? 'bg-blue-50 text-blue-700 border-blue-300' : 'text-gray-500 border-gray-200 hover:border-gray-300'}`}>{loc.name}</button>
+          ))}
+        </div>
+      )}
 
       {/* Search */}
       <div className="mb-4">

@@ -20,16 +20,21 @@ export async function GET(request) {
 
   if (!clientId) return NextResponse.json({ error: 'client_id required' }, { status: 400 });
 
+  const { searchParams } = new URL(request.url);
+  const locationId = searchParams.get('location');
+
   const db = getAdminClient();
 
   // Try fetching with photo_paths column, fall back if it doesn't exist
   let workers;
-  const fullQuery = await db
+  let fullQuery = db
     .from('workers')
-    .select('id, full_name, employee_id, department, shift, photo_path, photo_paths, is_active, created_at')
+    .select('id, full_name, employee_id, department, shift, photo_path, photo_paths, is_active, location_id, created_at')
     .eq('client_id', clientId)
     .is('deleted_at', null)
     .order('full_name');
+  if (locationId) fullQuery = fullQuery.eq('location_id', locationId);
+  fullQuery = await fullQuery;
 
   if (fullQuery.error && fullQuery.error.message?.includes('column')) {
     // photo_paths column doesn't exist yet — fall back
