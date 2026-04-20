@@ -428,17 +428,7 @@ export default function ZonesPage() {
         </div>
       )}
 
-      {/* Edge Node info */}
-      {zones.length > 0 && (
-        <div className="card p-4 mb-6 bg-blue-50 border-blue-200">
-          <h3 className="font-medium text-blue-900 mb-1 text-sm">📡 Edge Node Integration</h3>
-          <p className="text-xs text-blue-700">
-            Each zone gets a unique Camera Key. Your Edge Node uses this key to post detections to{' '}
-            <code className="bg-blue-100 px-1 rounded">POST /api/events</code> with the{' '}
-            <code className="bg-blue-100 px-1 rounded">Authorization: Bearer {'<camera_key>'}</code> header.
-          </p>
-        </div>
-      )}
+      {/* Edge Node info removed — clients don't need to see internal integration details */}
 
       {loading ? (
         <div className="card p-12 text-center text-gray-400">Loading zones...</div>
