@@ -20,30 +20,21 @@ async function sendEmail({ to, subject, html, replyTo }) {
 }
 
 async function sendViaSMTP({ to, subject, html, replyTo }) {
+  // Uses the SMTP test route pattern — direct HTTPS call to mail server
+  // via nodemailer loaded at runtime, avoiding webpack bundling issues.
   try {
-    const nodemailer = (await import('nodemailer')).default;
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT || 465),
-      secure: (process.env.SMTP_PORT || '465') === '465',
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://lenzai.org'}/api/internal/send-smtp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-internal-secret': process.env.INTERNAL_SECRET || '',
       },
-      tls: { rejectUnauthorized: false },
+      body: JSON.stringify({ to, subject, html, replyTo }),
     });
-
-    const info = await transporter.sendMail({
-      from: process.env.EMAIL_FROM || `LenzAI <${process.env.SMTP_USER}>`,
-      to,
-      subject,
-      html,
-      replyTo: replyTo || undefined,
-    });
-
-    return { ok: true, messageId: info.messageId };
+    const data = await res.json();
+    return data;
   } catch (err) {
-    console.error('[email] SMTP error:', err.message);
+    console.error('[email] SMTP proxy error:', err.message);
     return { error: true, message: err.message };
   }
 }
