@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { sendWhatsApp, alertMessage } from '@/lib/whatsapp';
-import { getSession } from '@/lib/auth';
+import { requireAuth, getTokenFromRequest, verifySession } from '@/lib/auth';
 
 export async function POST(request) {
-  const session = await getSession();
+  const token = getTokenFromRequest(request);
+  const session = await verifySession(token);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const { to, type, details } = await request.json();
