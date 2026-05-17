@@ -3,6 +3,12 @@ import Anthropic from '@anthropic-ai/sdk';
 import sharp from 'sharp';
 import { getAdminClient } from '@/lib/supabase';
 import { calculateCost } from '@/lib/promptBuilder';
+import {
+  faceIdEnabled,
+  identifyFacesInFrames,
+  workersToEmbeddingPayload,
+  formatIdentificationsForPrompt,
+} from '@/lib/faceId';
 
 // POST /api/agent/analyze-sequence
 // Body: {
@@ -74,7 +80,7 @@ function parseJsonWithRecovery(raw) {
 
 export async function POST(request) {
   const body = await request.json().catch(() => ({}));
-  const { agent_key, client_id, frames, window_start, window_end } = body;
+  const { agent_key, client_id, location_id, frames, window_start, window_end } = body;
 
   if (!agent_key || !client_id || !Array.isArray(frames) || frames.length === 0) {
     return NextResponse.json(
@@ -94,14 +100,19 @@ export async function POST(request) {
   if (!clientData) return NextResponse.json({ error: 'Client not found' }, { status: 404 });
 
   // Load workers + zones (same as analyze route)
-  const [workersRes, zonesRes] = await Promise.all([
-    db.from('workers')
+  // Try to also pull face_embeddings — falls back if column doesn't exist yet
+  let workersSelect = 'id, full_name, department, photo_path, face_embeddings';
+  let workersRes = await db.from('workers')
+    .select(workersSelect)
+    .eq('client_id', client_id).eq('is_active', true).is('deleted_at', null);
+  if (workersRes.error && workersRes.error.message?.includes('column')) {
+    workersRes = await db.from('workers')
       .select('id, full_name, department, photo_path')
-      .eq('client_id', client_id).eq('is_active', true).is('deleted_at', null),
-    db.from('camera_zones')
-      .select('id, name, zone_type, location_label')
-      .eq('client_id', client_id).eq('is_active', true),
-  ]);
+      .eq('client_id', client_id).eq('is_active', true).is('deleted_at', null);
+  }
+  const zonesRes = await db.from('camera_zones')
+    .select('id, name, zone_type, location_label')
+    .eq('client_id', client_id).eq('is_active', true);
   const workers = workersRes.data || [];
   const zones = zonesRes.data || [];
 
@@ -165,31 +176,58 @@ export async function POST(request) {
     return NextResponse.json({ error: 'All frame downloads failed' }, { status: 502 });
   }
 
-  // ── Build Claude message content ──────────────────────────────────
-  // Strategy: reference photos cached at the top, then frames labelled
-  // with (camera, minute offset) so Claude can emit a timeline.
-  const content = [];
-
-  // 1) Reference photos (cached)
-  let refBlocksAdded = 0;
-  for (const w of workersWithPhotos) {
-    const total = w.photoBuffers.length;
-    for (let i = 0; i < total; i++) {
-      content.push({
-        type: 'image',
-        source: { type: 'base64', media_type: 'image/jpeg', data: w.photoBuffers[i].toString('base64') },
-      });
-      content.push({
-        type: 'text',
-        text: `Reference angle ${i + 1}/${total} of ${w.full_name} — ${w.department || 'staff'}`,
-      });
-      refBlocksAdded += 2;
+  // ── Pre-identify faces via face-id service (skip reference photos if hits) ──
+  // We need PUBLIC URLs of the frames to call face-id; rebuild signed URLs.
+  const embeddingPayload = workersToEmbeddingPayload(workers);
+  let faceIdPromptBlock = null;
+  if (faceIdEnabled() && embeddingPayload.length > 0) {
+    // Resolve the original frame_urls in input order (face-id needs URLs, not buffers)
+    const allFrameUrls = frames.flatMap((cam) => cam.frame_urls || []);
+    const faceIdResults = await identifyFacesInFrames(allFrameUrls, embeddingPayload, 0.6);
+    const hasAnyHits = (faceIdResults || []).some(
+      (r) => r && Array.isArray(r.people) && r.people.length > 0
+    );
+    if (hasAnyHits) {
+      // Build matching labels: "Camera N · minute T+M"
+      const flatLabels = [];
+      for (const cam of frames) {
+        for (let i = 0; i < (cam.frame_urls || []).length; i++) {
+          const off = cam.minute_offsets?.[i] ?? i;
+          flatLabels.push(`Camera ${cam.camera_channel} · minute T+${off}`);
+        }
+      }
+      faceIdPromptBlock = formatIdentificationsForPrompt(faceIdResults, flatLabels);
     }
   }
-  // Mark last reference block as cache boundary
-  if (refBlocksAdded > 0) {
-    const lastIdx = content.length - 1;
-    content[lastIdx] = { ...content[lastIdx], cache_control: { type: 'ephemeral' } };
+  const skipReferencePhotos = Boolean(faceIdPromptBlock);
+
+  // ── Build Claude message content ──────────────────────────────────
+  // Strategy: reference photos cached at the top (skipped if face-id worked),
+  // then frames labelled with (camera, minute offset) so Claude emits a timeline.
+  const content = [];
+
+  // 1) Reference photos (cached) — only if face-id pre-identification didn't fire
+  let refBlocksAdded = 0;
+  if (!skipReferencePhotos) {
+    for (const w of workersWithPhotos) {
+      const total = w.photoBuffers.length;
+      for (let i = 0; i < total; i++) {
+        content.push({
+          type: 'image',
+          source: { type: 'base64', media_type: 'image/jpeg', data: w.photoBuffers[i].toString('base64') },
+        });
+        content.push({
+          type: 'text',
+          text: `Reference angle ${i + 1}/${total} of ${w.full_name} — ${w.department || 'staff'}`,
+        });
+        refBlocksAdded += 2;
+      }
+    }
+    // Mark last reference block as cache boundary
+    if (refBlocksAdded > 0) {
+      const lastIdx = content.length - 1;
+      content[lastIdx] = { ...content[lastIdx], cache_control: { type: 'ephemeral' } };
+    }
   }
 
   // 2) Camera frames, grouped by camera and minute
@@ -242,6 +280,16 @@ OUTPUT BUDGET — keep the JSON under 6000 tokens. To stay within budget:
 - Use SHORT field values: zone names from the registered list verbatim, single-word activity values, no parenthetical explanations inside worker_name.
 - Include ALL alerts and worker_states; truncate the timeline array if necessary (better to lose late minutes than to return invalid JSON).
 
+SUMMARY STYLE — this is the single most important field. The "summary" is shown to the manager as a story, not a surveillance report. Write ONE short plain-English sentence (max ~220 chars) describing what actually happened, the way you'd tell a colleague in passing. Follow these rules:
+- Use worker NAMES when matched (confidence ≥ 0.85). Say what they did, not where the camera is.
+- If nothing happened, say so simply: e.g. "Quiet across the floor — no staff or visitors seen in the last 5 minutes."
+- If someone moved, name the move: e.g. "Basanio moved from Reception to the Stockroom and started restocking shelves."
+- If someone's missing from their usual spot, say it: e.g. "Reception was unattended the whole window — Basanio not seen on any camera."
+- If there's an unknown person, treat them as a visitor unless it's clearly a violation: "A visitor walked through the lobby around T+2; nothing else of note."
+- NEVER start with "Surveillance footage shows…" or mention timestamps, camera numbers, frame quality, confidence scores, or JSON fields.
+- NEVER list per-camera findings ("Camera 1: …, Camera 2: …"). Weave it into one sentence.
+- If multiple things happened, pick the most important 1–2 and join them; skip the rest.
+
 Return ONLY valid JSON in this exact shape:
 {
   "timeline": [
@@ -257,7 +305,7 @@ Return ONLY valid JSON in this exact shape:
       ]
     }
   ],
-  "summary": "One-paragraph narrative of the whole window across all cameras",
+  "summary": "ONE short story-style sentence — see SUMMARY STYLE rules above",
   "alerts": [
     {"alert_type": "staffing|zone_violation|ppe_violation|behaviour|safety|general", "camera_channel": 2, "minute_offset": 3, "worker_name": "...", "zone_name": "...", "message": "...", "severity": "low|medium|high"}
   ],
@@ -267,6 +315,12 @@ Return ONLY valid JSON in this exact shape:
   "overall_status": "normal|warning|critical"
 }`,
   });
+
+  // If face-id pre-identified people, append it as authoritative ground truth
+  // AFTER the main prompt so Claude uses these names directly.
+  if (faceIdPromptBlock) {
+    content.push({ type: 'text', text: faceIdPromptBlock });
+  }
 
   // ── Call Claude ──────────────────────────────────────────────────
   const startMs = Date.now();
@@ -315,6 +369,7 @@ Return ONLY valid JSON in this exact shape:
         const matched = conf >= 0.85 && p.worker_name && !/unknown/i.test(p.worker_name);
         eventRows.push({
           client_id,
+          location_id: location_id || null,
           worker_id: matched
             ? workersWithPhotos.find((w) => w.full_name === p.worker_name)?.id || null
             : null,
@@ -387,6 +442,7 @@ Return ONLY valid JSON in this exact shape:
   if (Array.isArray(analysis.alerts) && analysis.alerts.length > 0) {
     const alertRows = analysis.alerts.map((a) => ({
       client_id,
+      location_id: location_id || null,
       alert_type: a.alert_type || 'general',
       message: a.message,
       worker_name: a.worker_name || null,
@@ -406,6 +462,7 @@ Return ONLY valid JSON in this exact shape:
     .from('activity_timeline')
     .insert({
       client_id,
+      location_id: location_id || null,
       window_start: window_start || nowIso,
       window_end: window_end || nowIso,
       camera_channel: frames.length === 1 ? frames[0].camera_channel : null,

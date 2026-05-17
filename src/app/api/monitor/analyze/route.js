@@ -3,6 +3,12 @@ import Anthropic from '@anthropic-ai/sdk';
 import sharp from 'sharp';
 import { getAdminClient } from '@/lib/supabase';
 import { buildAnalysisPrompt as buildDynamicPrompt, calculateCost } from '@/lib/promptBuilder';
+import {
+  faceIdEnabled,
+  identifyFacesInFrames,
+  workersToEmbeddingPayload,
+  formatIdentificationsForPrompt,
+} from '@/lib/faceId';
 
 // Resize worker reference photos before sending to Claude.
 // Claude Vision charges by image tokens (~1500 tokens for 640x480, ~400 for 384x384).
@@ -68,24 +74,37 @@ export async function POST(request) {
     'night';
 
   // Fetch workers — include current shift AND flexible shift workers
+  // Try to also pull face_embeddings (used by face-id pre-identification).
   let workers;
   const fullWorkers = await db
     .from('workers')
-    .select('id, full_name, department, shift, photo_path, photo_paths')
+    .select('id, full_name, department, shift, photo_path, photo_paths, face_embeddings')
     .eq('client_id', client_id)
     .in('shift', [currentShift, 'flexible'])
     .eq('is_active', true)
     .is('deleted_at', null);
 
   if (fullWorkers.error && fullWorkers.error.message?.includes('column')) {
-    const baseWorkers = await db
+    // Fall back progressively — first try without face_embeddings, then without photo_paths
+    const midWorkers = await db
       .from('workers')
-      .select('id, full_name, department, shift, photo_path')
+      .select('id, full_name, department, shift, photo_path, photo_paths')
       .eq('client_id', client_id)
       .in('shift', [currentShift, 'flexible'])
       .eq('is_active', true)
       .is('deleted_at', null);
-    workers = (baseWorkers.data || []).map(w => ({ ...w, photo_paths: null }));
+    if (midWorkers.error && midWorkers.error.message?.includes('column')) {
+      const baseWorkers = await db
+        .from('workers')
+        .select('id, full_name, department, shift, photo_path')
+        .eq('client_id', client_id)
+        .in('shift', [currentShift, 'flexible'])
+        .eq('is_active', true)
+        .is('deleted_at', null);
+      workers = (baseWorkers.data || []).map(w => ({ ...w, photo_paths: null, face_embeddings: null }));
+    } else {
+      workers = (midWorkers.data || []).map(w => ({ ...w, face_embeddings: null }));
+    }
   } else {
     workers = fullWorkers.data || [];
   }
@@ -99,6 +118,26 @@ export async function POST(request) {
       return Buffer.from(await res.arrayBuffer()).toString('base64');
     })
   );
+
+  // ── Step 2b: Pre-identify faces via the face-id service (if available) ───
+  // This runs in parallel with the photo download step. When the service
+  // returns hits, we skip uploading worker reference photos to Claude in
+  // step 3/4 — significant token savings + better accuracy.
+  const embeddingPayload = workersToEmbeddingPayload(workers);
+  const useFaceId = faceIdEnabled() && embeddingPayload.length > 0;
+  let faceIdResults = null;
+  let faceIdPromptBlock = null;
+  if (useFaceId) {
+    faceIdResults = await identifyFacesInFrames(frames, embeddingPayload, 0.6);
+    const hasAnyHits = (faceIdResults || []).some(
+      (r) => r && Array.isArray(r.people) && r.people.length > 0
+    );
+    if (hasAnyHits) {
+      const frameLabels = ['2 minutes ago', '1 minute ago', 'current'].slice(-frames.length);
+      faceIdPromptBlock = formatIdentificationsForPrompt(faceIdResults, frameLabels);
+    }
+  }
+  const skipReferencePhotos = Boolean(faceIdPromptBlock);
 
   // ── Step 3: Download worker reference photos as base64 ───────────────────
   // Supports multiple photos per worker (photo_paths array) with fallback to single photo_path
@@ -152,36 +191,36 @@ export async function POST(request) {
   // ── Step 4: Build the Claude message content array ───────────────────────
   const content = [];
 
-  // Reference photos — send up to 4 per worker for better face matching
-  // These are static across calls (worker photos rarely change), so we mark the
-  // last block with cache_control so Anthropic caches them. Cached reads are ~10%
-  // of normal price, saving significant money on every repeated analysis.
+  // Reference photos — only sent if face-id pre-identification didn't run or
+  // returned nothing useful. When face-id provides identifications, we instead
+  // inject a text block ("FACE-ID RESULTS:...") at the end of the content array
+  // and Claude uses those names directly.
   const photoLabels = ['front view', 'left profile', 'right profile', 'from above', 'alternate 1', 'alternate 2'];
   let workerPhotoBlocksAdded = 0;
-  for (const w of workersWithPhotos) {
-    if (!w.photoBase64s || w.photoBase64s.length === 0) continue;
-    const maxPhotos = Math.min(w.photoBase64s.length, 4);
-    for (let pi = 0; pi < maxPhotos; pi++) {
-      content.push({
-        type: 'image',
-        source: { type: 'base64', media_type: 'image/jpeg', data: w.photoBase64s[pi] },
-      });
-      const angleLabel = pi < photoLabels.length ? ` (${photoLabels[pi]})` : ` (photo ${pi + 1})`;
-      content.push({
-        type: 'text',
-        text: `Reference: This is ${w.full_name}${angleLabel} — ${w.department || 'staff'} assigned to ${currentShift} shift`,
-      });
-      workerPhotoBlocksAdded += 2;
+  if (!skipReferencePhotos) {
+    for (const w of workersWithPhotos) {
+      if (!w.photoBase64s || w.photoBase64s.length === 0) continue;
+      const maxPhotos = Math.min(w.photoBase64s.length, 4);
+      for (let pi = 0; pi < maxPhotos; pi++) {
+        content.push({
+          type: 'image',
+          source: { type: 'base64', media_type: 'image/jpeg', data: w.photoBase64s[pi] },
+        });
+        const angleLabel = pi < photoLabels.length ? ` (${photoLabels[pi]})` : ` (photo ${pi + 1})`;
+        content.push({
+          type: 'text',
+          text: `Reference: This is ${w.full_name}${angleLabel} — ${w.department || 'staff'} assigned to ${currentShift} shift`,
+        });
+        workerPhotoBlocksAdded += 2;
+      }
     }
-  }
 
-  // Add cache breakpoint after the last worker photo text block.
-  // Everything before and including this block gets cached on Anthropic's side.
-  // Cache TTL is 5 minutes — perfect for batch-analysis loops running every 15 min
-  // because each client batch within a cycle hits the warm cache.
-  if (workerPhotoBlocksAdded > 0) {
-    const lastIdx = content.length - 1;
-    content[lastIdx] = { ...content[lastIdx], cache_control: { type: 'ephemeral' } };
+    // Add cache breakpoint after the last worker photo text block.
+    // Everything before and including this block gets cached on Anthropic's side.
+    if (workerPhotoBlocksAdded > 0) {
+      const lastIdx = content.length - 1;
+      content[lastIdx] = { ...content[lastIdx], cache_control: { type: 'ephemeral' } };
+    }
   }
 
   // Frames oldest → current
@@ -210,6 +249,12 @@ export async function POST(request) {
   const frameCount = frameBase64s.filter(Boolean).length;
   const prompt = buildDynamicPrompt(clientData, analysisConfig, zones || [], workersWithPhotos, frameCount);
   content.push({ type: 'text', text: prompt });
+
+  // If face-id pre-identified people, append that block AFTER the prompt
+  // so Claude treats it as authoritative override of its own face matching.
+  if (faceIdPromptBlock) {
+    content.push({ type: 'text', text: faceIdPromptBlock });
+  }
 
   // ── Call Claude Vision ────────────────────────────────────────────────────
   const analysisStart = Date.now();
