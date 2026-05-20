@@ -1,6 +1,6 @@
 // Server-only module — no 'use client'
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://lenzai.org';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://stafflenz.com';
 
 // ---------------------------------------------------------------------------
 // Core send function
@@ -23,7 +23,7 @@ async function sendViaSMTP({ to, subject, html, replyTo }) {
   // Uses the SMTP test route pattern — direct HTTPS call to mail server
   // via nodemailer loaded at runtime, avoiding webpack bundling issues.
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://lenzai.org'}/api/internal/send-smtp`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://stafflenz.com'}/api/internal/send-smtp`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -48,7 +48,7 @@ async function sendViaResend({ to, subject, html, replyTo }) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: process.env.EMAIL_FROM || 'LenzAI <noreply@lenzai.org>',
+        from: process.env.EMAIL_FROM || 'StaffLenz <noreply@stafflenz.com>',
         to,
         subject,
         html,
@@ -95,7 +95,7 @@ function baseLayout(bodyContent) {
                     <div style="display:inline-block;background:#fff;border-radius:8px;width:36px;height:36px;text-align:center;line-height:36px;font-weight:900;font-size:15px;color:#2563eb;font-family:Arial,sans-serif;">LA</div>
                   </td>
                   <td style="vertical-align:middle;padding-left:12px;">
-                    <span style="color:#fff;font-weight:700;font-size:20px;letter-spacing:-0.3px;">LenzAI</span>
+                    <span style="color:#fff;font-weight:700;font-size:20px;letter-spacing:-0.3px;">StaffLenz</span>
                   </td>
                 </tr>
               </table>
@@ -112,7 +112,7 @@ function baseLayout(bodyContent) {
           <!-- Footer -->
           <tr>
             <td style="background:#f8fafc;border-radius:0 0 12px 12px;padding:20px 32px;text-align:center;">
-              <p style="margin:0;font-size:12px;color:#94a3b8;">&copy; 2026 LenzAI &middot; AI-Powered Workforce Intelligence</p>
+              <p style="margin:0;font-size:12px;color:#94a3b8;">&copy; 2026 StaffLenz &middot; AI-Powered Workforce Intelligence</p>
             </td>
           </tr>
 
@@ -174,12 +174,12 @@ function emailDemoRequestConfirmation({ name, industry }) {
     ${bulletList([
       'We\'ll review your setup requirements and camera infrastructure.',
       'Schedule a 30-minute discovery call at a time that works for you.',
-      'You\'ll see LenzAI live on your cameras with real AI insights.',
+      'You\'ll see StaffLenz live on your cameras with real AI insights.',
     ])}
 
     ${divider()}
     <p style="text-align:center;margin:28px 0;">
-      ${ctaButton('View LenzAI Platform &rarr;', APP_URL)}
+      ${ctaButton('View StaffLenz Platform &rarr;', APP_URL)}
     </p>
     ${divider()}
 
@@ -241,7 +241,7 @@ function emailPartnerApplicationApproved({ full_name, partner_type, affiliate_co
 
   const body = `
     <p style="font-size:16px;color:#1e293b;margin:0 0 8px;">Hi ${full_name}, <strong>Congratulations!</strong> 🎉</p>
-    <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 24px;">Your <strong>${partner_type}</strong> application has been approved. Welcome to the LenzAI Partner Program!</p>
+    <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 24px;">Your <strong>${partner_type}</strong> application has been approved. Welcome to the StaffLenz Partner Program!</p>
 
     ${highlightBox(`
       <p style="margin:0 0 6px;font-size:13px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Your Affiliate Code</p>
@@ -272,7 +272,7 @@ function emailPartnerApplicationApproved({ full_name, partner_type, affiliate_co
 function emailPartnerApplicationRejected({ full_name }) {
   const body = `
     <p style="font-size:16px;color:#1e293b;margin:0 0 20px;">Hi ${full_name},</p>
-    <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 16px;">Thank you for your interest in the LenzAI Partner Program.</p>
+    <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 16px;">Thank you for your interest in the StaffLenz Partner Program.</p>
     <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 16px;">After reviewing your application, we're unable to move forward at this time.</p>
     <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 16px;">This may be because the program is currently full in your region or the profile doesn't match our current needs.</p>
 
@@ -369,7 +369,7 @@ function emailCommissionPaid({ name, amount, conversion_count, period }) {
 function emailClientWelcome({ admin_name, company_name, industry, admin_email, login_url }) {
   const body = `
     <p style="font-size:16px;color:#1e293b;margin:0 0 20px;">Hi ${admin_name},</p>
-    <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 16px;"><strong>${company_name}</strong>'s LenzAI account has been set up for the <strong>${industry}</strong> industry.</p>
+    <p style="font-size:15px;color:#475569;line-height:1.6;margin:0 0 16px;"><strong>${company_name}</strong>'s StaffLenz account has been set up for the <strong>${industry}</strong> industry.</p>
 
     ${highlightBox(`
       <p style="margin:0 0 12px;font-size:14px;font-weight:700;color:#1e293b;">Your Login Credentials</p>
@@ -402,7 +402,7 @@ function emailClientWelcome({ admin_name, company_name, industry, admin_email, l
     </p>
     ${divider()}
 
-    <p style="font-size:14px;color:#94a3b8;margin:0;">Your dedicated support contact: <a href="mailto:support@lenzai.org" style="color:#2563eb;">support@lenzai.org</a></p>
+    <p style="font-size:14px;color:#94a3b8;margin:0;">Your dedicated support contact: <a href="mailto:support@stafflenz.com" style="color:#2563eb;">support@stafflenz.com</a></p>
   `;
   return baseLayout(body);
 }

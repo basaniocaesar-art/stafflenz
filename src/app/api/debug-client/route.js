@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 
 // Temporary debug endpoint — remove after testing
 export async function GET() {
-  const clientId = 'dc20bf56-01e3-4a10-90e8-cb45e5c3e971';
+  const clientId = '4c4a950c-3416-4a4f-a1b0-229e655a9a0b';
   const db = getAdminClient();
   const today = new Date().toISOString().slice(0, 10);
 

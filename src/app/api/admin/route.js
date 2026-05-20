@@ -163,19 +163,26 @@ export async function GET(request) {
     { data: todaySummary },
     { count: totalWorkers },
     { data: leads },
+    { data: allLocations },
   ] = await Promise.all([
     db.from('clients').select('id, name, industry, plan, is_active, setup_type, subscription_status, created_at').order('created_at', { ascending: false }),
     db.from('daily_summary').select('client_id, present_count, total_events, violation_count').eq('summary_date', today),
     db.from('workers').select('*', { count: 'exact', head: true }).is('deleted_at', null).eq('is_active', true),
     db.from('leads').select('*', { count: 'exact', head: true }).eq('is_contacted', false),
+    db.from('locations').select('id, client_id, name, industry, is_active').eq('is_active', true),
   ]);
 
-  // Merge today's summary into clients
+  // Merge today's summary + locations into clients
   const summaryMap = {};
   (todaySummary || []).forEach((s) => { summaryMap[s.client_id] = s; });
+  const locationsMap = {};
+  (allLocations || []).forEach((l) => {
+    (locationsMap[l.client_id] = locationsMap[l.client_id] || []).push(l);
+  });
   const enrichedClients = (clients || []).map((c) => ({
     ...c,
     today: summaryMap[c.id] || { present_count: 0, total_events: 0, violation_count: 0 },
+    locations: locationsMap[c.id] || [],
   }));
 
   return NextResponse.json({
@@ -277,6 +284,14 @@ export async function POST(request) {
   if (action === 'update_plan') {
     const { client_id, plan } = body;
     await db.from('clients').update({ plan }).eq('id', client_id);
+    return NextResponse.json({ success: true });
+  }
+
+  if (action === 'update_location_industry') {
+    const { location_id, industry } = body;
+    if (!location_id) return NextResponse.json({ error: 'location_id required' }, { status: 400 });
+    const { error } = await db.from('locations').update({ industry: industry || null }).eq('id', location_id);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ success: true });
   }
 

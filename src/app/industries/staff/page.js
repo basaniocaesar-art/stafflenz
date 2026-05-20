@@ -110,7 +110,7 @@ export default function StaffPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2.5">
             <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-violet-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-200">LA</div>
-            <span className="font-extrabold text-xl text-gray-900 tracking-tight">LenzAI</span>
+            <span className="font-extrabold text-xl text-gray-900 tracking-tight">StaffLenz</span>
           </Link>
           <div className="hidden md:flex items-center gap-4 text-sm font-medium text-gray-500">
             <Link href="/" className="hover:text-gray-900 transition-colors">Home</Link>
@@ -172,7 +172,7 @@ export default function StaffPage() {
           <div className="text-center mb-14">
             <div className="section-label mb-4">What You Get</div>
             <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight">Every hour accounted for.<br/>No arguments, just data.</h2>
-            <p className="mt-4 text-gray-500 max-w-2xl mx-auto">Stop relying on sign-in sheets, buddy punching, and &quot;I was here but you didn&apos;t see me.&quot; LenzAI watches the cameras and builds the attendance record automatically.</p>
+            <p className="mt-4 text-gray-500 max-w-2xl mx-auto">Stop relying on sign-in sheets, buddy punching, and &quot;I was here but you didn&apos;t see me.&quot; StaffLenz watches the cameras and builds the attendance record automatically.</p>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-8">
@@ -264,11 +264,11 @@ export default function StaffPage() {
             <div className="bg-violet-950/30 border border-violet-800/40 rounded-2xl p-6">
               <h3 className="text-lg font-bold text-violet-400 mb-2">Buddy punching</h3>
               <p className="text-3xl font-extrabold text-white mb-2">₹0</p>
-              <p className="text-sm text-gray-400">with LenzAI — face recognition means nobody can clock in for someone else</p>
+              <p className="text-sm text-gray-400">with StaffLenz — face recognition means nobody can clock in for someone else</p>
             </div>
           </div>
 
-          <p className="mt-8 text-gray-500">LenzAI costs ₹4,999/month. The time it saves you is worth 3–5× that on day one.</p>
+          <p className="mt-8 text-gray-500">StaffLenz costs ₹4,999/month. The time it saves you is worth 3–5× that on day one.</p>
         </div>
       </section>
 
@@ -287,7 +287,7 @@ export default function StaffPage() {
       </section>
 
       <footer className="py-8 px-4 bg-gray-950 border-t border-gray-900 text-center text-sm text-gray-600">
-        <div className="flex items-center justify-center gap-2 mb-3"><div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">LA</div><span className="font-extrabold text-white">LenzAI</span></div>
+        <div className="flex items-center justify-center gap-2 mb-3"><div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">LA</div><span className="font-extrabold text-white">StaffLenz</span></div>
         <div className="flex flex-wrap items-center justify-center gap-4 mb-2">
           <Link href="/" className="hover:text-white">Home</Link>
           <Link href="/industries" className="hover:text-white">Industries</Link>
@@ -295,7 +295,7 @@ export default function StaffPage() {
           <Link href="/industries/factory" className="hover:text-white">Factory</Link>
           <Link href="/industries/home" className="hover:text-white">Home Security</Link>
         </div>
-        <p>© {new Date().getFullYear()} LenzAI · AI-Powered Workforce Intelligence</p>
+        <p>© {new Date().getFullYear()} StaffLenz · AI-Powered Workforce Intelligence</p>
       </footer>
     </div>
   );

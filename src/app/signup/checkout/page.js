@@ -23,8 +23,8 @@ const PLANS_INR = [
     tagline: 'Daily workforce monitoring', highlight: true,
     features: ['8 cameras · 50 workers', '10-min AI checks', 'Business hours', 'Email + WhatsApp alerts', '24h forensic archive', 'Self-setup or device'] },
   { key: 'pro',        name: 'Pro',           price: 8999,  credits: null,
-    tagline: 'Full monitoring + LenzAI device', highlight: false,
-    features: ['16 cameras · 150 workers', '5-sec capture', '10-min AI analysis', '7-day forensic archive', 'WhatsApp + voice alerts', 'LenzAI device included'] },
+    tagline: 'Full monitoring + StaffLenz device', highlight: false,
+    features: ['16 cameras · 150 workers', '5-sec capture', '10-min AI analysis', '7-day forensic archive', 'WhatsApp + voice alerts', 'StaffLenz device included'] },
 ];
 
 const PLANS_USD = [
@@ -38,8 +38,8 @@ const PLANS_USD = [
     tagline: 'Daily workforce monitoring', highlight: true,
     features: ['8 cameras · 50 workers', '10-min AI checks', 'Business hours', 'Email + WhatsApp alerts', '24h forensic archive', 'Self-setup or device'] },
   { key: 'pro',        name: 'Pro',           price: 109,  credits: null,
-    tagline: 'Full monitoring + LenzAI device', highlight: false,
-    features: ['16 cameras · 150 workers', '5-sec capture', '10-min AI analysis', '7-day forensic archive', 'WhatsApp + voice alerts', 'LenzAI device included'] },
+    tagline: 'Full monitoring + StaffLenz device', highlight: false,
+    features: ['16 cameras · 150 workers', '5-sec capture', '10-min AI analysis', '7-day forensic archive', 'WhatsApp + voice alerts', 'StaffLenz device included'] },
 ];
 
 function formatINR(n) { return '₹' + n.toLocaleString('en-IN'); }
@@ -109,7 +109,7 @@ export default function CheckoutPage() {
       const rzp = new window.Razorpay({
         key: data.razorpay_key_id,
         subscription_id: data.subscription_id,
-        name: 'LenzAI',
+        name: 'StaffLenz',
         description: `${data.plan} plan — ₹${data.amount_inr.toLocaleString('en-IN')}/month`,
         prefill: {
           name: data.customer?.name,

@@ -24,6 +24,7 @@ const INDUSTRIES = [
   { id: 'warehouse',    label: 'Warehouse',    icon: '📦' },
   { id: 'restaurant',   label: 'Restaurant',   icon: '🍽️' },
   { id: 'security',     label: 'Security',     icon: '🛡️' },
+  { id: 'office',       label: 'Office',       icon: '🏢' },
 ];
 
 const DVR_BRANDS = [
@@ -105,7 +106,7 @@ function StepSiteInfo({ state, setState, onContinue, saving }) {
     <div className="max-w-3xl mx-auto w-full px-4 py-8">
       <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">Tell us about your site</h1>
       <p className="text-sm mb-8" style={{ color: S.muted }}>
-        We'll use this to tailor LenzAI to your operation.
+        We'll use this to tailor StaffLenz to your operation.
       </p>
 
       <label className="block text-xs uppercase tracking-wider mb-3" style={{ color: S.muted }}>
@@ -345,7 +346,7 @@ function StepConnectCameras({ state, setState, onContinue, saving }) {
     <div className="max-w-3xl mx-auto w-full px-4 py-8">
       <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">Connect your cameras</h1>
       <p className="text-sm mb-8" style={{ color: S.muted }}>
-        Choose how LenzAI should receive camera feeds. You can change this later.
+        Choose how StaffLenz should receive camera feeds. You can change this later.
       </p>
 
       <div className="space-y-3 mb-6">
@@ -480,7 +481,7 @@ function StepConnectCameras({ state, setState, onContinue, saving }) {
                 </span>
               </div>
               <div className="text-sm" style={{ color: S.muted }}>
-                Your DVR posts snapshots straight to LenzAI. No mailbox, no polling delay. Best for Hikvision &amp; Dahua.
+                Your DVR posts snapshots straight to StaffLenz. No mailbox, no polling delay. Best for Hikvision &amp; Dahua.
               </div>
             </div>
           </div>
@@ -1209,7 +1210,7 @@ export default function OnboardingPage() {
             >
               SL
             </div>
-            <div className="text-sm font-semibold text-white tracking-wide">LenzAI Setup</div>
+            <div className="text-sm font-semibold text-white tracking-wide">StaffLenz Setup</div>
           </div>
           <a href="/factory" className="text-xs" style={{ color: S.muted }}>Skip setup →</a>
         </div>

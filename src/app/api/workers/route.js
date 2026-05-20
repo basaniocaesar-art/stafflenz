@@ -37,13 +37,16 @@ export async function GET(request) {
   fullQuery = await fullQuery;
 
   if (fullQuery.error && fullQuery.error.message?.includes('column')) {
-    // photo_paths column doesn't exist yet — fall back
-    const baseQuery = await db
+    // photo_paths column doesn't exist yet — fall back, keeping location_id so
+    // the client can still filter per-site.
+    let baseQueryBuilder = db
       .from('workers')
-      .select('id, full_name, employee_id, department, shift, photo_path, is_active, created_at')
+      .select('id, full_name, employee_id, department, shift, photo_path, is_active, location_id, created_at')
       .eq('client_id', clientId)
       .is('deleted_at', null)
       .order('full_name');
+    if (locationId) baseQueryBuilder = baseQueryBuilder.eq('location_id', locationId);
+    const baseQuery = await baseQueryBuilder;
     if (baseQuery.error) return NextResponse.json({ error: baseQuery.error.message }, { status: 500 });
     workers = (baseQuery.data || []).map(w => ({ ...w, photo_paths: null }));
   } else if (fullQuery.error) {
@@ -100,7 +103,7 @@ export async function POST(request) {
   }
 
   const db = getAdminClient();
-  let full_name, employee_id, department, shift;
+  let full_name, employee_id, department, shift, location_id;
   let photoFiles = []; // array of { file, slotIndex }
 
   const contentType = request.headers.get('content-type') || '';
@@ -110,10 +113,14 @@ export async function POST(request) {
     employee_id = formData.get('employee_id');
     department = formData.get('department');
     shift = formData.get('shift') || 'morning';
+    location_id = formData.get('location_id') || null;
 
     // Support multi-photo: photos are sent as photo_0, photo_1, ... photo_5
     for (let i = 0; i < MAX_PHOTOS; i++) {
       const file = formData.get(`photo_${i}`);
+      console.log(`[workers POST] slot ${i}:`, file && typeof file === 'object'
+        ? { name: file.name, size: file.size, type: file.type }
+        : file);
       if (file && file.size > 0) {
         photoFiles.push({ file, slotIndex: i });
       }
@@ -127,7 +134,7 @@ export async function POST(request) {
     }
   } else {
     const body = await request.json();
-    ({ full_name, employee_id, department, shift } = body);
+    ({ full_name, employee_id, department, shift, location_id } = body);
   }
 
   if (!full_name) return NextResponse.json({ error: 'full_name required' }, { status: 400 });
@@ -135,7 +142,7 @@ export async function POST(request) {
   // Insert worker first to get ID
   const { data: worker, error: insertError } = await db
     .from('workers')
-    .insert({ client_id: clientId, full_name, employee_id, department, shift: shift || 'morning' })
+    .insert({ client_id: clientId, full_name, employee_id, department, shift: shift || 'morning', location_id: location_id || null })
     .select()
     .single();
 
@@ -155,7 +162,10 @@ export async function POST(request) {
       const { error: uploadError } = await db.storage
         .from(BUCKET)
         .upload(photoPath, arrayBuffer, { contentType: 'image/jpeg', upsert: true });
-      if (!uploadError) {
+      if (uploadError) {
+        console.warn(`[workers POST] upload failed for slot ${slotIndex}:`, uploadError.message);
+      } else {
+        console.log(`[workers POST] uploaded slot ${slotIndex} → ${photoPath} (${arrayBuffer.byteLength} bytes)`);
         photoPaths.push({ index: slotIndex, path: photoPath });
       }
     }
@@ -166,18 +176,28 @@ export async function POST(request) {
       for (const { index, path } of photoPaths) {
         pathsArray[index] = path;
       }
-      // Filter trailing nulls for cleaner storage
-      const trimmedPaths = pathsArray;
 
-      const updates = { photo_path: photoPaths[0].path };
-      // Try to set photo_paths, ignore if column doesn't exist
-      try {
-        await db.from('workers').update({ photo_path: photoPaths[0].path, photo_paths: trimmedPaths }).eq('id', worker.id);
-      } catch {
-        await db.from('workers').update({ photo_path: photoPaths[0].path }).eq('id', worker.id);
+      // Supabase returns errors in the response object — a try/catch won't
+      // catch a missing-column error, so check `.error` explicitly and retry
+      // without photo_paths if the column is missing.
+      let upd = await db
+        .from('workers')
+        .update({ photo_path: photoPaths[0].path, photo_paths: pathsArray })
+        .eq('id', worker.id);
+      if (upd.error && /column .* does not exist|photo_paths/i.test(upd.error.message || '')) {
+        console.warn('[workers POST] photo_paths column missing, falling back to photo_path only');
+        upd = await db
+          .from('workers')
+          .update({ photo_path: photoPaths[0].path })
+          .eq('id', worker.id);
+      }
+      if (upd.error) {
+        console.warn('[workers POST] DB update failed:', upd.error.message);
+      } else {
+        console.log('[workers POST] DB updated with photo_path + photo_paths');
       }
       worker.photo_path = photoPaths[0].path;
-      worker.photo_paths = trimmedPaths;
+      worker.photo_paths = pathsArray;
     }
   }
 

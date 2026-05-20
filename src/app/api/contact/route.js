@@ -62,7 +62,7 @@ export async function POST(request) {
   // Send emails (non-blocking — don't await, don't let failure affect response)
   sendEmail({
     to: email,
-    subject: "We've received your demo request — LenzAI",
+    subject: "We've received your demo request — StaffLenz",
     html: emailDemoRequestConfirmation({ name, industry: industry || 'your industry' }),
   }).catch(() => {});
 

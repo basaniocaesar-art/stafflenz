@@ -43,6 +43,7 @@ const {
   supabase_url,
   supabase_key,
   client_id,
+  location_id,                  // optional — tag frames/events with this site
   dvr_ip,
   dvr_port = 80,
   dvr_username,
@@ -199,10 +200,12 @@ async function uploadFrame(buffer, storagePath) {
 }
 
 async function indexFrame({ client_id, camera_channel, frame_path, captured_at, has_motion }) {
+  const row = { client_id, camera_channel, frame_path, captured_at, has_motion };
+  if (location_id) row.location_id = location_id;
   return httpJson(
     'POST',
     `${supabase_url}/rest/v1/frame_buffer`,
-    { client_id, camera_channel, frame_path, captured_at, has_motion },
+    row,
     {
       apikey: supabase_key,
       Authorization: `Bearer ${supabase_key}`,
@@ -337,6 +340,7 @@ async function triggerBurst(camera_channel, motion_score, detected_at) {
     {
       agent_key,
       client_id,
+      location_id: location_id || null,
       camera_channel,
       motion_score,
       detected_at,
@@ -410,6 +414,7 @@ async function analyzeCycle(channelCount) {
     {
       agent_key,
       client_id,
+      location_id: location_id || null,
       frames: camFrames,
       window_start: windowStart,
       window_end: windowEnd,

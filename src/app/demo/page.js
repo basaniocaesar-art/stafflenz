@@ -340,7 +340,7 @@ export default function DemoPage() {
           <div className="rounded-2xl p-6 text-center border" style={{background:'linear-gradient(135deg,rgba(59,130,246,0.1),rgba(139,92,246,0.1))',borderColor:'rgba(59,130,246,0.2)'}}>
             <div className="text-xs font-bold uppercase tracking-widest mb-2" style={{color:'#60a5fa'}}>Interactive Demo</div>
             <h3 className="text-xl font-extrabold text-white mb-2">See this with your real data</h3>
-            <p className="text-sm mb-5 max-w-md mx-auto" style={{color:'#64748b'}}>Connect LenzAI to your existing CCTV. Live workforce intelligence from day one.</p>
+            <p className="text-sm mb-5 max-w-md mx-auto" style={{color:'#64748b'}}>Connect StaffLenz to your existing CCTV. Live workforce intelligence from day one.</p>
             <Link href="/#contact" className="inline-flex items-center gap-2 font-bold px-8 py-3 rounded-xl hover:opacity-90 transition-all" style={{background:'linear-gradient(135deg,#3b82f6,#8b5cf6)',color:'white'}}>
               Request Your Demo →
             </Link>

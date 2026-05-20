@@ -184,13 +184,13 @@ export async function GET(request) {
 
   <div class="header">
     <div>
-      <div class="logo"><div class="logo-icon">LA</div><div class="logo-text">LenzAI</div></div>
+      <div class="logo"><div class="logo-icon">LA</div><div class="logo-text">StaffLenz</div></div>
       <h1>${rangeLabel} Attendance Report</h1>
       <div style="color:#64748b;margin-top:2px;">${clientName} · ${from} to ${to}</div>
     </div>
     <div class="meta">
       Generated: ${generatedAt}<br>
-      Powered by LenzAI AI Monitoring
+      Powered by StaffLenz AI Monitoring
     </div>
   </div>
 
@@ -272,7 +272,7 @@ export async function GET(request) {
   `).join('')}
 
   <div class="footer">
-    <span>LenzAI · AI-Powered Workforce Intelligence · lenzai.org</span>
+    <span>StaffLenz · AI-Powered Workforce Intelligence · stafflenz.com</span>
     <span>Report generated automatically from CCTV analysis data</span>
   </div>
 </body>
@@ -281,7 +281,7 @@ export async function GET(request) {
   return new NextResponse(html, {
     headers: {
       'Content-Type': 'text/html',
-      'Content-Disposition': `inline; filename="LenzAI-Attendance-${rangeLabel}-${to}.html"`,
+      'Content-Disposition': `inline; filename="StaffLenz-Attendance-${rangeLabel}-${to}.html"`,
     },
   });
 }

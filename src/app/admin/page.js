@@ -4,10 +4,11 @@ import { useRouter } from 'next/navigation';
 
 /* ─── Constants ─────────────────────────────────────────────────────────── */
 const ALL_INDUSTRIES = ['factory','hotel','school','retail','hospital','construction','warehouse','restaurant','security'];
-const INDUSTRY_ICONS = {factory:'🏭',hotel:'🏨',school:'🏫',retail:'🛍️',hospital:'🏥',construction:'🏗️',warehouse:'📦',restaurant:'🍽️',security:'🔒'};
+const INDUSTRY_ICONS = {factory:'🏭',hotel:'🏨',school:'🏫',retail:'🛍️',hospital:'🏥',construction:'🏗️',warehouse:'📦',restaurant:'🍽️',security:'🔒',gym:'🏋️',office:'🏢'};
+const INDUSTRY_OPTIONS = ['factory','hotel','school','retail','hospital','construction','warehouse','restaurant','security','gym','office'];
 const PLANS = ['starter','professional','enterprise'];
 const PLAN_COLORS = {starter:'bg-gray-100 text-gray-700',professional:'bg-blue-100 text-blue-700',enterprise:'bg-violet-100 text-violet-700'};
-const ALL_TABS = ['overview','clients','leads','partners','affiliates','white labels','revenue','monitoring','lenzai devices','system','demo view'];
+const ALL_TABS = ['overview','clients','leads','partners','affiliates','white labels','revenue','monitoring','stafflenz devices','system','demo view'];
 
 /* ─── Shared helpers ─────────────────────────────────────────────────────── */
 function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
@@ -379,8 +380,9 @@ function OverviewTab({ data, onAddClient, onResetPassword, onToggleClient, onUpd
 }
 
 /* ─── Tab: Clients ───────────────────────────────────────────────────────── */
-function ClientsTab({ data, onAddClient, onResetPassword, onToggleClient, onUpdatePlan }) {
+function ClientsTab({ data, onAddClient, onResetPassword, onToggleClient, onUpdatePlan, onUpdateLocationIndustry }) {
   const { clients = [] } = data || {};
+  const [expanded, setExpanded] = useState(null); // client id or null
 
   return (
     <>
@@ -404,11 +406,25 @@ function ClientsTab({ data, onAddClient, onResetPassword, onToggleClient, onUpda
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {clients.map(c => (
+              {clients.map(c => {
+                const locs = c.locations || [];
+                const isOpen = expanded === c.id;
+                return (
+                <>
                 <tr key={c.id} className="hover:bg-gray-50">
                   <td className="py-3 px-5">
                     <div className="font-medium text-gray-900">{c.name}</div>
-                    <div className="text-xs text-gray-400">{new Date(c.created_at).toLocaleDateString()}</div>
+                    <div className="text-xs text-gray-400 flex items-center gap-2">
+                      <span>{new Date(c.created_at).toLocaleDateString()}</span>
+                      {locs.length > 0 && (
+                        <button
+                          onClick={() => setExpanded(isOpen ? null : c.id)}
+                          className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 hover:bg-blue-100 text-[10px] font-medium"
+                        >
+                          📍 {locs.length} location{locs.length > 1 ? 's' : ''} {isOpen ? '▴' : '▾'}
+                        </button>
+                      )}
+                    </div>
                   </td>
                   <td className="py-3 px-5 hidden sm:table-cell text-gray-600">{INDUSTRY_ICONS[c.industry]} {cap(c.industry)}</td>
                   <td className="py-3 px-5">
@@ -436,7 +452,34 @@ function ClientsTab({ data, onAddClient, onResetPassword, onToggleClient, onUpda
                     </button>
                   </td>
                 </tr>
-              ))}
+                {isOpen && locs.length > 0 && (
+                  <tr key={c.id + '-locs'} className="bg-blue-50/30">
+                    <td colSpan={8} className="px-5 py-3">
+                      <div className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">Locations — set industry for each site</div>
+                      <div className="space-y-1.5">
+                        {locs.map(loc => (
+                          <div key={loc.id} className="flex items-center gap-3 text-sm">
+                            <span className="text-lg">{INDUSTRY_ICONS[loc.industry] || '🏢'}</span>
+                            <span className="font-medium text-gray-800 min-w-[180px]">{loc.name}</span>
+                            <select
+                              value={loc.industry || ''}
+                              onChange={e => onUpdateLocationIndustry(loc.id, e.target.value)}
+                              className="text-xs border border-gray-200 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                              <option value="">— inherit from client ({cap(c.industry)}) —</option>
+                              {INDUSTRY_OPTIONS.map(i => (
+                                <option key={i} value={i}>{INDUSTRY_ICONS[i]} {cap(i)}</option>
+                              ))}
+                            </select>
+                          </div>
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                )}
+                </>
+                );
+              })}
             </tbody>
           </table>
           {clients.length === 0 && <Empty msg="No clients yet. Click '+ Add Client' to create the first one." />}
@@ -1914,7 +1957,7 @@ function MonitoringTab() {
   );
 }
 
-/* ─── Tab: LenzAI Devices ──────────────────────────────────────────────────── */
+/* ─── Tab: StaffLenz Devices ──────────────────────────────────────────────────── */
 function EdgeAgentsTab() {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1945,15 +1988,15 @@ function EdgeAgentsTab() {
   return (
     <>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">LenzAI Devices</h1>
+        <h1 className="text-2xl font-bold text-gray-900">StaffLenz Devices</h1>
         <p className="text-sm text-gray-500 mt-1">Deploy a small device at each client site to capture camera frames 24/7. No port forwarding needed.</p>
       </div>
 
       {/* How it works */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-6 mb-6">
-        <h2 className="text-sm font-bold text-blue-900 mb-3">How LenzAI Devices Work</h2>
+        <h2 className="text-sm font-bold text-blue-900 mb-3">How StaffLenz Devices Work</h2>
         <div className="flex flex-wrap gap-2 text-xs text-blue-800">
-          {['LenzAI device on client WiFi','Discovers cameras via ONVIF','Captures snapshots every 5 min','Uploads to cloud','AI analyzes frames','Dashboard shows results','WhatsApp alerts on violations'].map((step, i) => (
+          {['StaffLenz device on client WiFi','Discovers cameras via ONVIF','Captures snapshots every 5 min','Uploads to cloud','AI analyzes frames','Dashboard shows results','WhatsApp alerts on violations'].map((step, i) => (
             <div key={i} className="flex items-center gap-1.5">
               {i > 0 && <span className="text-blue-400">→</span>}
               <span className="bg-white border border-blue-200 rounded-lg px-3 py-1.5 font-medium">{step}</span>
@@ -1968,7 +2011,7 @@ function EdgeAgentsTab() {
         <div className="grid sm:grid-cols-3 gap-4">
           <div className="text-center p-4 bg-gray-50 rounded-xl">
             <div className="text-2xl mb-2">🥧</div>
-            <div className="text-sm font-semibold">LenzAI Device</div>
+            <div className="text-sm font-semibold">StaffLenz Device</div>
             <div className="text-xs text-gray-500 mt-1">~₹2,500 · 2GB RAM is enough</div>
           </div>
           <div className="text-center p-4 bg-gray-50 rounded-xl">
@@ -2010,7 +2053,7 @@ function EdgeAgentsTab() {
               <div className="px-6 py-5 bg-gray-50">
                 <div className="mb-3">
                   <div className="text-xs font-bold text-green-700 uppercase tracking-wide mb-2">Agent Config Generated</div>
-                  <p className="text-xs text-gray-500 mb-3">Copy this config to the LenzAI device, or use the one-liner install command below.</p>
+                  <p className="text-xs text-gray-500 mb-3">Copy this config to the StaffLenz device, or use the one-liner install command below.</p>
                 </div>
 
                 {/* Config JSON */}
@@ -2031,9 +2074,9 @@ function EdgeAgentsTab() {
 
                 {/* Install command */}
                 <div className="mb-4">
-                  <label className="block text-xs font-medium text-gray-600 mb-1">One-liner install (run on LenzAI device)</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">One-liner install (run on StaffLenz device)</label>
                   <div className="bg-gray-900 text-yellow-300 text-xs p-3 rounded-lg font-mono break-all">
-                    curl -sL https://www.lenzai.org/install.sh | sudo bash
+                    curl -sL https://www.stafflenz.com/install.sh | sudo bash
                   </div>
                 </div>
 
@@ -2061,9 +2104,9 @@ function EdgeAgentsTab() {
 /* ─── Tab: System ────────────────────────────────────────────────────────── */
 function SystemTab() {
   const info = [
-    { label: 'Platform Version', value: 'LenzAI v1.0 · Next.js 14', icon: '🚀' },
+    { label: 'Platform Version', value: 'StaffLenz v1.0 · Next.js 14', icon: '🚀' },
     { label: 'Database',         value: 'Supabase PostgreSQL',          icon: '🗄️' },
-    { label: 'AI Engine',        value: 'LenzAI',                       icon: '🤖' },
+    { label: 'AI Engine',        value: 'StaffLenz',                       icon: '🤖' },
     { label: 'Cache',            value: '24h Pexels video cache',        icon: '⚡' },
     { label: 'Auth',             value: 'Session-based, bcrypt passwords', icon: '🔒' },
   ];
@@ -2120,7 +2163,7 @@ function DemoViewTab() {
         </a>
       </div>
       <div className="bg-gray-900/50 border border-white/5 rounded-2xl overflow-hidden" style={{height:'80vh'}}>
-        <iframe src="/demo" className="w-full h-full border-0" title="LenzAI Demo" />
+        <iframe src="/demo" className="w-full h-full border-0" title="StaffLenz Demo" />
       </div>
     </div>
   );
@@ -2163,6 +2206,15 @@ export default function AdminPage() {
     fetchData();
   }
 
+  async function updateLocationIndustry(locationId, industry) {
+    await fetch('/api/admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'update_location_industry', location_id: locationId, industry }),
+    });
+    fetchData();
+  }
+
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/login');
@@ -2187,7 +2239,7 @@ export default function AdminPage() {
           {/* Logo */}
           <div className="flex items-center gap-3 shrink-0">
             <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center text-white font-bold text-sm select-none">LA</div>
-            <span className="font-bold text-gray-900 hidden sm:block">LenzAI Super Admin</span>
+            <span className="font-bold text-gray-900 hidden sm:block">StaffLenz Super Admin</span>
           </div>
 
           {/* Tab Pills + Sign Out */}
@@ -2233,6 +2285,7 @@ export default function AdminPage() {
             onResetPassword={client => setResetModal(client)}
             onToggleClient={toggleClient}
             onUpdatePlan={updatePlan}
+            onUpdateLocationIndustry={updateLocationIndustry}
           />
         )}
         {tab === 'leads'        && <LeadsTab />}
@@ -2241,7 +2294,7 @@ export default function AdminPage() {
         {tab === 'white labels' && <WhiteLabelsTab />}
         {tab === 'revenue'      && <RevenueTab />}
         {tab === 'monitoring'   && <MonitoringTab />}
-        {tab === 'lenzai devices' && <EdgeAgentsTab />}
+        {tab === 'stafflenz devices' && <EdgeAgentsTab />}
         {tab === 'system'       && <SystemTab />}
         {tab === 'demo view'    && <DemoViewTab />}
       </main>

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 
 // ─── DVR Wizard ──────────────────────────────────────────────────────────────
-function DVRWizard({ onClose, onDone }) {
+function DVRWizard({ onClose, onDone, selectedLocation }) {
   const [step, setStep] = useState('connect'); // connect | discovering | select | saving | done
   const [form, setForm] = useState({ ip: '', username: 'admin', password: '', port: '80' });
   const [error, setError] = useState('');
@@ -48,6 +48,7 @@ function DVRWizard({ onClose, onDone }) {
           location_label: `Channel ${cam.channel}${cam.resolution ? ` · ${cam.resolution}` : ''}`,
           zone_type: 'floor',
           device_type: 'dvr',
+          location_id: selectedLocation || null,
         }),
       });
       count++;
@@ -89,7 +90,7 @@ function DVRWizard({ onClose, onDone }) {
             <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-5 flex gap-3">
               <span className="text-blue-500 text-lg mt-0.5">ℹ️</span>
               <p className="text-sm text-blue-700">
-                Enter your DVR&apos;s local IP address and login credentials. LenzAI will automatically find all connected cameras.
+                Enter your DVR&apos;s local IP address and login credentials. StaffLenz will automatically find all connected cameras.
               </p>
             </div>
 
@@ -178,7 +179,7 @@ function DVRWizard({ onClose, onDone }) {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="font-bold text-gray-900">🎉 Found {cameras.length} camera{cameras.length !== 1 ? 's' : ''}!</h3>
-                <p className="text-xs text-gray-500 mt-0.5">Select which ones to add to LenzAI</p>
+                <p className="text-xs text-gray-500 mt-0.5">Select which ones to add to StaffLenz</p>
               </div>
               <button onClick={toggleAll} className="text-xs text-blue-600 hover:underline font-medium">
                 {cameras.every(c => selected[c.channel]) ? 'Deselect all' : 'Select all'}
@@ -234,7 +235,7 @@ function DVRWizard({ onClose, onDone }) {
             <p className="text-sm text-gray-600 mb-1">
               <span className="font-semibold text-green-600">{savedCount} camera{savedCount !== 1 ? 's' : ''}</span> added and ready for monitoring.
             </p>
-            <p className="text-xs text-gray-400 mb-6">LenzAI will start analysing footage on the next scheduled capture.</p>
+            <p className="text-xs text-gray-400 mb-6">StaffLenz will start analysing footage on the next scheduled capture.</p>
             <button onClick={onDone} className="btn-primary w-full py-3">View My Cameras</button>
           </div>
         )}
@@ -244,7 +245,7 @@ function DVRWizard({ onClose, onDone }) {
 }
 
 // ─── Manual Zone Modal ────────────────────────────────────────────────────────
-function ZoneModal({ zone, onClose, onSave }) {
+function ZoneModal({ zone, onClose, onSave, selectedLocation }) {
   const [form, setForm] = useState({
     name: zone?.name || '',
     camera_ip: zone?.camera_ip || '',
@@ -263,10 +264,11 @@ function ZoneModal({ zone, onClose, onSave }) {
     try {
       const url = zone ? `/api/zones?id=${zone.id}` : '/api/zones';
       const method = zone ? 'PUT' : 'POST';
+      const payload = zone ? form : { ...form, location_id: selectedLocation || null };
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error || 'Failed'); setLoading(false); return; }
@@ -285,7 +287,7 @@ function ZoneModal({ zone, onClose, onSave }) {
           <div className="text-4xl mb-3">🔑</div>
           <h2 className="text-lg font-bold text-gray-900 mb-2">Zone Created!</h2>
           <p className="text-sm text-gray-600 mb-4">
-            Copy this Camera Key to your LenzAI Edge Node config. It will not be shown again.
+            Copy this Camera Key to your StaffLenz Edge Node config. It will not be shown again.
           </p>
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 font-mono text-xs text-gray-700 break-all select-all mb-4">
             {cameraKey}
@@ -373,12 +375,14 @@ export default function ZonesPage() {
   const [editZone, setEditZone] = useState(null);
   const [locations, setLocations] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const [clientIndustry, setClientIndustry] = useState('factory');
+  const [clientName, setClientName] = useState('');
 
   async function fetchZones() {
     setLoading(true);
     try {
       const locParam = selectedLocation ? `?location=${selectedLocation}` : '';
-      const res = await fetch(`/api/zones${locParam}`);
+      const res = await fetch(`/api/zones${locParam}`, { cache: 'no-store' });
       if (res.status === 401) { window.location.href = '/login'; return; }
       const data = await res.json();
       setZones(data.zones || []);
@@ -389,6 +393,10 @@ export default function ZonesPage() {
 
   useEffect(() => {
     fetch('/api/locations').then(r => r.json()).then(d => setLocations(d.locations || [])).catch(() => {});
+    fetch('/api/client').then(r => r.json()).then(d => {
+      if (d?.client?.industry) setClientIndustry(d.client.industry);
+      if (d?.client?.name) setClientName(d.client.name);
+    }).catch(() => {});
   }, []);
 
   useEffect(() => { fetchZones(); }, [selectedLocation]);
@@ -399,12 +407,19 @@ export default function ZonesPage() {
     fetchZones();
   }
 
+  const activeLocation = locations.find((l) => l.id === selectedLocation);
+  const displayIndustry = activeLocation?.industry || clientIndustry;
+
+  const scopedZones = selectedLocation
+    ? zones.filter((z) => z.location_id === selectedLocation)
+    : zones;
+
   return (
-    <DashboardLayout industry="factory" clientName="Zones" userName="">
+    <DashboardLayout industry={clientIndustry} displayIndustry={displayIndustry} clientName={clientName || 'Zones'} userName={clientName}>
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Camera Zones</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{zones.length} zones configured</p>
+          <p className="text-sm text-gray-500 mt-0.5">{scopedZones.length} zones configured</p>
         </div>
         <div className="flex gap-2">
           <button onClick={() => { setEditZone(null); setModalOpen(true); }} className="btn-secondary text-sm">
@@ -417,12 +432,12 @@ export default function ZonesPage() {
       </div>
 
       {/* DVR connect prompt — shown when no zones yet */}
-      {!loading && zones.length === 0 && (
+      {!loading && scopedZones.length === 0 && (
         <div className="card p-10 text-center mb-6">
           <div className="text-5xl mb-4">📹</div>
           <h3 className="text-xl font-bold text-gray-900 mb-2">Connect your DVR or NVR</h3>
           <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">
-            Have a Hikvision DVR or any ONVIF-compatible recorder? Click below and LenzAI will automatically find all your cameras.
+            Have a Hikvision DVR or any ONVIF-compatible recorder? Click below and StaffLenz will automatically find all your cameras.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button onClick={() => setDvrWizardOpen(true)} className="btn-primary px-8 py-3 text-base">
@@ -449,7 +464,7 @@ export default function ZonesPage() {
         <div className="card p-12 text-center text-gray-400">Loading zones...</div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {zones.map((zone) => (
+          {scopedZones.map((zone) => (
             <div key={zone.id} className="card p-5">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -486,6 +501,7 @@ export default function ZonesPage() {
         <DVRWizard
           onClose={() => setDvrWizardOpen(false)}
           onDone={() => { setDvrWizardOpen(false); fetchZones(); }}
+          selectedLocation={selectedLocation}
         />
       )}
 
@@ -494,6 +510,7 @@ export default function ZonesPage() {
           zone={editZone}
           onClose={() => { setModalOpen(false); setEditZone(null); }}
           onSave={() => { setModalOpen(false); setEditZone(null); fetchZones(); }}
+          selectedLocation={selectedLocation}
         />
       )}
     </DashboardLayout>

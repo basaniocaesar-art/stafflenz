@@ -23,7 +23,7 @@ export async function GET(request) {
   // Check if this client has any locations set up
   const { data: locationsData } = await db
     .from('locations')
-    .select('id, name')
+    .select('id, name, industry')
     .eq('client_id', clientId)
     .eq('is_active', true);
   const hasLocations = (locationsData || []).length > 0;
@@ -86,10 +86,10 @@ export async function GET(request) {
       .order('summary_date'),
     // Plan limits
     db.from('plan_limits').select('max_workers, max_cameras').eq('plan', client.plan).single(),
-    // Active zones
-    db.from('camera_zones').select('id, name, zone_type, location_label').eq('client_id', clientId).eq('is_active', true),
-    // Active workers list
-    db.from('workers').select('id, full_name, department, shift').eq('client_id', clientId).eq('is_active', true).is('deleted_at', null),
+    // Active zones — scope to location when one is selected
+    locFilter(db.from('camera_zones').select('id, name, zone_type, location_label').eq('client_id', clientId).eq('is_active', true)),
+    // Active workers list — scope to location when one is selected
+    locFilter(db.from('workers').select('id, full_name, department, shift').eq('client_id', clientId).eq('is_active', true).is('deleted_at', null)),
   ]);
 
   // ── v2 data: timeline narratives + latest camera snapshots ─────
@@ -119,13 +119,16 @@ export async function GET(request) {
     todayCost = (costData || []).reduce((s, r) => s + (r.cost_usd || 0), 0);
 
     // Latest snapshot per camera from frame_buffer (for the camera grid)
+    // When a location is selected, only show that location's frames.
     const cameraChannels = [1, 2, 3, 4, 5, 6, 7, 8];
     const snapPromises = cameraChannels.map(async (ch) => {
-      const { data: latest } = await db
+      let q = db
         .from('frame_buffer')
         .select('frame_path, captured_at, has_motion')
         .eq('client_id', clientId)
-        .eq('camera_channel', ch)
+        .eq('camera_channel', ch);
+      if (locationId) q = q.eq('location_id', locationId);
+      const { data: latest } = await q
         .order('captured_at', { ascending: false })
         .limit(1)
         .single();

@@ -45,12 +45,13 @@ export async function POST(request) {
   }
 
   const body = await request.json();
-  const { name, camera_ip, location_label, zone_type, device_type } = body;
+  const { name, camera_ip, location_label, zone_type, device_type, location_id } = body;
   if (!name) return NextResponse.json({ error: 'Zone name required' }, { status: 400 });
 
   const db = getAdminClient();
   const row = { client_id: clientId, name, camera_ip, location_label, zone_type: zone_type || 'floor' };
   if (device_type) row.device_type = device_type;
+  if (location_id) row.location_id = location_id;
   const { data: zone, error } = await db
     .from('camera_zones')
     .insert(row)

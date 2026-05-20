@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 
 SUPA_URL=$(grep '^NEXT_PUBLIC_SUPABASE_URL=' .env.local | cut -d= -f2-)
 SUPA_KEY=$(grep '^SUPABASE_SERVICE_ROLE_KEY=' .env.local | cut -d= -f2-)
-CID="dc20bf56-01e3-4a10-90e8-cb45e5c3e971"
+CID="4c4a950c-3416-4a4f-a1b0-229e655a9a0b"
 APP="https://www.lenzai.org"
 
 pass() { echo "  ✅ $1"; }

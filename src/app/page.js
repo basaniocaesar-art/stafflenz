@@ -202,7 +202,7 @@ const INDUSTRIES = [
 const TICKER = [
   '🔌 No Hardware Replacement',
   '📷 Works With Any IP Camera',
-  '🤖 LenzAI',
+  '🤖 StaffLenz',
   '⚡ 5-Minute Scan Interval',
   '🔒 Privacy-First — No Video Stored',
   '📱 WhatsApp Alerts',
@@ -218,8 +218,8 @@ const COMPLIANCE = [
 ];
 
 const WHY = [
-  { icon: '📷', title: 'Works With Existing IP Cameras', desc: 'Plug the LenzAI Edge Node into your current DVR/NVR. No new cameras, no rewiring, no downtime.' },
-  { icon: '🎯', title: '95%+ Detection Accuracy', desc: 'LenzAI delivers industry-leading accuracy. You can act on every alert with confidence.' },
+  { icon: '📷', title: 'Works With Existing IP Cameras', desc: 'Plug the StaffLenz Edge Node into your current DVR/NVR. No new cameras, no rewiring, no downtime.' },
+  { icon: '🎯', title: '95%+ Detection Accuracy', desc: 'StaffLenz delivers industry-leading accuracy. You can act on every alert with confidence.' },
   { icon: '⚡', title: 'Real-Time Alerts in Seconds', desc: 'From camera scan to WhatsApp alert in under 30 seconds. No delay, no batch processing.' },
   { icon: '👁️', title: 'Central Visibility', desc: 'One dashboard for all your sites, all cameras, all industries — with drill-down to individual zones.' },
   { icon: '💰', title: 'Flexible Pricing', desc: 'Plans for every scale — from small sites to enterprise chains. No long-term lock-in required.' },
@@ -396,12 +396,12 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-violet-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-900/40">LA</div>
-            <span className="font-extrabold text-xl text-white tracking-tight">LenzAI</span>
+            <span className="font-extrabold text-xl text-white tracking-tight">StaffLenz</span>
           </div>
           <div className="hidden md:flex items-center gap-1 text-sm font-medium text-gray-400">
             <a href="#platform" className="px-3 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-colors">Platform</a>
             <a href="#industries" className="px-3 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-colors">Industries</a>
-            <a href="#why" className="px-3 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-colors">Why LenzAI</a>
+            <a href="#why" className="px-3 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-colors">Why StaffLenz</a>
             <a href="#setup-cost" className="px-3 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-colors">Setup</a>
             <a href="#pricing" className="px-3 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-colors">Pricing</a>
             <Link href="/blog" className="px-3 py-2 rounded-lg hover:bg-white/10 hover:text-white transition-colors">Blog</Link>
@@ -436,7 +436,7 @@ export default function HomePage() {
                 for Your Business
               </h1>
               <p className="text-lg text-slate-400 mb-8 leading-relaxed max-w-xl">
-                LenzAI turns your existing CCTV into a real-time AI workforce intelligence platform — tracking attendance, compliance, and operational gaps across 10 industries. We handle the setup. No new cameras, no rewiring, no downtime.
+                StaffLenz turns your existing CCTV into a real-time AI workforce intelligence platform — tracking attendance, compliance, and operational gaps across 10 industries. We handle the setup. No new cameras, no rewiring, no downtime.
               </p>
               <div className="flex flex-wrap gap-4 mb-10">
                 <a href="#contact" className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold px-8 py-4 rounded-xl hover:opacity-90 transition-all shadow-2xl shadow-blue-900/40 text-base">
@@ -512,13 +512,13 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto text-center">
           <div className="section-label mb-4">See It In Action</div>
           <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4 tracking-tight">
-            60 seconds. That's all it takes to understand LenzAI.
+            60 seconds. That's all it takes to understand StaffLenz.
           </h2>
-          <p className="text-gray-500 mb-10 max-w-xl mx-auto">Watch how LenzAI turns your existing CCTV into a live workforce intelligence system — no new cameras, no new hardware.</p>
+          <p className="text-gray-500 mb-10 max-w-xl mx-auto">Watch how StaffLenz turns your existing CCTV into a live workforce intelligence system — no new cameras, no new hardware.</p>
           <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-100 bg-gray-950" style={{aspectRatio:'16/9'}}>
             <iframe
               src="https://www.youtube.com/embed/WrDfAD3HhFk?rel=0&modestbranding=1"
-              title="LenzAI Explainer"
+              title="StaffLenz Explainer"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
               className="absolute inset-0 w-full h-full"
@@ -533,15 +533,15 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* What is LenzAI */}
+      {/* What is StaffLenz */}
       <section id="platform" className="py-24 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14">
             <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight mb-5">
-              What is <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-violet-600">LenzAI</span> AI Video Analytics?
+              What is <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-violet-600">StaffLenz</span> AI Video Analytics?
             </h2>
             <p className="text-gray-600 text-lg max-w-3xl mx-auto leading-relaxed">
-              LenzAI is an AI-powered workforce intelligence platform that helps your business transform CCTV footage into actionable insights for attendance, safety, and operational compliance. Our LenzAI Edge Node integrates seamlessly with existing IP cameras and uses LenzAI to analyse feeds in real time — detecting violations, tracking presence, and triggering instant alerts without any manual monitoring.
+              StaffLenz is an AI-powered workforce intelligence platform that helps your business transform CCTV footage into actionable insights for attendance, safety, and operational compliance. Our StaffLenz Edge Node integrates seamlessly with existing IP cameras and uses StaffLenz to analyse feeds in real time — detecting violations, tracking presence, and triggering instant alerts without any manual monitoring.
             </p>
             <p className="text-gray-500 text-base max-w-3xl mx-auto leading-relaxed mt-4">
               Through real-time video analysis, organisations can reduce compliance risks, prevent safety incidents, and maintain operational excellence by automating workforce monitoring across every site.
@@ -574,10 +574,10 @@ export default function HomePage() {
           <div className="text-center mb-14">
             <p className="text-sm font-bold uppercase tracking-widest text-blue-600 mb-2">How we do it</p>
             <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight">
-              LenzAI Edge Node | <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-violet-600">Vision-Based AI Analysis</span>
+              StaffLenz Edge Node | <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-violet-600">Vision-Based AI Analysis</span>
             </h2>
             <p className="mt-4 text-gray-500 max-w-2xl mx-auto text-base leading-relaxed">
-              The LenzAI Edge Node is a compact AI compute device that plugs into your existing DVR/NVR via LAN, independently executing visual monitoring every 5 minutes — freeing your team from manual supervision entirely.
+              The StaffLenz Edge Node is a compact AI compute device that plugs into your existing DVR/NVR via LAN, independently executing visual monitoring every 5 minutes — freeing your team from manual supervision entirely.
             </p>
           </div>
 
@@ -666,7 +666,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14">
             <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight">
-              Why Choose <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-violet-600">LenzAI</span>
+              Why Choose <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-violet-600">StaffLenz</span>
             </h2>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -693,7 +693,7 @@ export default function HomePage() {
           <div className="grid md:grid-cols-3 gap-6">
             {[
               {
-                quote: "We had 3 ghost workers on payroll for over 6 months. LenzAI flagged the discrepancy in the first week. The ROI paid for 2 years of subscription in one payroll cycle.",
+                quote: "We had 3 ghost workers on payroll for over 6 months. StaffLenz flagged the discrepancy in the first week. The ROI paid for 2 years of subscription in one payroll cycle.",
                 name: "Rajesh Nair",
                 role: "Operations Manager",
                 company: "Precision Auto Parts, Pune",
@@ -701,7 +701,7 @@ export default function HomePage() {
                 stars: 5,
               },
               {
-                quote: "Our housekeeping director used to do floor walks every 2 hours. Now LenzAI does it continuously. We caught a floor going unattended for 40 minutes — something that would never have shown up in a manual check.",
+                quote: "Our housekeeping director used to do floor walks every 2 hours. Now StaffLenz does it continuously. We caught a floor going unattended for 40 minutes — something that would never have shown up in a manual check.",
                 name: "Anita Sharma",
                 role: "General Manager",
                 company: "The Grand Residency, Bengaluru",
@@ -709,7 +709,7 @@ export default function HomePage() {
                 stars: 5,
               },
               {
-                quote: "After a parent complaint about an unattended classroom, our trustees asked for a monitoring solution. LenzAI gave us a live dashboard that shows every class period — covered or not. No more blind spots.",
+                quote: "After a parent complaint about an unattended classroom, our trustees asked for a monitoring solution. StaffLenz gave us a live dashboard that shows every class period — covered or not. No more blind spots.",
                 name: "Fr. Thomas Kuriakose",
                 role: "Principal",
                 company: "St. Joseph's Academy, Kochi",
@@ -836,12 +836,12 @@ export default function HomePage() {
               <div className="absolute -top-3 left-6 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow">INCLUDES DEVICE</div>
               <div className="text-4xl mb-3">📦</div>
               <h3 className="text-xl font-extrabold text-white mb-1">Pro</h3>
-              <div className="text-sm text-gray-400 mb-5">Full monitoring + LenzAI device</div>
+              <div className="text-sm text-gray-400 mb-5">Full monitoring + StaffLenz device</div>
               <div className="flex items-baseline gap-1 mb-1">
                 <span className="text-5xl font-extrabold text-white">₹8,999</span>
                 <span className="text-gray-400 text-sm">/month</span>
               </div>
-              <div className="text-xs text-gray-400 mb-6">LenzAI device included · Cancel anytime</div>
+              <div className="text-xs text-gray-400 mb-6">StaffLenz device included · Cancel anytime</div>
               <ul className="space-y-2.5 mb-8">
                 {[
                   '16 cameras · 150 workers',
@@ -849,7 +849,7 @@ export default function HomePage() {
                   '10-min AI analysis',
                   '7-day forensic archive',
                   'WhatsApp + voice alerts',
-                  'LenzAI device shipped to you',
+                  'StaffLenz device shipped to you',
                 ].map((f) => (
                   <li key={f} className="flex items-start gap-2 text-sm text-gray-300">
                     <span className="text-amber-400 font-bold mt-0.5">✓</span> {f}
@@ -954,7 +954,7 @@ export default function HomePage() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-violet-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">LA</div>
-              <span className="font-extrabold text-white tracking-tight">LenzAI</span>
+              <span className="font-extrabold text-white tracking-tight">StaffLenz</span>
               <span className="text-gray-600 text-sm ml-2">© {new Date().getFullYear()}</span>
             </div>
             <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
@@ -972,11 +972,11 @@ export default function HomePage() {
             </div>
             <div className="flex items-center gap-4 text-sm text-gray-500">
               <Link href="/login" className="hover:text-white transition-colors">Client Login</Link>
-              <a href="mailto:support@lenzai.org" className="hover:text-white transition-colors">support@lenzai.org</a>
+              <a href="mailto:support@stafflenz.com" className="hover:text-white transition-colors">support@stafflenz.com</a>
             </div>
           </div>
           <div className="mt-6 pt-6 border-t border-gray-900 text-center text-xs text-gray-600">
-            Built for the world · AI-Powered by LenzAI · Privacy-first workforce intelligence
+            Built for the world · AI-Powered by StaffLenz · Privacy-first workforce intelligence
           </div>
         </div>
       </footer>

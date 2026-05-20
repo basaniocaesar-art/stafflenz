@@ -128,7 +128,7 @@ export async function GET(request) {
         '',
         alertCount > 0 ? `⚠️ ${alertCount} alert${alertCount > 1 ? 's' : ''} today` : '✅ No alerts today',
         '',
-        `📱 Full details at lenzai.org/attendance`,
+        `📱 Full details at stafflenz.com/attendance`,
       ].join('\n');
 
       const sendResult = await sendWhatsApp(whatsappNumber, message);

@@ -37,7 +37,7 @@ export async function POST(request) {
     });
 
     const info = await transporter.sendMail({
-      from: process.env.EMAIL_FROM || `LenzAI <${process.env.SMTP_USER}>`,
+      from: process.env.EMAIL_FROM || `StaffLenz <${process.env.SMTP_USER}>`,
       to,
       subject,
       html,

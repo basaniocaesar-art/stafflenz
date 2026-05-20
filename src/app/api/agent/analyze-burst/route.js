@@ -62,6 +62,7 @@ export async function POST(request) {
   const {
     agent_key,
     client_id,
+    location_id,
     camera_channel,
     motion_score,
     detected_at,
@@ -298,6 +299,7 @@ Return ONLY valid JSON:
     .from('motion_events')
     .insert({
       client_id,
+      location_id: location_id || null,
       camera_channel,
       detected_at: detected_at || new Date().toISOString(),
       motion_score,
@@ -317,6 +319,7 @@ Return ONLY valid JSON:
   if (analysis.requires_attention || severity === 'high' || severity === 'critical') {
     await db.from('alerts').insert({
       client_id,
+      location_id: location_id || null,
       alert_type: analysis.alert_type || 'general',
       message: analysis.incident_summary || 'Motion event on camera ' + camera_channel,
       worker_name: (analysis.identified_people || [])[0] || null,
@@ -334,7 +337,7 @@ Return ONLY valid JSON:
       try {
         const { sendWhatsApp } = await import('@/lib/whatsapp');
         const msg = [
-          `🚨 LenzAI Motion Alert — ${clientData.name}`,
+          `🚨 StaffLenz Motion Alert — ${clientData.name}`,
           `Camera ${camera_channel} · ${new Date(detected_at || Date.now()).toLocaleString('en-IN')}`,
           '',
           analysis.incident_summary || 'Motion event detected',

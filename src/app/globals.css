@@ -45,7 +45,7 @@
     @apply inline-flex items-center justify-center px-4 py-2 text-gray-600 font-medium rounded-xl hover:bg-gray-100 focus:outline-none transition-all;
   }
   .input {
-    @apply block w-full px-3 py-2.5 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm;
+    @apply block w-full px-3 py-2.5 border border-gray-300 rounded-xl shadow-sm bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm;
   }
   .card {
     @apply bg-white rounded-2xl border border-gray-200 shadow-sm;

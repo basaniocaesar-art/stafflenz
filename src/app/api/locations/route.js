@@ -18,7 +18,7 @@ export async function GET(request) {
 
   const { data: locations } = await db
     .from('locations')
-    .select('id, name, address, city, dvr_ip, max_cameras, is_active, created_at')
+    .select('id, name, address, city, dvr_ip, max_cameras, is_active, industry, created_at')
     .eq('client_id', clientId)
     .eq('is_active', true)
     .order('name');
@@ -75,7 +75,7 @@ export async function POST(request) {
   }
 
   const body = await request.json().catch(() => ({}));
-  const { name, address, city, dvr_ip, dvr_port, dvr_username, dvr_password, max_cameras } = body;
+  const { name, address, city, dvr_ip, dvr_port, dvr_username, dvr_password, max_cameras, industry } = body;
 
   if (!name) return NextResponse.json({ error: 'name required' }, { status: 400 });
 
@@ -93,6 +93,7 @@ export async function POST(request) {
       dvr_username: dvr_username || null,
       dvr_password: dvr_password || null,
       max_cameras: max_cameras || 8,
+      industry: industry || null,
     })
     .select()
     .single();
@@ -100,4 +101,37 @@ export async function POST(request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   return NextResponse.json({ location }, { status: 201 });
+}
+
+// PATCH /api/locations?id=<uuid> — update a location (industry, dvr_ip, etc.)
+export async function PATCH(request) {
+  const session = await requireAuth(request);
+  if (!session || !session.client) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  if (session.user.role !== 'client_admin' && session.user.role !== 'super_admin') {
+    return NextResponse.json({ error: 'Only admins can edit locations' }, { status: 403 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get('id');
+  if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
+
+  const body = await request.json().catch(() => ({}));
+  const allowed = ['name', 'address', 'city', 'dvr_ip', 'dvr_port', 'dvr_username', 'dvr_password', 'max_cameras', 'industry', 'is_active'];
+  const patch = {};
+  for (const k of allowed) if (k in body) patch[k] = body[k];
+  if (Object.keys(patch).length === 0) return NextResponse.json({ error: 'no fields to update' }, { status: 400 });
+
+  const db = getAdminClient();
+  const { data, error } = await db
+    .from('locations')
+    .update(patch)
+    .eq('id', id)
+    .eq('client_id', session.client.id)
+    .select()
+    .single();
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ location: data });
 }

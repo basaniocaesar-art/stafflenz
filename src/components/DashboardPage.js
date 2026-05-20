@@ -156,14 +156,22 @@ function Heatmap({ workers, recentEvents, weekData }) {
 }
 
 /* ── Setup Checklist Widget ─────────────────────────────────────────────────── */
-function SetupChecklist({ workersCount, zonesCount, hasFrames, alertsCount }) {
-  const [dismissed, setDismissed] = useState(false);
+function SetupChecklist({ workersCount, zonesCount, hasFrames, alertsCount, aiActive }) {
+  const [dismissed, setDismissed] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('stafflenz_checklist_dismissed') === '1';
+  });
+
+  function dismiss() {
+    setDismissed(true);
+    try { localStorage.setItem('stafflenz_checklist_dismissed', '1'); } catch {}
+  }
 
   const items = [
     { done: zonesCount > 0, label: 'Camera zones configured', cta: 'Configure', href: '/zones' },
     { done: hasFrames, label: 'Cameras receiving frames', cta: 'Check status', href: '/zones' },
     { done: workersCount >= 1, label: `Workers added (${workersCount})`, cta: 'Add workers', href: '/workers' },
-    { done: alertsCount > 0 || workersCount >= 3, label: 'AI is monitoring & alerting', cta: 'View alerts', href: '#' },
+    { done: aiActive, label: 'AI is monitoring & alerting', cta: 'View alerts', href: '#' },
   ];
 
   const completed = items.filter(i => i.done).length;
@@ -182,9 +190,9 @@ function SetupChecklist({ workersCount, zonesCount, hasFrames, alertsCount }) {
             <h2 className="text-base font-bold text-white">Setup Checklist</h2>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{background:'rgba(34,211,238,0.15)',color:'#22d3ee'}}>{completed}/{total}</span>
           </div>
-          <p className="text-xs" style={{color:'#94a3b8'}}>Complete these steps to get the most out of LenzAI</p>
+          <p className="text-xs" style={{color:'#94a3b8'}}>Complete these steps to get the most out of StaffLenz</p>
         </div>
-        <button onClick={()=>setDismissed(true)} className="text-xs hover:text-white transition-colors" style={{color:'#475569'}}>Dismiss</button>
+        <button onClick={dismiss} className="text-xs hover:text-white transition-colors" style={{color:'#475569'}}>Dismiss</button>
       </div>
 
       {/* Progress bar */}
@@ -260,6 +268,7 @@ export default function DashboardPage({ industry }) {
   const [waSaving,     setWaSaving]     = useState(false);
   const [frameModal,   setFrameModal]   = useState(null); // { timeline_id, title, loading, frames, summary }
   const [selectedLocation, setSelectedLocation] = useState(null); // null = all locations
+  const [selectedZone, setSelectedZone] = useState(null); // null = all cameras
   const [waStatus,     setWaStatus]     = useState(null);
   const [time,         setTime]         = useState(new Date());
 
@@ -329,7 +338,7 @@ export default function DashboardPage({ industry }) {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mx-auto mb-3" style={{borderColor:'#22d3ee',borderTopColor:'transparent'}}/>
-          <div className="text-sm" style={{color:'#475569'}}>Initialising LenzAI...</div>
+          <div className="text-sm" style={{color:'#475569'}}>Initialising StaffLenz...</div>
         </div>
       </div>
     </DashboardLayout>
@@ -348,6 +357,11 @@ export default function DashboardPage({ industry }) {
 
   const { client, today, recent_events, open_alerts, open_alerts_count, week_chart, plan_limit, zones, workers } = data || {};
   const alertCount = open_alerts_count ?? open_alerts?.length ?? 0;
+
+  // When a location is selected, show its industry in the sidebar
+  // (falls back to the client-level / route-level industry).
+  const activeLocation = data?.locations?.find((l) => l.id === selectedLocation);
+  const displayIndustry = activeLocation?.industry || client?.industry || industry;
 
   // Compute real AI stats from data
   const detections = today?.total_events ?? recent_events?.length ?? 0;
@@ -392,7 +406,7 @@ export default function DashboardPage({ industry }) {
   ];
 
   return (
-    <DashboardLayout industry={industry} clientName={client?.name||industry} userName={client?.name||''}>
+    <DashboardLayout industry={industry} displayIndustry={displayIndustry} clientName={client?.name||industry} userName={client?.name||''}>
 
       {/* ── Page header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
@@ -404,7 +418,7 @@ export default function DashboardPage({ industry }) {
           <span className="text-xs font-mono hidden sm:block" style={{color:S.muted}}>{time.toLocaleTimeString()}</span>
           <span className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border" style={{color:'#22c55e',background:'rgba(34,197,94,0.08)',borderColor:'rgba(34,197,94,0.2)'}}>
             <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{background:'#22c55e'}}/>
-            LenzAI Active
+            StaffLenz Active
           </span>
         </div>
       </div>
@@ -439,6 +453,7 @@ export default function DashboardPage({ industry }) {
         </div>
       )}
 
+
       {/* ── Tab bar ── */}
       <div className="flex gap-1 mb-5 p-1 rounded-xl w-fit overflow-x-auto" style={{background:'rgba(13,22,49,0.8)',border:'1px solid #1e2d4a'}}>
         {tabs.map(t=>(
@@ -461,6 +476,7 @@ export default function DashboardPage({ industry }) {
             zonesCount={zones?.length || 0}
             hasFrames={detections > 0 || (recent_events?.length || 0) > 0}
             alertsCount={alertCount}
+            aiActive={(data?.timelines?.length || 0) > 0 || (data?.today_cost_usd || 0) > 0 || alertCount > 0}
           />
 
           {/* KPI cards */}
@@ -732,7 +748,7 @@ export default function DashboardPage({ industry }) {
               ))}
             </div>
             <div className="mt-2 text-[10px] font-mono" style={{color:'#334155'}}>
-              REFRESH: 5MIN · MODEL: LENZAI v2.1 · EDGE NODE: ONLINE
+              REFRESH: 5MIN · MODEL: STAFFLENZ v2.1 · EDGE NODE: ONLINE
             </div>
           </div>
 
@@ -779,21 +795,54 @@ export default function DashboardPage({ industry }) {
       )}
 
       {/* ══════════════════ ALERTS TAB ══════════════════ */}
-      {activeTab==='alerts'&&(
+      {activeTab==='alerts'&&(() => {
+        const selectedZoneObj = zones?.find(z => z.id === selectedZone);
+        const zoneName = selectedZoneObj?.name;
+        const filteredAlerts = selectedZone
+          ? (open_alerts||[]).filter(a => a.zone_name === zoneName)
+          : (open_alerts||[]);
+        return (
+        <div className="space-y-4">
+          {/* Camera/zone picker */}
+          {zones?.length>0 && (
+            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+              <button onClick={()=>setSelectedZone(null)}
+                className="shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all"
+                style={!selectedZone
+                  ? { background:'rgba(59,130,246,0.2)', color:'#60a5fa', border:'1px solid rgba(59,130,246,0.3)' }
+                  : { color:'#64748b', border:'1px solid #1e2d4a' }}>
+                All cameras
+              </button>
+              {zones.map(z => {
+                const zAlertCount = (open_alerts||[]).filter(a => a.zone_name === z.name).length;
+                return (
+                  <button key={z.id} onClick={()=>setSelectedZone(z.id)}
+                    className="shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-2"
+                    style={selectedZone === z.id
+                      ? { background:'rgba(59,130,246,0.2)', color:'#60a5fa', border:'1px solid rgba(59,130,246,0.3)' }
+                      : { color:'#64748b', border:'1px solid #1e2d4a' }}>
+                    <span>{z.name}</span>
+                    {zAlertCount>0 && <span className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold" style={{background:'#ef4444',color:'white'}}>{zAlertCount}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
         <div className="grid lg:grid-cols-2 gap-4">
           <div className="rounded-2xl p-5 border" style={{background:S.card,borderColor:S.border}}>
             <div className="flex items-center gap-2 mb-4">
-              <h2 className="text-sm font-bold text-white">Active Alerts</h2>
-              {open_alerts?.length>0&&<span className="text-xs font-bold px-2 py-0.5 rounded-full animate-pulse" style={{background:'rgba(239,68,68,0.15)',color:'#ef4444'}}>{open_alerts.length}</span>}
+              <h2 className="text-sm font-bold text-white">{selectedZone ? `Alerts · ${zoneName}` : 'Active Alerts'}</h2>
+              {filteredAlerts.length>0&&<span className="text-xs font-bold px-2 py-0.5 rounded-full animate-pulse" style={{background:'rgba(239,68,68,0.15)',color:'#ef4444'}}>{filteredAlerts.length}</span>}
             </div>
-            {!open_alerts?.length ? (
+            {!filteredAlerts.length ? (
               <div className="text-center py-12">
                 <div className="text-4xl mb-3">✅</div>
-                <div className="text-sm" style={{color:S.muted}}>No active alerts</div>
+                <div className="text-sm" style={{color:S.muted}}>{selectedZone ? 'No alerts for this camera' : 'No active alerts'}</div>
               </div>
             ):(
               <div className="space-y-3">
-                {open_alerts.map(alert=>(
+                {filteredAlerts.map(alert=>(
                   <div key={alert.id} className="rounded-xl p-3 border" style={{background:'rgba(239,68,68,0.05)',borderColor:'rgba(239,68,68,0.2)'}}>
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
@@ -811,7 +860,7 @@ export default function DashboardPage({ industry }) {
 
           <div className="rounded-2xl p-5 border" style={{background:S.card,borderColor:S.border}}>
             <h2 className="text-sm font-bold text-white mb-1">WhatsApp Alerts</h2>
-            <p className="text-xs mb-4" style={{color:S.muted}}>Violations detected by LenzAI are sent instantly to this number.</p>
+            <p className="text-xs mb-4" style={{color:S.muted}}>Violations detected by StaffLenz are sent instantly to this number.</p>
             <div className="flex gap-2 mb-3">
               <input type="tel" placeholder="+91XXXXXXXXXX" value={waNumber} onChange={e=>setWaNumber(e.target.value)}
                 className="flex-1 rounded-xl px-3 py-2 text-sm font-mono focus:outline-none"
@@ -841,16 +890,53 @@ export default function DashboardPage({ industry }) {
             )}
           </div>
         </div>
-      )}
+        </div>
+        );
+      })()}
 
       {/* ══════════════════ ANALYTICS TAB ══════════════════ */}
-      {activeTab==='analytics'&&(
+      {activeTab==='analytics'&&(() => {
+        const selectedZoneObj = zones?.find(z => z.id === selectedZone);
+        const zoneName = selectedZoneObj?.name;
+        const filteredEvents = selectedZone
+          ? (recent_events||[]).filter(e => e.zone_id === selectedZone)
+          : (recent_events||[]);
+        const zoneEventCount = (zid) => (recent_events||[]).filter(e => e.zone_id === zid).length;
+        return (
         <div className="space-y-4">
+          {/* Camera/zone picker */}
+          {zones?.length>0 && (
+            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+              <button onClick={()=>setSelectedZone(null)}
+                className="shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all"
+                style={!selectedZone
+                  ? { background:'rgba(59,130,246,0.2)', color:'#60a5fa', border:'1px solid rgba(59,130,246,0.3)' }
+                  : { color:'#64748b', border:'1px solid #1e2d4a' }}>
+                All cameras
+              </button>
+              {zones.map(z => {
+                const c = zoneEventCount(z.id);
+                return (
+                  <button key={z.id} onClick={()=>setSelectedZone(z.id)}
+                    className="shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-2"
+                    style={selectedZone === z.id
+                      ? { background:'rgba(59,130,246,0.2)', color:'#60a5fa', border:'1px solid rgba(59,130,246,0.3)' }
+                      : { color:'#64748b', border:'1px solid #1e2d4a' }}>
+                    <span>{z.name}</span>
+                    {c>0 && <span className="text-[9px] font-mono px-1.5 py-0.5 rounded" style={{background:'rgba(34,211,238,0.15)',color:'#22d3ee'}}>{c}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {[
-              {label:'Present Today',  value:today?.present_count??0,  color:'#22c55e'},
-              {label:'Absent',         value:today?.absent_count??0,   color:'#94a3b8'},
-              {label:'Total Events',   value:today?.total_events??0,   color:'#60a5fa'},
+              {label:selectedZone ? 'Events (this camera)' : 'Present Today',
+                value: selectedZone ? filteredEvents.length : (today?.present_count??0),  color:'#22c55e'},
+              {label:selectedZone ? 'Unique Workers' : 'Absent',
+                value: selectedZone ? new Set(filteredEvents.map(e=>e.worker_name).filter(Boolean)).size : (today?.absent_count??0),   color:'#94a3b8'},
+              {label:'Total Events',   value: selectedZone ? filteredEvents.length : (today?.total_events??0),   color:'#60a5fa'},
               {label:'Plan',           value:(client?.plan||'FREE').toUpperCase(), color:'#a78bfa'},
             ].map(k=>(
               <div key={k.label} className="rounded-2xl p-4 border" style={{background:S.card,borderColor:S.border}}>
@@ -890,9 +976,9 @@ export default function DashboardPage({ industry }) {
           )}
 
           <div className="rounded-2xl p-5 border" style={{background:S.card,borderColor:S.border}}>
-            <h2 className="text-sm font-bold text-white mb-4">Recent Activity</h2>
+            <h2 className="text-sm font-bold text-white mb-4">{selectedZone ? `Recent Activity · ${zoneName}` : 'Recent Activity'}</h2>
             <div className="space-y-1 max-h-64 overflow-y-auto">
-              {(recent_events||[]).map((e,i)=>(
+              {filteredEvents.map((e,i)=>(
                 <div key={e.id||i} className="flex items-start gap-3 py-2 border-b" style={{borderColor:'rgba(30,45,74,0.5)'}}>
                   <span className="text-[10px] font-mono w-14 pt-0.5 shrink-0" style={{color:S.muted}}>{new Date(e.occurred_at).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'})}</span>
                   <div className="flex-1 min-w-0">
@@ -902,11 +988,12 @@ export default function DashboardPage({ industry }) {
                   {e.confidence&&<span className="text-[10px] font-mono shrink-0" style={{color:'#22d3ee'}}>{Math.round(e.confidence)}%</span>}
                 </div>
               ))}
-              {!recent_events?.length&&<div className="text-center py-6 text-xs" style={{color:S.muted}}>No activity yet today</div>}
+              {!filteredEvents.length&&<div className="text-center py-6 text-xs" style={{color:S.muted}}>{selectedZone ? 'No activity for this camera yet' : 'No activity yet today'}</div>}
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* ══════════════════ FRAME VIEWER MODAL ══════════════════ */}
       {frameModal && (

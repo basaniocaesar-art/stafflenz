@@ -14,6 +14,7 @@ const industryConfig = {
   hospital:     { label: 'Hospital',     icon: '🏥' },
   security:     { label: 'Security',     icon: '🔒' },
   gym:          { label: 'Gym',          icon: '🏋️' },
+  office:       { label: 'Office',       icon: '🏢' },
 };
 
 const NAV_ICONS = {
@@ -31,13 +32,13 @@ const NAV_ICONS = {
   ),
 };
 
-export default function DashboardLayout({ children, industry, clientName, userName }) {
+export default function DashboardLayout({ children, industry, displayIndustry, clientName, userName }) {
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
-  const config = industryConfig[industry] || industryConfig.factory;
+  const config = industryConfig[displayIndustry] || industryConfig[industry] || industryConfig.factory;
 
   const navItems = [
     { href: `/${industry}`, label: 'Dashboard',    key: 'dashboard'  },
@@ -75,7 +76,7 @@ export default function DashboardLayout({ children, industry, clientName, userNa
               LA
             </div>
             <div>
-              <div className="font-extrabold text-white text-sm tracking-tight">LenzAI</div>
+              <div className="font-extrabold text-white text-sm tracking-tight">StaffLenz</div>
               <div className="text-[10px] truncate max-w-[110px]" style={{color:'#475569'}}>{clientName}</div>
             </div>
           </Link>
@@ -143,7 +144,7 @@ export default function DashboardLayout({ children, industry, clientName, userNa
           <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-lg" style={{color:'#64748b'}}>
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </button>
-          <span className="font-extrabold text-white tracking-tight">LenzAI</span>
+          <span className="font-extrabold text-white tracking-tight">StaffLenz</span>
           <div className="w-8" />
         </header>
 

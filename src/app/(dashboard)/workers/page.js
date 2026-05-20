@@ -11,8 +11,131 @@ const PHOTO_SLOTS = [
   { key: 5, label: 'Alt 2', hint: 'With PPE / hat' },
 ];
 
+function CameraCaptureModal({ slot, onCapture, onClose }) {
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+  const [error, setError] = useState('');
+  const [ready, setReady] = useState(false);
+  const [facingMode, setFacingMode] = useState('user');
+
+  useEffect(() => {
+    let cancelled = false;
+    async function start() {
+      setError('');
+      setReady(false);
+      // Stop any previous stream before requesting a new one
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+      }
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode, width: { ideal: 1280 }, height: { ideal: 960 } },
+          audio: false,
+        });
+        if (cancelled) { stream.getTracks().forEach((t) => t.stop()); return; }
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play().catch(() => {});
+          setReady(true);
+        }
+      } catch (err) {
+        setError(err?.name === 'NotAllowedError'
+          ? 'Camera access was blocked. Allow it in your browser settings or use "Upload file instead".'
+          : 'Could not open the camera. Use "Upload file instead".');
+      }
+    }
+    start();
+    return () => {
+      cancelled = true;
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+      }
+    };
+  }, [facingMode]);
+
+  function handleCapture() {
+    const video = videoRef.current;
+    if (!video || !video.videoWidth) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const file = new File([blob], `capture-${slot.key}-${Date.now()}.jpg`, { type: 'image/jpeg' });
+      onCapture(file);
+    }, 'image/jpeg', 0.92);
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center p-4">
+      <div className="bg-gray-900 rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div className="flex items-center justify-between p-3 border-b border-gray-800">
+          <div>
+            <div className="text-sm font-semibold text-white">{slot.label}</div>
+            <div className="text-[11px] text-gray-400">{slot.hint}</div>
+          </div>
+          <button type="button" onClick={onClose} className="text-gray-400 hover:text-white text-xl leading-none">&times;</button>
+        </div>
+
+        <div className="relative bg-black aspect-[4/3] flex items-center justify-center">
+          <video
+            ref={videoRef}
+            playsInline
+            muted
+            className="w-full h-full object-cover"
+            style={{ transform: facingMode === 'user' ? 'scaleX(-1)' : 'none' }}
+          />
+          {!ready && !error && (
+            <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs">Starting camera…</div>
+          )}
+          {error && (
+            <div className="absolute inset-0 flex items-center justify-center p-4 text-center text-red-300 text-xs">{error}</div>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between gap-2 p-3 bg-gray-900">
+          <button
+            type="button"
+            onClick={() => setFacingMode((m) => (m === 'user' ? 'environment' : 'user'))}
+            className="text-[11px] text-gray-300 hover:text-white px-2 py-1"
+            title="Switch camera"
+          >
+            Switch camera
+          </button>
+          <button
+            type="button"
+            onClick={handleCapture}
+            disabled={!ready}
+            className="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-400 text-white text-sm font-medium px-5 py-2 rounded-full"
+          >
+            Capture
+          </button>
+          <button type="button" onClick={onClose} className="text-[11px] text-gray-400 hover:text-white px-2 py-1">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PhotoSlot({ slot, preview, onSelect, onRemove }) {
   const inputRef = useRef(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
+
+  function openCamera() {
+    // Secure context + mediaDevices required. Fall back to file picker otherwise.
+    if (typeof navigator !== 'undefined' && navigator.mediaDevices?.getUserMedia) {
+      setCameraOpen(true);
+    } else {
+      inputRef.current?.click();
+    }
+  }
 
   function handleFile(e) {
     const file = e.target.files[0];
@@ -21,10 +144,15 @@ function PhotoSlot({ slot, preview, onSelect, onRemove }) {
     e.target.value = '';
   }
 
+  function handleCapture(file) {
+    onSelect(slot.key, file);
+    setCameraOpen(false);
+  }
+
   return (
     <div className="relative group">
       <div
-        onClick={() => !preview && inputRef.current?.click()}
+        onClick={() => !preview && openCamera()}
         className={`w-full aspect-square rounded-lg border-2 border-dashed flex flex-col items-center justify-center overflow-hidden cursor-pointer transition-colors ${
           preview ? 'border-blue-300 bg-blue-50' : 'border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50'
         }`}
@@ -33,9 +161,9 @@ function PhotoSlot({ slot, preview, onSelect, onRemove }) {
           <img src={preview} alt={slot.label} className="w-full h-full object-cover" />
         ) : (
           <>
-            <span className="text-xl text-gray-300 mb-1">+</span>
-            <span className="text-[10px] font-medium text-gray-400 text-center px-1 leading-tight">{slot.label}</span>
-            <span className="text-[9px] text-gray-300 text-center px-1 leading-tight mt-0.5">{slot.hint}</span>
+            <span className="text-lg text-gray-400 mb-0.5">📷</span>
+            <span className="text-[10px] font-medium text-gray-500 text-center px-1 leading-tight">{slot.label}</span>
+            <span className="text-[9px] text-gray-400 text-center px-1 leading-tight mt-0.5">{slot.hint}</span>
           </>
         )}
       </div>
@@ -43,9 +171,9 @@ function PhotoSlot({ slot, preview, onSelect, onRemove }) {
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-1">
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}
+            onClick={(e) => { e.stopPropagation(); openCamera(); }}
             className="text-white bg-white/20 hover:bg-white/30 rounded-full w-7 h-7 flex items-center justify-center text-xs"
-            title="Replace photo"
+            title="Retake photo"
           >
             &#8635;
           </button>
@@ -59,13 +187,26 @@ function PhotoSlot({ slot, preview, onSelect, onRemove }) {
           </button>
         </div>
       )}
+      {!preview && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}
+          className="absolute bottom-[22px] left-1/2 -translate-x-1/2 text-[8px] text-gray-400 hover:text-blue-600 underline decoration-dotted"
+          title="Upload file instead"
+        >
+          upload file
+        </button>
+      )}
       <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
       <div className="text-[10px] text-gray-500 text-center mt-1 font-medium">{slot.label}</div>
+      {cameraOpen && (
+        <CameraCaptureModal slot={slot} onCapture={handleCapture} onClose={() => setCameraOpen(false)} />
+      )}
     </div>
   );
 }
 
-function WorkerModal({ worker, onClose, onSave, clientIndustry }) {
+function WorkerModal({ worker, onClose, onSave, clientIndustry, selectedLocation }) {
   const [form, setForm] = useState({
     full_name: worker?.full_name || '',
     employee_id: worker?.employee_id || '',
@@ -137,6 +278,11 @@ function WorkerModal({ worker, onClose, onSave, clientIndustry }) {
       const fd = new FormData();
       Object.entries(form).forEach(([k, v]) => fd.append(k, v));
 
+      // Tag new workers with the currently-selected location so they appear
+      // under that site's worker list. Only applied on create; editing a
+      // worker doesn't change their location here.
+      if (!worker && selectedLocation) fd.append('location_id', selectedLocation);
+
       // Append photos by slot index
       photos.forEach((file, i) => {
         if (file) fd.append(`photo_${i}`, file);
@@ -182,7 +328,7 @@ function WorkerModal({ worker, onClose, onSave, clientIndustry }) {
               Reference Photos ({photoCount}/6)
             </label>
             <p className="text-xs text-gray-400 mb-3">
-              Upload up to 6 photos from different angles for better AI face recognition. JPEG recommended, max 5MB each.
+              Capture up to 6 photos from different angles for better AI face recognition. Tap a slot to open your camera, or use &ldquo;upload file&rdquo; as a fallback.
             </p>
             <div className="grid grid-cols-3 gap-2">
               {PHOTO_SLOTS.map((slot) => (
@@ -240,6 +386,7 @@ export default function WorkersPage() {
   const [editWorker, setEditWorker] = useState(null);
   const [search, setSearch] = useState('');
   const [clientIndustry, setClientIndustry] = useState('factory');
+  const [clientName, setClientName] = useState('');
   const [locations, setLocations] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
 
@@ -247,7 +394,7 @@ export default function WorkersPage() {
     setLoading(true);
     try {
       const locParam = selectedLocation ? `?location=${selectedLocation}` : '';
-      const res = await fetch(`/api/workers${locParam}`);
+      const res = await fetch(`/api/workers${locParam}`, { cache: 'no-store' });
       if (res.status === 401) { window.location.href = '/login'; return; }
       const data = await res.json();
       setWorkers(data.workers || []);
@@ -258,9 +405,16 @@ export default function WorkersPage() {
 
   useEffect(() => {
     fetch('/api/locations').then(r => r.json()).then(d => setLocations(d.locations || [])).catch(() => {});
+    fetch('/api/client').then(r => r.json()).then(d => {
+      if (d?.client?.industry) setClientIndustry(d.client.industry);
+      if (d?.client?.name) setClientName(d.client.name);
+    }).catch(() => {});
   }, []);
 
   useEffect(() => { fetchWorkers(); }, [selectedLocation]);
+
+  const activeLocation = locations.find((l) => l.id === selectedLocation);
+  const displayIndustry = activeLocation?.industry || clientIndustry;
 
   async function handleDelete(id) {
     if (!confirm('Remove this worker? Their event history will be preserved.')) return;
@@ -274,18 +428,22 @@ export default function WorkersPage() {
     fetchWorkers();
   }
 
-  const filtered = workers.filter((w) =>
+  const locationScoped = selectedLocation
+    ? workers.filter((w) => w.location_id === selectedLocation)
+    : workers;
+
+  const filtered = locationScoped.filter((w) =>
     w.full_name.toLowerCase().includes(search.toLowerCase()) ||
     w.employee_id?.toLowerCase().includes(search.toLowerCase()) ||
     w.department?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
-    <DashboardLayout industry={clientIndustry} clientName="Workers" userName="">
+    <DashboardLayout industry={clientIndustry} displayIndustry={displayIndustry} clientName={clientName || 'Workers'} userName={clientName}>
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Workers</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{workers.length} enrolled &middot; Add photos for AI recognition</p>
+          <p className="text-sm text-gray-500 mt-0.5">{locationScoped.length} enrolled &middot; Add photos for AI recognition</p>
         </div>
         <button onClick={() => { setEditWorker(null); setModalOpen(true); }} className="btn-primary">
           + Enrol Worker
@@ -318,12 +476,12 @@ export default function WorkersPage() {
         <div className="card p-12 text-center">
           <div className="text-4xl mb-3">&#128119;</div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            {workers.length === 0 ? 'No workers enrolled yet' : 'No results'}
+            {locationScoped.length === 0 ? 'No workers enrolled yet' : 'No results'}
           </h3>
-          {workers.length === 0 && (
+          {locationScoped.length === 0 && (
             <p className="text-gray-500 text-sm mb-4">Enrol your first worker to start monitoring attendance.</p>
           )}
-          {workers.length === 0 && (
+          {locationScoped.length === 0 && (
             <button onClick={() => setModalOpen(true)} className="btn-primary">Enrol First Worker</button>
           )}
         </div>
@@ -401,6 +559,7 @@ export default function WorkersPage() {
           onClose={() => { setModalOpen(false); setEditWorker(null); }}
           onSave={handleSave}
           clientIndustry={clientIndustry}
+          selectedLocation={selectedLocation}
         />
       )}
     </DashboardLayout>

@@ -36,7 +36,7 @@ export async function POST(request) {
     }
     try {
       const { product, price } = await upsertProductAndPrice({
-        name: `LenzAI ${p.plan.charAt(0).toUpperCase() + p.plan.slice(1)}`,
+        name: `StaffLenz ${p.plan.charAt(0).toUpperCase() + p.plan.slice(1)}`,
         description: `Up to ${p.max_workers} workers, ${p.max_cameras} cameras`,
         amountUsd: p.price_usd,
       });
