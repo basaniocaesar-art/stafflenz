@@ -820,6 +820,75 @@ export default function DashboardPage({ industry }) {
             aiActive={(data?.timelines?.length || 0) > 0 || (data?.today_cost_usd || 0) > 0 || alertCount > 0}
           />
 
+          {/* Headcount snapshot — refreshes every 30 min via cron */}
+          {(data?.presence_snapshots || []).length > 0 && (
+            <div className="rounded-2xl p-5 border" style={{background:S.card,borderColor:S.border}}>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-sm font-bold text-white">Headcount</h2>
+                  <p className="text-[11px]" style={{color:S.muted}}>
+                    Snapshot taken {(() => {
+                      const ts = data.presence_snapshots[0]?.captured_at;
+                      if (!ts) return '';
+                      const mins = Math.round((Date.now() - new Date(ts).getTime()) / 60000);
+                      return mins < 1 ? 'just now' : `${mins} min ago`;
+                    })()} · refreshes every 30 min
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {data.presence_snapshots.map((snap) => {
+                  const locName = (data.locations || []).find((l) => l.id === snap.location_id)?.name || 'All locations';
+                  const presentNames = Array.isArray(snap.workers_present_names) ? snap.workers_present_names : [];
+                  const leftNames    = Array.isArray(snap.workers_left_names) ? snap.workers_left_names : [];
+                  return (
+                    <div key={snap.location_id || 'none'} className="rounded-xl p-4 border" style={{background:'rgba(13,22,49,0.6)',borderColor:S.border}}>
+                      <div className="text-xs font-bold text-white mb-3">{locName}</div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div>
+                          <div className="text-[10px] uppercase tracking-wider" style={{color:S.muted}}>Present now</div>
+                          <div className="text-2xl font-extrabold" style={{color:'#22c55e'}}>{snap.workers_present || 0}</div>
+                          <div className="text-[10px] mt-0.5" style={{color:'#64748b'}}>workers · last 5 min</div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] uppercase tracking-wider" style={{color:S.muted}}>Left</div>
+                          <div className="text-2xl font-extrabold" style={{color:'#f59e0b'}}>{snap.workers_left || 0}</div>
+                          <div className="text-[10px] mt-0.5" style={{color:'#64748b'}}>seen today, gone now</div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] uppercase tracking-wider" style={{color:S.muted}}>Seen today</div>
+                          <div className="text-2xl font-extrabold" style={{color:'#60a5fa'}}>{snap.workers_seen_today || 0}</div>
+                          <div className="text-[10px] mt-0.5" style={{color:'#64748b'}}>unique workers</div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] uppercase tracking-wider" style={{color:S.muted}}>Visitors</div>
+                          <div className="text-2xl font-extrabold" style={{color:'#a78bfa'}}>{snap.visitors_visible || 0}</div>
+                          <div className="text-[10px] mt-0.5" style={{color:'#64748b'}}>on camera now</div>
+                        </div>
+                      </div>
+                      {(presentNames.length > 0 || leftNames.length > 0) && (
+                        <div className="mt-3 pt-3 border-t flex flex-wrap gap-x-4 gap-y-1 text-[11px]" style={{borderColor:S.border}}>
+                          {presentNames.length > 0 && (
+                            <div className="flex items-center gap-1.5">
+                              <span className="w-1.5 h-1.5 rounded-full" style={{background:'#22c55e'}} />
+                              <span style={{color:'#cbd5e1'}}><span className="font-semibold text-white">{presentNames.join(', ')}</span></span>
+                            </div>
+                          )}
+                          {leftNames.length > 0 && (
+                            <div className="flex items-center gap-1.5">
+                              <span className="w-1.5 h-1.5 rounded-full" style={{background:'#f59e0b'}} />
+                              <span style={{color:'#94a3b8'}}>{leftNames.join(', ')} ·  not on camera now</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* KPI cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {[

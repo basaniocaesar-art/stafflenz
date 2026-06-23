@@ -147,6 +147,29 @@ export async function GET(request) {
     console.warn('[client API] v2 data fetch failed:', e.message);
   }
 
+  // Latest presence snapshot(s) — one per location (or filtered by current location)
+  let presenceSnapshots = [];
+  try {
+    let pq = db
+      .from('presence_snapshots')
+      .select('location_id, captured_at, workers_present, workers_present_names, workers_seen_today, workers_left, workers_left_names, visitors_visible')
+      .eq('client_id', clientId)
+      .order('captured_at', { ascending: false })
+      .limit(50);
+    if (locationId) pq = pq.eq('location_id', locationId);
+    const { data: snaps } = await pq;
+    // Dedup to latest per location_id
+    const seen = new Set();
+    presenceSnapshots = (snaps || []).filter((s) => {
+      const k = s.location_id || 'none';
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+  } catch (e) {
+    console.warn('[client API] presence_snapshots fetch failed:', e.message);
+  }
+
   const res = NextResponse.json({
     client: { ...client, total_workers: totalWorkers || 0, onboarding_completed: onboardingCompleted },
     // Multi-location support
@@ -161,6 +184,7 @@ export async function GET(request) {
     plan_limit: planLimit || {},
     zones: zonesData || [],
     workers: workersData || [],
+    presence_snapshots: presenceSnapshots,
     onboarding_completed: onboardingCompleted,
     // v2 additions
     timelines: recentTimelines,
