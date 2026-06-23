@@ -328,6 +328,56 @@ function computeCameraStats(timelines) {
   return stats;
 }
 
+/* ── Per-location WhatsApp number row ──────────────────────────────────── */
+function LocationWhatsAppRow({ location, onSaved }) {
+  const [value, setValue]   = useState(location.whatsapp_notify || '');
+  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState(null);
+
+  async function save() {
+    setSaving(true); setStatus(null);
+    const v = value.trim();
+    const r = await fetch(`/api/locations/${location.id}/whatsapp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(v ? { phone: v } : { clear: true }),
+    });
+    setSaving(false);
+    if (r.ok) {
+      setStatus('saved');
+      setTimeout(() => setStatus(null), 2500);
+      onSaved?.();
+    } else {
+      const j = await r.json().catch(() => ({}));
+      setStatus(j.error || 'error');
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className="w-32 text-xs text-white shrink-0 truncate">{location.name}</span>
+      <input
+        type="tel"
+        placeholder="+91XXXXXXXXXX (optional)"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        className="flex-1 rounded-lg px-2 py-1.5 text-xs font-mono focus:outline-none"
+        style={{ background: 'rgba(30,45,74,0.8)', border: '1px solid #1e2d4a', color: '#e2e8f0' }}
+      />
+      <button
+        onClick={save}
+        disabled={saving}
+        className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
+        style={{ background: 'rgba(59,130,246,0.4)' }}
+      >
+        {saving ? '...' : (location.whatsapp_notify ? 'Update' : 'Save')}
+      </button>
+      {status === 'saved' && <span className="text-[10px]" style={{ color: '#22c55e' }}>✓ saved</span>}
+      {status && status !== 'saved' && <span className="text-[10px] truncate max-w-[140px]" style={{ color: '#ef4444' }} title={status}>✗ {status.slice(0, 22)}</span>}
+    </div>
+  );
+}
+
 /* ── Camera Feed ────────────────────────────────────────────────────────────── */
 function AICamFeed({ camIndex, videoUrl, alertCam, snapshotUrl, stats }) {
   const [imgKey, setImgKey] = useState(0);
@@ -1176,9 +1226,9 @@ export default function DashboardPage({ industry }) {
 
           <div className="rounded-2xl p-5 border" style={{background:S.card,borderColor:S.border}}>
             <h2 className="text-sm font-bold text-white mb-1">WhatsApp Alerts</h2>
-            <p className="text-xs mb-4" style={{color:S.muted}}>Violations detected by StaffLenz are sent instantly to this number.</p>
+            <p className="text-xs mb-4" style={{color:S.muted}}>High-severity incidents are sent instantly to this number — rate-limited to 1 per 10 min so you&apos;re not spammed.</p>
             <div className="flex gap-2 mb-3">
-              <input type="tel" placeholder="+91XXXXXXXXXX" value={waNumber} onChange={e=>setWaNumber(e.target.value)}
+              <input type="tel" placeholder="+91XXXXXXXXXX (default for all locations)" value={waNumber} onChange={e=>setWaNumber(e.target.value)}
                 className="flex-1 rounded-xl px-3 py-2 text-sm font-mono focus:outline-none"
                 style={{background:'rgba(30,45,74,0.8)',border:'1px solid #1e2d4a',color:'#e2e8f0'}}/>
               <button onClick={saveWhatsApp} disabled={waSaving} className="px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-50 transition-all" style={{background:S.blue}}>
@@ -1187,6 +1237,33 @@ export default function DashboardPage({ industry }) {
             </div>
             {waStatus==='saved'&&<p className="text-xs" style={{color:'#22c55e'}}>Saved. Alerts will be sent to this number.</p>}
             {waStatus==='error'&&<p className="text-xs" style={{color:'#ef4444'}}>Failed to save. Please try again.</p>}
+
+            {/* Per-location override */}
+            {data?.has_locations && data?.locations?.length > 0 && (
+              <div className="mt-5 pt-4 border-t" style={{ borderColor: S.border }}>
+                <h3 className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: S.muted }}>Per-location override</h3>
+                <p className="text-[11px] mb-3" style={{ color: S.muted }}>Optional — give each location its own number (different manager per site). Empty = uses the default above.</p>
+                <div className="space-y-2">
+                  {data.locations.map((loc) => (
+                    <LocationWhatsAppRow key={loc.id} location={loc} onSaved={fetchData} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Sandbox opt-in note */}
+            <div className="mt-5 p-3 rounded-lg flex items-start gap-2" style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)' }}>
+              <span className="text-sm">📱</span>
+              <div className="text-[11px] leading-relaxed" style={{ color: '#fbbf24' }}>
+                <div className="font-semibold mb-0.5">First-time setup (Twilio sandbox)</div>
+                <div style={{ color: '#cbd5e1' }}>
+                  Each new phone must <b>opt in once</b>: send <code className="px-1.5 py-0.5 rounded font-mono" style={{ background: 'rgba(0,0,0,0.4)', color: '#fbbf24' }}>join &lt;your-code&gt;</code> from WhatsApp to{' '}
+                  <code className="font-mono" style={{ color: '#fbbf24' }}>+1 415 523 8886</code>.
+                  Find your join code at{' '}
+                  <a href="https://console.twilio.com/us1/develop/messaging/try-it-out/whatsapp-learn" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: '#fbbf24' }}>Twilio Console</a>.
+                </div>
+              </div>
+            </div>
 
             {zones?.length>0&&(
               <div className="mt-6">
