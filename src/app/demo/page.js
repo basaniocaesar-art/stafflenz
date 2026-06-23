@@ -148,7 +148,7 @@ export default function DemoPage() {
     { id: 'performance', label: 'Performance', icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
     )},
-    { id: 'alerts',      label: 'Alerts',      icon: (
+    { id: 'alerts',      label: 'Incidents',   icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
     ), badge: 2 },
     { id: 'admin',       label: 'Admin',       icon: (

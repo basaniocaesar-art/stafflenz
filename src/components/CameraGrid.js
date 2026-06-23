@@ -84,10 +84,10 @@ export default function CameraGrid({ industry, accentColor = '#3b82f6', alertCam
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-4 border"
             style={{ color: accentColor, borderColor: accentColor + '40', background: accentColor + '15' }}>
-            Live Camera Grid
+            Live Operations
           </div>
           <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-            All 8 cameras. One view. Every zone covered.
+            Every business area. One view. Always-on intelligence.
           </h2>
           <p className="mt-3 text-gray-400 max-w-xl mx-auto text-sm">
             StaffLenz monitors every camera simultaneously — no switching, no blind spots. Any violation triggers an instant alert on the highlighted feed.

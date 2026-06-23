@@ -168,8 +168,8 @@ function SetupChecklist({ workersCount, zonesCount, hasFrames, alertsCount, aiAc
   }
 
   const items = [
-    { done: zonesCount > 0, label: 'Camera zones configured', cta: 'Configure', href: '/zones' },
-    { done: hasFrames, label: 'Cameras receiving frames', cta: 'Check status', href: '/zones' },
+    { done: zonesCount > 0, label: 'Business areas configured', cta: 'Configure', href: '/zones' },
+    { done: hasFrames, label: 'Live feeds active', cta: 'Check status', href: '/zones' },
     { done: workersCount >= 1, label: `Workers added (${workersCount})`, cta: 'Add workers', href: '/workers' },
     { done: aiActive, label: 'AI is monitoring & alerting', cta: 'View alerts', href: '#' },
   ];
@@ -399,10 +399,10 @@ export default function DashboardPage({ industry }) {
   });
 
   const tabs = [
-    { id:'overview',   label:'Dashboard'   },
-    { id:'cameras',    label:'Cameras'     },
-    { id:'alerts',     label:'Alerts', badge: alertCount },
-    { id:'analytics',  label:'Analytics'  },
+    { id:'overview',   label:'Dashboard'         },
+    { id:'cameras',    label:'Live Operations'   },
+    { id:'alerts',     label:'Incidents', badge: alertCount },
+    { id:'analytics',  label:'Workforce Insights' },
   ];
 
   return (
@@ -747,7 +747,7 @@ export default function DashboardPage({ industry }) {
               <div className="grid sm:grid-cols-2 gap-5">
                 {[
                   {label:'Workers',label2:`${client?.total_workers||0} / ${plan_limit.max_workers}`,pct:Math.min(100,((client?.total_workers||0)/plan_limit.max_workers)*100),color:'#3b82f6'},
-                  {label:'Cameras',label2:`${zones?.length||0} / ${plan_limit.max_cameras}`,pct:Math.min(100,((zones?.length||0)/plan_limit.max_cameras)*100),color:'#8b5cf6'},
+                  {label:'Business Areas',label2:`${zones?.length||0} / ${plan_limit.max_cameras}`,pct:Math.min(100,((zones?.length||0)/plan_limit.max_cameras)*100),color:'#8b5cf6'},
                 ].map(b=>(
                   <div key={b.label}>
                     <div className="flex justify-between text-xs mb-2">
@@ -770,7 +770,7 @@ export default function DashboardPage({ industry }) {
         <div className="grid lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 rounded-2xl p-4 border" style={{background:S.card,borderColor:S.border}}>
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-bold text-white">Live Camera Feeds</span>
+              <span className="text-sm font-bold text-white">Live Operations</span>
               <span className="text-xs flex items-center gap-1.5" style={{color:'#22d3ee'}}>
                 <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{background:'#22d3ee'}}/>Processing
               </span>
@@ -865,7 +865,7 @@ export default function DashboardPage({ industry }) {
         <div className="grid lg:grid-cols-2 gap-4">
           <div className="rounded-2xl p-5 border" style={{background:S.card,borderColor:S.border}}>
             <div className="flex items-center gap-2 mb-4">
-              <h2 className="text-sm font-bold text-white">{selectedZone ? `Alerts · ${zoneName}` : 'Active Alerts'}</h2>
+              <h2 className="text-sm font-bold text-white">{selectedZone ? `Incidents · ${zoneName}` : 'Active Incidents'}</h2>
               {filteredAlerts.length>0&&<span className="text-xs font-bold px-2 py-0.5 rounded-full animate-pulse" style={{background:'rgba(239,68,68,0.15)',color:'#ef4444'}}>{filteredAlerts.length}</span>}
             </div>
             {!filteredAlerts.length ? (
@@ -907,7 +907,7 @@ export default function DashboardPage({ industry }) {
 
             {zones?.length>0&&(
               <div className="mt-6">
-                <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{color:S.muted}}>Camera Zones</h3>
+                <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{color:S.muted}}>Business Areas</h3>
                 <div className="grid grid-cols-2 gap-2">
                   {zones.map(zone=>(
                     <div key={zone.id} className="rounded-xl p-2.5 flex items-center gap-2 border" style={{background:'rgba(30,45,74,0.5)',borderColor:S.border}}>

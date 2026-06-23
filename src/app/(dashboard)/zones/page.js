@@ -418,8 +418,8 @@ export default function ZonesPage() {
     <DashboardLayout industry={clientIndustry} displayIndustry={displayIndustry} clientName={clientName || 'Zones'} userName={clientName}>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Camera Zones</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{scopedZones.length} zones configured</p>
+          <h1 className="text-2xl font-bold text-gray-900">Business Areas</h1>
+          <p className="text-sm text-gray-500 mt-0.5">{scopedZones.length} areas configured</p>
         </div>
         <div className="flex gap-2">
           <button onClick={() => { setEditZone(null); setModalOpen(true); }} className="btn-secondary text-sm">

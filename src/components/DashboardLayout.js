@@ -44,7 +44,7 @@ export default function DashboardLayout({ children, industry, displayIndustry, c
     { href: `/${industry}`, label: 'Dashboard',    key: 'dashboard'  },
     { href: '/workers',     label: 'Workers',      key: 'workers'    },
     { href: '/attendance',  label: 'Schedule',     key: 'attendance' },
-    { href: '/zones',       label: 'Camera Zones', key: 'zones'      },
+    { href: '/zones',       label: 'Business Areas', key: 'zones'    },
   ];
 
   async function handleLogout() {
