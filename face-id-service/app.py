@@ -134,8 +134,11 @@ def identify(req: IdentifyRequest):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"fetch_image failed: {e}")
 
-    # Detect all faces in the frame
-    face_locations = face_recognition.face_locations(arr)
+    # HOG with 2x upsample — catches small faces HOG would miss with default
+    # settings, while staying under ~500ms per frame. CNN tried briefly here
+    # and gave 0 extra detections on CCTV-angle gym frames at 10× the cost,
+    # so we don't fall back to it.
+    face_locations = face_recognition.face_locations(arr, number_of_times_to_upsample=2)
     if not face_locations:
         return IdentifyResponse(
             detected_count=0,
