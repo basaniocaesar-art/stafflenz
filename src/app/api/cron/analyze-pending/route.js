@@ -60,9 +60,23 @@ export async function GET(request) {
     buckets.get(key).push(f);
   }
 
+  // 2b. Pick ONE bucket per tick — the one with the oldest pending frame —
+  // so each tick stays under Vercel's 60s function timeout. With the cron
+  // running every 2 min and N active locations, each gets analyzed every
+  // ~2N minutes (4 min at 2 locations). This avoids the previous
+  // FUNCTION_INVOCATION_TIMEOUT problem where face-id × 16 frames per tick
+  // would tip the function over the wall clock budget.
+  const bucketList = [...buckets.entries()].map(([k, frames]) => ({
+    key: k,
+    frames,
+    oldest: frames[0].captured_at,
+  }));
+  bucketList.sort((a, b) => a.oldest.localeCompare(b.oldest));
+  const todo = bucketList.slice(0, 1);
+
   const report = [];
 
-  for (const [key, frames] of buckets) {
+  for (const { key, frames } of todo) {
     const [client_id, locRaw] = key.split('::');
     const location_id = locRaw || null;
 
