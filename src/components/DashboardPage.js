@@ -220,6 +220,75 @@ function SetupChecklist({ workersCount, zonesCount, hasFrames, alertsCount, aiAc
   );
 }
 
+/* ── Workforce scores (Coverage / Compliance / Engagement / Risk) ──────────
+   Aggregates the last N timeline windows into the executive metrics that
+   matter to a manager. All computed client-side from data already loaded. */
+function computeWorkforceScores(timelines) {
+  let totalPeople = 0, namedPeople = 0, working = 0;
+  let totalAlerts = 0, highAlerts = 0, mediumAlerts = 0;
+  const zoneObs = {};   // zone -> { total, named, working }
+  const seenWorkers = new Set();
+
+  const isReal = (n) => {
+    const x = (n || '').toLowerCase().trim();
+    return x && x !== 'unknown person' && x !== 'unknown' && x !== 'n/a';
+  };
+  const isActiveWork = (a) => {
+    const x = (a || '').toLowerCase();
+    return x && x !== 'idle' && x !== 'resting' && x !== 'waiting' && x !== 'standing';
+  };
+
+  for (const tl of (timelines || [])) {
+    const body = tl.timeline || tl;
+    for (const camWindow of (body?.timeline || [])) {
+      for (const minute of (camWindow.minutes || [])) {
+        for (const p of (minute.people || [])) {
+          totalPeople++;
+          const named = isReal(p.worker_name);
+          if (named) { namedPeople++; seenWorkers.add(p.worker_name); }
+          if (isActiveWork(p.activity)) working++;
+          const z = p.zone;
+          if (z) {
+            if (!zoneObs[z]) zoneObs[z] = { total: 0, named: 0, working: 0 };
+            zoneObs[z].total++;
+            if (named) zoneObs[z].named++;
+            if (isActiveWork(p.activity)) zoneObs[z].working++;
+          }
+        }
+      }
+    }
+    for (const a of (body?.alerts || [])) {
+      totalAlerts++;
+      const s = (a.severity || '').toLowerCase();
+      if (s === 'high') highAlerts++;
+      else if (s === 'medium') mediumAlerts++;
+    }
+  }
+
+  // Overall scores
+  const coverageScore   = totalPeople ? Math.round((namedPeople / totalPeople) * 100) : null;
+  const complianceScore = totalAlerts
+    ? Math.max(0, 100 - Math.round((highAlerts * 8 + mediumAlerts * 2) / totalAlerts * 10))
+    : 100;
+  const engagementScore = totalPeople ? Math.round((working / totalPeople) * 100) : null;
+  const riskLevel       = highAlerts >= 4 ? 'High' : highAlerts >= 1 ? 'Medium' : 'Low';
+
+  // Per-zone coverage breakdown
+  const zoneScores = Object.entries(zoneObs)
+    .filter(([, v]) => v.total >= 2)   // ignore noisy zones with single observation
+    .map(([name, v]) => ({
+      name,
+      coverage: v.total ? Math.round((v.named / v.total) * 100) : 0,
+      observations: v.total,
+    }))
+    .sort((a, b) => b.observations - a.observations);
+
+  return {
+    coverageScore, complianceScore, engagementScore, riskLevel,
+    zoneScores, namedWorkers: seenWorkers.size, totalAlerts, highAlerts,
+  };
+}
+
 /* ── Per-camera AI stats ────────────────────────────────────────────────────
    Walks the most recent timeline windows and returns
    { 1: {staff, members, violations}, … 8: {...} } per channel. ───────── */
@@ -1124,6 +1193,7 @@ export default function DashboardPage({ industry }) {
           ? (recent_events||[]).filter(e => e.zone_id === selectedZone)
           : (recent_events||[]);
         const zoneEventCount = (zid) => (recent_events||[]).filter(e => e.zone_id === zid).length;
+        const scores = computeWorkforceScores(data?.timelines || []);
         return (
         <div className="space-y-4">
           {/* Camera/zone picker */}
@@ -1152,21 +1222,54 @@ export default function DashboardPage({ industry }) {
             </div>
           )}
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {[
-              {label:selectedZone ? 'Events (this camera)' : 'Present Today',
-                value: selectedZone ? filteredEvents.length : (today?.present_count??0),  color:'#22c55e'},
-              {label:selectedZone ? 'Unique Workers' : 'Absent',
-                value: selectedZone ? new Set(filteredEvents.map(e=>e.worker_name).filter(Boolean)).size : (today?.absent_count??0),   color:'#94a3b8'},
-              {label:'Total Events',   value: selectedZone ? filteredEvents.length : (today?.total_events??0),   color:'#60a5fa'},
-              {label:'Plan',           value:(client?.plan||'FREE').toUpperCase(), color:'#a78bfa'},
-            ].map(k=>(
-              <div key={k.label} className="rounded-2xl p-4 border" style={{background:S.card,borderColor:S.border}}>
-                <div className="text-[11px] uppercase tracking-wider mb-2" style={{color:S.muted}}>{k.label}</div>
-                <div className="text-3xl font-extrabold" style={{color:k.color,textShadow:`0 0 20px ${k.color}60`}}>{k.value}</div>
+          {/* ── Executive score tiles ─────────────────────────────────── */}
+          {(() => {
+            const fmt = (n) => (n === null || n === undefined) ? '—' : `${n}%`;
+            const riskColor = scores.riskLevel === 'High' ? '#ef4444' : scores.riskLevel === 'Medium' ? '#f59e0b' : '#22c55e';
+            const tiles = [
+              { label: 'Coverage Score',  value: fmt(scores.coverageScore),   hint: 'Named staff in observations', color: '#22c55e' },
+              { label: 'Compliance Score',value: fmt(scores.complianceScore), hint: `${scores.highAlerts} high · ${scores.totalAlerts} total alerts`, color: '#60a5fa' },
+              { label: 'Staff Engagement',value: fmt(scores.engagementScore), hint: 'Active vs idle activity',     color: '#a78bfa' },
+              { label: 'Risk Level',      value: scores.riskLevel,            hint: `${scores.highAlerts} high-severity in 24h`, color: riskColor },
+            ];
+            return (
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {tiles.map(t => (
+                  <div key={t.label} className="rounded-2xl p-4 border" style={{background:S.card,borderColor:S.border}}>
+                    <div className="text-[11px] uppercase tracking-wider mb-2" style={{color:S.muted}}>{t.label}</div>
+                    <div className="text-3xl font-extrabold" style={{color:t.color,textShadow:`0 0 20px ${t.color}60`}}>{t.value}</div>
+                    <div className="text-[10px] mt-1" style={{color:'#64748b'}}>{t.hint}</div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            );
+          })()}
+
+          {/* ── Coverage by Business Area ────────────────────────────── */}
+          {scores.zoneScores.length > 0 && (
+            <div className="rounded-2xl p-5 border" style={{background:S.card,borderColor:S.border}}>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-bold text-white">Coverage by Business Area</h2>
+                <span className="text-[11px]" style={{color:S.muted}}>% of observations where registered staff were identified · last 24h</span>
+              </div>
+              <div className="space-y-2.5">
+                {scores.zoneScores.map((z) => {
+                  const c = z.coverage;
+                  const barColor = c >= 80 ? '#22c55e' : c >= 50 ? '#f59e0b' : '#ef4444';
+                  return (
+                    <div key={z.name} className="flex items-center gap-3">
+                      <div className="w-44 shrink-0 text-sm text-white truncate">{z.name}</div>
+                      <div className="flex-1 h-2 rounded-full overflow-hidden" style={{background:'rgba(30,45,74,0.6)'}}>
+                        <div className="h-full rounded-full transition-all duration-500" style={{width:`${c}%`,background:`linear-gradient(90deg, ${barColor}aa, ${barColor})`}} />
+                      </div>
+                      <div className="w-16 text-right text-sm font-bold tabular-nums" style={{color:barColor}}>{c}%</div>
+                      <div className="w-20 text-right text-[10px] font-mono" style={{color:'#64748b'}}>{z.observations} obs</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {week_chart?.length>0&&(
             <div className="rounded-2xl p-5 border" style={{background:S.card,borderColor:S.border}}>
