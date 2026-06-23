@@ -455,6 +455,66 @@ Return ONLY valid JSON in this exact shape:
     }));
     const { data } = await db.from('alerts').insert(alertRows).select('id');
     alertsInserted = data?.length || 0;
+
+    // ── Real-time WhatsApp push on high-severity alerts ─────────────────
+    // Rate-limited to one message per location per 10 minutes so we don't
+    // spam during a continuous incident. Falls back to client-level
+    // whatsapp_notify if the location doesn't have its own number.
+    const highAlerts = analysis.alerts.filter((a) => (a.severity || '').toLowerCase() === 'high');
+    if (highAlerts.length > 0) {
+      try {
+        // Resolve recipient + check rate-limit
+        let recipient = null;
+        let locRow = null;
+        if (location_id) {
+          const { data: l } = await db
+            .from('locations')
+            .select('id, name, whatsapp_notify, last_whatsapp_alert_at')
+            .eq('id', location_id)
+            .maybeSingle();
+          locRow = l;
+          recipient = l?.whatsapp_notify || null;
+        }
+        if (!recipient) {
+          const { data: c } = await db
+            .from('clients').select('whatsapp_notify, name').eq('id', client_id).maybeSingle();
+          recipient = c?.whatsapp_notify || null;
+        }
+
+        // 10-min rate limit on this LOCATION (only if location row exists with timestamp)
+        const TEN_MIN_MS = 10 * 60 * 1000;
+        const lastSent = locRow?.last_whatsapp_alert_at ? new Date(locRow.last_whatsapp_alert_at).getTime() : 0;
+        const cooledDown = Date.now() - lastSent > TEN_MIN_MS;
+
+        if (recipient && cooledDown) {
+          const { data: clientRow } = await db.from('clients').select('name').eq('id', client_id).maybeSingle();
+          const top = highAlerts.slice(0, 3).map((a) => {
+            const dur = a.duration_minutes > 0 ? ` (${a.duration_minutes} min)` : '';
+            const zone = a.zone_name ? ` · ${a.zone_name}` : '';
+            const impact = Array.isArray(a.business_impact) && a.business_impact.length > 0
+              ? `\n  ↳ ${a.business_impact.slice(0, 2).join(' · ')}`
+              : '';
+            return `• ${a.message}${dur}${zone}${impact}`;
+          }).join('\n');
+          const msg = [
+            `🚨 StaffLenz — ${clientRow?.name || ''}${locRow?.name ? ' · ' + locRow.name : ''}`,
+            new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }),
+            '',
+            top,
+            '',
+            `View: ${process.env.NEXT_PUBLIC_APP_URL || 'https://www.stafflenz.com'}/dashboard`,
+          ].join('\n');
+          const { sendWhatsApp } = await import('@/lib/whatsapp');
+          await sendWhatsApp(recipient, msg);
+          // Stamp rate-limit timestamp (skip silently if column missing)
+          if (location_id) {
+            await db.from('locations').update({ last_whatsapp_alert_at: nowIso }).eq('id', location_id);
+          }
+        }
+      } catch (e) {
+        console.warn('[analyze-sequence] whatsapp alert failed', e.message);
+      }
+    }
   }
 
   // Timeline row (for the dashboard timeline view)
