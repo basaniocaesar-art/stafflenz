@@ -23,7 +23,7 @@ export async function GET(request) {
   // Check if this client has any locations set up
   const { data: locationsData } = await db
     .from('locations')
-    .select('id, name, industry')
+    .select('id, name, industry, monitoring_paused')
     .eq('client_id', clientId)
     .eq('is_active', true);
   const hasLocations = (locationsData || []).length > 0;

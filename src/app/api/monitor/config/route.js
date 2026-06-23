@@ -52,9 +52,23 @@ export async function GET(request) {
     zonesByClient[z.client_id].push(z);
   }
 
+  // Fetch locations for all clients (used to render the per-location Pause toggle)
+  const { data: locations } = await db
+    .from('locations')
+    .select('id, client_id, name, monitoring_paused')
+    .eq('is_active', true)
+    .order('name');
+
+  const locsByClient = {};
+  for (const l of (locations || [])) {
+    if (!locsByClient[l.client_id]) locsByClient[l.client_id] = [];
+    locsByClient[l.client_id].push(l);
+  }
+
   const enriched = (clients || []).map(c => ({
     ...c,
-    zones: zonesByClient[c.id] || [],
+    zones:     zonesByClient[c.id] || [],
+    locations: locsByClient[c.id]  || [],
   }));
 
   return NextResponse.json({ clients: enriched });

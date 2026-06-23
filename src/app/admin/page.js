@@ -1366,6 +1366,41 @@ function MonitoringTab() {
                 </div>
               </div>
 
+              {/* Per-location Pause / Resume row */}
+              {(c.locations || []).length > 0 && (
+                <div className="px-6 py-3 border-b border-gray-100 bg-gray-50/40 flex items-center gap-2 flex-wrap">
+                  <span className="text-[11px] uppercase tracking-wider font-semibold text-gray-400 mr-1">Monitoring</span>
+                  {c.locations.map((loc) => (
+                    <button
+                      key={loc.id}
+                      onClick={async () => {
+                        const next = !loc.monitoring_paused;
+                        if (!confirm(next ? `Pause monitoring for ${loc.name}? Cameras stop capturing until you resume.` : `Resume monitoring for ${loc.name}?`)) return;
+                        const r = await fetch(`/api/locations/${loc.id}/pause`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ paused: next }),
+                        });
+                        if (!r.ok) {
+                          const j = await r.json().catch(() => ({}));
+                          alert(`Failed: ${j.error || r.status}`);
+                          return;
+                        }
+                        reload();
+                      }}
+                      className="px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors flex items-center gap-2"
+                      style={loc.monitoring_paused
+                        ? { background: '#fff7ed', color: '#c2410c', borderColor: '#fed7aa' }
+                        : { background: '#f0fdf4', color: '#15803d', borderColor: '#bbf7d0' }}
+                    >
+                      <span className={`w-1.5 h-1.5 rounded-full ${loc.monitoring_paused ? 'bg-orange-500' : 'bg-emerald-500 animate-pulse'}`} />
+                      <span>{loc.name}</span>
+                      <span className="text-[10px] opacity-80">{loc.monitoring_paused ? '⏸ Paused · click to resume' : '⏵ Live · click to pause'}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
               {/* Camera zones list */}
               {(c.zones || []).length === 0 ? (
                 <div className="px-6 py-4 text-sm text-gray-400">No camera zones added yet. Go to Zones in the client dashboard to add cameras first.</div>

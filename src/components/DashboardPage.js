@@ -445,11 +445,44 @@ export default function DashboardPage({ industry }) {
                 : { color: '#64748b', border: '1px solid #1e2d4a' }}
             >
               <span>{loc.name}</span>
+              {loc.monitoring_paused && (
+                <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ background: 'rgba(251,146,60,0.18)', color: '#fb923c' }}>Paused</span>
+              )}
               {loc.open_alerts > 0 && (
                 <span className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold" style={{ background: '#ef4444', color: 'white' }}>{loc.open_alerts}</span>
               )}
             </button>
           ))}
+          {/* Pause / Resume control for the currently selected location */}
+          {selectedLocation && (() => {
+            const loc = data.locations.find(l => l.id === selectedLocation);
+            if (!loc) return null;
+            const paused = !!loc.monitoring_paused;
+            return (
+              <button
+                onClick={async () => {
+                  if (!confirm(paused ? `Resume monitoring for ${loc.name}?` : `Pause monitoring for ${loc.name}? Cameras stop capturing until you resume.`)) return;
+                  const r = await fetch(`/api/locations/${loc.id}/pause`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ paused: !paused }),
+                  });
+                  if (!r.ok) {
+                    const j = await r.json().catch(() => ({}));
+                    alert(`Failed: ${j.error || r.status}`);
+                    return;
+                  }
+                  fetchData();
+                }}
+                className="shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-2"
+                style={paused
+                  ? { background: 'rgba(34,197,94,0.18)', color: '#4ade80', border: '1px solid rgba(34,197,94,0.3)' }
+                  : { background: 'rgba(251,146,60,0.18)', color: '#fb923c', border: '1px solid rgba(251,146,60,0.3)' }}
+              >
+                {paused ? '▶ Resume' : '⏸ Pause'}
+              </button>
+            );
+          })()}
         </div>
       )}
 
