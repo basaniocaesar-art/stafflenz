@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import DashboardLayout from './DashboardLayout';
 
 /* ── helpers ────────────────────────────────────────────────────────────────── */
@@ -220,10 +220,51 @@ function SetupChecklist({ workersCount, zonesCount, hasFrames, alertsCount, aiAc
   );
 }
 
+/* ── Per-camera AI stats ────────────────────────────────────────────────────
+   Walks the most recent timeline windows and returns
+   { 1: {staff, members, violations}, … 8: {...} } per channel. ───────── */
+function computeCameraStats(timelines) {
+  const stats = {};
+  for (let i = 1; i <= 8; i++) stats[i] = { staff: new Set(), members: 0, violations: 0 };
+
+  // Only look at the most recent ~15 minutes of windows (3 cron ticks)
+  const recent = (timelines || []).slice(0, 3);
+  const isReal = (name) => {
+    const n = (name || '').toLowerCase().trim();
+    return n && n !== 'unknown person' && n !== 'unknown' && n !== 'n/a' && n !== '';
+  };
+
+  for (const tl of recent) {
+    const body = tl.timeline || tl;
+    // Inner timeline windows per channel
+    for (const camWindow of (body?.timeline || [])) {
+      const ch = camWindow.camera_channel;
+      if (!ch || !stats[ch]) continue;
+      for (const minute of (camWindow.minutes || [])) {
+        for (const p of (minute.people || [])) {
+          if (isReal(p.worker_name)) stats[ch].staff.add(p.worker_name);
+          else stats[ch].members++;
+        }
+      }
+    }
+    // High-severity alerts as violations, attributed by channel
+    for (const a of (body?.alerts || [])) {
+      const ch = a.camera_channel;
+      if (!ch || !stats[ch]) continue;
+      const sev = (a.severity || '').toLowerCase();
+      if (sev === 'high') stats[ch].violations++;
+    }
+  }
+  for (const ch in stats) stats[ch].staff = stats[ch].staff.size;
+  return stats;
+}
+
 /* ── Camera Feed ────────────────────────────────────────────────────────────── */
-function AICamFeed({ camIndex, videoUrl, alertCam, snapshotUrl }) {
+function AICamFeed({ camIndex, videoUrl, alertCam, snapshotUrl, stats }) {
   const [imgKey, setImgKey] = useState(0);
   const hasRealFeed = !!snapshotUrl;
+  const s = stats || { staff: 0, members: 0, violations: 0 };
+  const showOverlay = hasRealFeed && (s.staff > 0 || s.members > 0 || s.violations > 0);
 
   // Refresh snapshot every 60 seconds
   useEffect(()=>{
@@ -252,6 +293,19 @@ function AICamFeed({ camIndex, videoUrl, alertCam, snapshotUrl }) {
         {hasRealFeed && <span className="text-[8px] font-mono bg-emerald-600/90 text-white px-1.5 py-0.5 rounded">LIVE</span>}
         {alertCam && <span className="text-[8px] font-mono bg-red-600 text-white px-1.5 py-0.5 rounded animate-pulse">ALERT</span>}
       </div>
+      {/* AI-detection overlay: only when we have signal */}
+      {showOverlay && (
+        <div className="absolute bottom-0 left-0 right-0 px-2 py-1 flex items-center justify-between text-[9px] font-mono backdrop-blur-sm" style={{background:'linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.2))'}}>
+          <span className="text-emerald-300 uppercase tracking-wider">AI</span>
+          <span className="flex items-center gap-2 text-gray-200">
+            <span title="Registered staff identified">{s.staff} staff</span>
+            <span className="text-gray-600">·</span>
+            <span title="Other people detected">{s.members} {s.members === 1 ? 'person' : 'people'}</span>
+            <span className="text-gray-600">·</span>
+            <span className={s.violations > 0 ? 'text-red-400 font-bold' : 'text-gray-300'} title="High-severity incidents">{s.violations} viol.</span>
+          </span>
+        </div>
+      )}
     </div>
   );
 }
@@ -413,6 +467,9 @@ export default function DashboardPage({ industry }) {
     // Only update if we got at least one real URL
     if (urls.some(Boolean)) setVideoUrls(urls);
   },[data?.camera_snapshots]);
+
+  // Per-camera AI stats — recompute when timelines change
+  const cameraStats = useMemo(() => computeCameraStats(data?.timelines || []), [data?.timelines]);
 
   // Real data
   const fetchData = useCallback(async()=>{
@@ -909,7 +966,7 @@ export default function DashboardPage({ industry }) {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5">
               {videoUrls.map((url,i)=>(
-                <AICamFeed key={i} camIndex={i} videoUrl={null} snapshotUrl={url} alertCam={alertCams.includes(i)}/>
+                <AICamFeed key={i} camIndex={i} videoUrl={null} snapshotUrl={url} alertCam={alertCams.includes(i)} stats={cameraStats[i+1]}/>
               ))}
             </div>
             <div className="mt-2 text-[10px] font-mono" style={{color:'#334155'}}>
