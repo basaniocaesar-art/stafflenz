@@ -194,9 +194,21 @@ export async function POST(request) {
   const embeddingPayload = workersToEmbeddingPayload(workers);
   let faceIdPromptBlock = null;
   if (faceIdEnabled() && embeddingPayload.length > 0) {
-    // Resolve the original frame_urls in input order (face-id needs URLs, not buffers)
-    const allFrameUrls = frames.flatMap((cam) => cam.frame_urls || []);
-    const faceIdResults = await identifyFacesInFrames(allFrameUrls, embeddingPayload, 0.6);
+    // Resolve the original frame_urls in input order (face-id needs URLs, not buffers).
+    // Also track which flat index belongs to which camera_channel so we can flip on
+    // aggressive face detection for front-desk camera frames only.
+    const allFrameUrls = [];
+    const frameChannels = [];
+    for (const cam of frames) {
+      for (const u of (cam.frame_urls || [])) {
+        allFrameUrls.push(u);
+        frameChannels.push(cam.camera_channel);
+      }
+    }
+    const aggressivePredicate = frontDeskCh
+      ? (i) => frameChannels[i] === frontDeskCh
+      : null;
+    const faceIdResults = await identifyFacesInFrames(allFrameUrls, embeddingPayload, 0.6, aggressivePredicate);
     const hasAnyHits = (faceIdResults || []).some(
       (r) => r && Array.isArray(r.people) && r.people.length > 0
     );

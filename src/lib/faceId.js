@@ -17,9 +17,10 @@ export function faceIdEnabled() {
  * @param {string} frameUrl - public/signed URL of the frame image
  * @param {Array<{worker_name: string, embeddings: number[][]}>} workers
  * @param {number} tolerance - 0.5 strict / 0.6 balanced / 0.7 lenient
+ * @param {boolean} aggressive - try harder detectors (upsample=3/4 + CNN). Slow.
  * @returns {Promise<{detected_count, people: Array<{name, confidence, box}>}>}
  */
-export async function identifyFaces(frameUrl, workers, tolerance = 0.6) {
+export async function identifyFaces(frameUrl, workers, tolerance = 0.6, aggressive = false) {
   if (!FACE_ID_URL) return null;
   if (!Array.isArray(workers) || workers.length === 0) return null;
 
@@ -27,9 +28,9 @@ export async function identifyFaces(frameUrl, workers, tolerance = 0.6) {
     const res = await fetch(`${FACE_ID_URL}/identify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ frame_url: frameUrl, workers, tolerance }),
-      // Generous timeout — first request after idle can take ~5s to wake
-      signal: AbortSignal.timeout(20000),
+      body: JSON.stringify({ frame_url: frameUrl, workers, tolerance, aggressive }),
+      // Aggressive mode can take 30-60s (CNN inference). Standard mode ~3-5s.
+      signal: AbortSignal.timeout(aggressive ? 90000 : 20000),
     });
     if (!res.ok) {
       console.warn(`[faceId] identify HTTP ${res.status}`);
@@ -44,11 +45,15 @@ export async function identifyFaces(frameUrl, workers, tolerance = 0.6) {
 
 /**
  * Batch convenience — identify across multiple frames in parallel.
- * Returns array aligned to input frames (null if a particular frame failed).
+ * `aggressivePredicate` (optional) is called per index — return true to use
+ * aggressive mode for that frame (e.g. the front-desk camera). Default off.
  */
-export async function identifyFacesInFrames(frameUrls, workers, tolerance = 0.6) {
+export async function identifyFacesInFrames(frameUrls, workers, tolerance = 0.6, aggressivePredicate = null) {
   if (!FACE_ID_URL) return frameUrls.map(() => null);
-  return Promise.all(frameUrls.map((url) => identifyFaces(url, workers, tolerance)));
+  return Promise.all(frameUrls.map((url, i) => {
+    const agg = aggressivePredicate ? Boolean(aggressivePredicate(i)) : false;
+    return identifyFaces(url, workers, tolerance, agg);
+  }));
 }
 
 /**

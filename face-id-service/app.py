@@ -58,6 +58,7 @@ class IdentifyRequest(BaseModel):
     frame_url: str
     workers: list[WorkerEmbeddings]
     tolerance: float = 0.6           # standard threshold; lower = stricter
+    aggressive: bool = False         # spend extra CPU on small/angled faces (front desk only)
 
 
 class IdentifiedPerson(BaseModel):
@@ -134,11 +135,30 @@ def identify(req: IdentifyRequest):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"fetch_image failed: {e}")
 
-    # HOG with 2x upsample — catches small faces HOG would miss with default
-    # settings, while staying under ~500ms per frame. CNN tried briefly here
-    # and gave 0 extra detections on CCTV-angle gym frames at 10× the cost,
-    # so we don't fall back to it.
+    # Standard pass — HOG with 2x upsample, ~500ms.
     face_locations = face_recognition.face_locations(arr, number_of_times_to_upsample=2)
+    detector_used = "hog-upsample2"
+
+    # Aggressive pass — front-desk camera only. Tries:
+    #   1) HOG with upsample=3 (handles 40px-wide faces)
+    #   2) HOG with upsample=4 (handles 20px-wide faces, slow)
+    #   3) CNN with upsample=1 (catches angled / partial faces HOG misses)
+    if not face_locations and req.aggressive:
+        face_locations = face_recognition.face_locations(arr, number_of_times_to_upsample=3)
+        if face_locations:
+            detector_used = "hog-upsample3"
+    if not face_locations and req.aggressive:
+        face_locations = face_recognition.face_locations(arr, number_of_times_to_upsample=4)
+        if face_locations:
+            detector_used = "hog-upsample4"
+    if not face_locations and req.aggressive:
+        try:
+            face_locations = face_recognition.face_locations(arr, model="cnn", number_of_times_to_upsample=1)
+            if face_locations:
+                detector_used = "cnn"
+        except Exception as e:
+            print(f"  ⚠ CNN detector failed: {e}", flush=True)
+
     if not face_locations:
         return IdentifyResponse(
             detected_count=0,
@@ -147,6 +167,7 @@ def identify(req: IdentifyRequest):
         )
 
     face_encs = face_recognition.face_encodings(arr, face_locations)
+    print(f"  detector={detector_used}  faces={len(face_locations)}", flush=True)
 
     # Pre-build flat arrays of (name, embedding) for fast comparison
     known_names: list[str] = []
