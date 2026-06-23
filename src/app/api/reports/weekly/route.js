@@ -15,15 +15,21 @@ const isReal = (n) => {
 };
 
 export async function GET(request) {
-  const session = await requireAuth(request);
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
   const { searchParams } = new URL(request.url);
-  const queryLocation = searchParams.get('location') || null;
 
-  const isSuper = session.user.role === 'super_admin';
-  // For non-super, lock to their own client
-  const clientId = isSuper ? (searchParams.get('client_id') || session.user.client_id) : session.user.client_id;
+  // Two auth modes: user session (UI) OR internal secret (server-to-server, used by the Sunday email cron)
+  const internalAuth = request.headers.get('x-internal-secret') === process.env.INTERNAL_SECRET;
+  let session = null;
+  if (!internalAuth) {
+    session = await requireAuth(request);
+    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const queryLocation = searchParams.get('location') || null;
+  const isSuper = !internalAuth && session?.user.role === 'super_admin';
+  const clientId = internalAuth
+    ? searchParams.get('client_id')
+    : (isSuper ? (searchParams.get('client_id') || session.user.client_id) : session.user.client_id);
   if (!clientId) return NextResponse.json({ error: 'No client context' }, { status: 400 });
 
   const db = getAdminClient();
