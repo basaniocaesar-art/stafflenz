@@ -256,6 +256,131 @@ function AICamFeed({ camIndex, videoUrl, alertCam, snapshotUrl }) {
   );
 }
 
+/* ── Today's AI Summary ─────────────────────────────────────────────────────
+   Turns raw timeline data into the 4 most important things a manager
+   should know right now. Ranked by severity, color-coded. ─────────────── */
+function computeHeroBullets(timelines, workersTotal) {
+  const sev = { low: 0, medium: 0, high: 0 };
+  const zones = {};       // zone -> { count, severity }
+  const alertTypes = {};
+  const namedWorkers = new Set();
+  const distinctZonesSeen = new Set();
+  let windowsCount = 0;
+
+  for (const tl of timelines || []) {
+    windowsCount++;
+    const body = tl.timeline || tl;
+    const alerts = (body?.alerts) || [];
+    for (const a of alerts) {
+      const s = (a.severity || '').toLowerCase();
+      if (sev[s] !== undefined) sev[s]++;
+      const t = a.alert_type || 'general';
+      alertTypes[t] = (alertTypes[t] || 0) + 1;
+      const z = a.zone_name;
+      if (z) {
+        distinctZonesSeen.add(z);
+        if (!zones[z]) zones[z] = { count: 0, sev: 'low' };
+        zones[z].count++;
+        if (s === 'high' || (s === 'medium' && zones[z].sev === 'low')) zones[z].sev = s;
+      }
+      const w = a.worker_name;
+      if (w && w !== 'Unknown Person' && w !== 'Unknown' && w !== 'unknown' && w !== 'N/A') {
+        namedWorkers.add(w);
+      }
+    }
+  }
+
+  const bullets = [];
+
+  // 1. High-severity items lead
+  if (sev.high > 0) {
+    const topHigh = Object.entries(zones)
+      .filter(([, v]) => v.sev === 'high')
+      .sort((a, b) => b[1].count - a[1].count)[0];
+    bullets.push({
+      sev: 'high',
+      text: topHigh
+        ? `${sev.high} high-priority incident${sev.high === 1 ? '' : 's'} today — ${topHigh[0]} (${topHigh[1].count}×)`
+        : `${sev.high} high-priority incident${sev.high === 1 ? '' : 's'} today`,
+    });
+  }
+
+  // 2. Top problem zone(s) — medium severity
+  const problemZones = Object.entries(zones)
+    .filter(([, v]) => v.count >= 3 && v.sev !== 'high')
+    .sort((a, b) => b[1].count - a[1].count)
+    .slice(0, 2);
+  for (const [name, v] of problemZones) {
+    bullets.push({
+      sev: 'medium',
+      text: `${name} flagged ${v.count}× today`,
+    });
+  }
+
+  // 3. Staffing alerts framing
+  if (alertTypes.staffing > 5 && bullets.length < 4) {
+    bullets.push({
+      sev: sev.high > 0 ? 'medium' : 'low',
+      text: `${alertTypes.staffing} staffing observations across the day`,
+    });
+  }
+
+  // 4. Positive bullet: workers identified by face-id
+  if (namedWorkers.size > 0 && bullets.length < 4) {
+    const names = [...namedWorkers].slice(0, 3).join(', ');
+    bullets.push({
+      sev: 'low',
+      text: `${namedWorkers.size} registered staff identified today (${names}${namedWorkers.size > 3 ? ', …' : ''})`,
+    });
+  } else if (windowsCount > 0 && workersTotal > 0 && namedWorkers.size === 0 && bullets.length < 4) {
+    bullets.push({
+      sev: 'medium',
+      text: `No registered staff identified today — check face photos`,
+    });
+  }
+
+  // 5. Coverage / activity windows
+  if (windowsCount > 0 && bullets.length < 4) {
+    bullets.push({
+      sev: 'low',
+      text: `${windowsCount} activity windows recorded across ${distinctZonesSeen.size || 'all'} business area${distinctZonesSeen.size === 1 ? '' : 's'}`,
+    });
+  }
+
+  // 6. Quiet day fallback
+  if (bullets.length === 0) {
+    bullets.push({ sev: 'low', text: 'No incidents in the last 24 hours — all business areas reporting normally' });
+  }
+
+  return bullets.slice(0, 4);
+}
+
+function HeroSummary({ timelines, workersTotal, locationName }) {
+  const bullets = computeHeroBullets(timelines, workersTotal);
+  const dot = { low: '#22c55e', medium: '#f59e0b', high: '#ef4444' };
+  const tint = { low: 'rgba(34,197,94,0.06)', medium: 'rgba(245,158,11,0.06)', high: 'rgba(239,68,68,0.08)' };
+
+  return (
+    <div className="rounded-2xl p-5 border mb-4" style={{ background: 'linear-gradient(135deg,rgba(13,22,49,0.95),rgba(13,22,49,0.7))', borderColor: '#1e2d4a' }}>
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <div className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#22d3ee' }}>Today&apos;s AI Summary</div>
+          <div className="text-lg font-bold text-white mt-0.5">{locationName ? `${locationName} · last 24 hours` : 'All locations · last 24 hours'}</div>
+        </div>
+        <div className="text-[10px] font-mono" style={{ color: '#475569' }}>Auto-generated · refreshes every minute</div>
+      </div>
+      <div className="grid sm:grid-cols-2 gap-2">
+        {bullets.map((b, i) => (
+          <div key={i} className="flex items-start gap-3 px-3 py-2.5 rounded-lg" style={{ background: tint[b.sev], border: `1px solid ${dot[b.sev]}35` }}>
+            <span className="w-2.5 h-2.5 rounded-full mt-1.5 shrink-0" style={{ background: dot[b.sev] }} />
+            <span className="text-sm leading-snug" style={{ color: '#e2e8f0' }}>{b.text}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ── Main Dashboard ─────────────────────────────────────────────────────────── */
 export default function DashboardPage({ industry }) {
   const [data,         setData]         = useState(null);
@@ -424,6 +549,13 @@ export default function DashboardPage({ industry }) {
       </div>
 
       {/* ── Location picker (only shown if client has multiple locations) ── */}
+      {/* ── Today's AI Summary (hero) ── */}
+      <HeroSummary
+        timelines={data?.timelines || []}
+        workersTotal={client?.total_workers || 0}
+        locationName={activeLocation?.name || null}
+      />
+
       {data?.has_locations && data?.locations?.length > 0 && (
         <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
           <button
