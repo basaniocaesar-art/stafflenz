@@ -431,12 +431,11 @@ export default function HomePage() {
                 LIVE IN 5 MINUTES · NO NEW HARDWARE
               </div>
               <h1 className="text-5xl sm:text-6xl font-extrabold leading-[1.08] tracking-tight mb-6">
-                Turn Every Camera Into<br />
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-violet-400 to-blue-300">Intelligent Eyes</span><br />
-                for Your Business
+                Turn Your Existing CCTV Into An<br />
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-violet-400 to-blue-300">AI Workforce Manager</span>
               </h1>
               <p className="text-lg text-slate-400 mb-8 leading-relaxed max-w-xl">
-                StaffLenz turns your existing CCTV into a real-time AI workforce intelligence platform — tracking attendance, compliance, and operational gaps across 10 industries. We handle the setup. No new cameras, no rewiring, no downtime.
+                Your cameras already see your staff every minute of every day. StaffLenz turns that footage into coverage scores, compliance reports, and live alerts — so you finally know who&apos;s working, where, and how well. No new hardware. No rewiring. Live in minutes.
               </p>
               <div className="flex flex-wrap gap-4 mb-10">
                 <a href="#contact" className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold px-8 py-4 rounded-xl hover:opacity-90 transition-all shadow-2xl shadow-blue-900/40 text-base">
@@ -538,13 +537,13 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14">
             <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight mb-5">
-              What is <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-violet-600">StaffLenz</span> AI Video Analytics?
+              Your CCTV already knows what your staff are doing — <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-violet-600">StaffLenz</span> turns it into a manager.
             </h2>
             <p className="text-gray-600 text-lg max-w-3xl mx-auto leading-relaxed">
-              StaffLenz is an AI-powered workforce intelligence platform that helps your business transform CCTV footage into actionable insights for attendance, safety, and operational compliance. Our StaffLenz Edge Node integrates seamlessly with existing IP cameras and uses StaffLenz to analyse feeds in real time — detecting violations, tracking presence, and triggering instant alerts without any manual monitoring.
+              Every gym, restaurant, and shop already has cameras pointed at the work. StaffLenz watches the feed in real time, identifies each staff member by face, scores how well your business areas are covered, and sends a weekly report you&apos;d normally pay a manager to write.
             </p>
             <p className="text-gray-500 text-base max-w-3xl mx-auto leading-relaxed mt-4">
-              Through real-time video analysis, organisations can reduce compliance risks, prevent safety incidents, and maintain operational excellence by automating workforce monitoring across every site.
+              Coverage scores, compliance scores, and named-staff tracking — without buying a single new camera.
             </p>
           </div>
 

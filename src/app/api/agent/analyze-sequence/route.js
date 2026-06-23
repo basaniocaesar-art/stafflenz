@@ -307,7 +307,7 @@ Return ONLY valid JSON in this exact shape:
   ],
   "summary": "ONE short story-style sentence — see SUMMARY STYLE rules above",
   "alerts": [
-    {"alert_type": "staffing|zone_violation|ppe_violation|behaviour|safety|general", "camera_channel": 2, "minute_offset": 3, "worker_name": "...", "zone_name": "...", "message": "...", "severity": "low|medium|high"}
+    {"alert_type": "staffing|zone_violation|ppe_violation|behaviour|safety|general", "camera_channel": 2, "minute_offset": 3, "worker_name": "...", "zone_name": "...", "message": "Concrete fact + duration when knowable, e.g. 'Cardio floor unattended for 12 minutes' or 'Reception staffed continuously'", "duration_minutes": 12, "business_impact": ["Customer assistance unavailable", "Safety compliance risk"], "severity": "low|medium|high"}
   ],
   "worker_states": [
     {"worker_name": "Basanio", "minutes_present": 4, "minutes_idle": 1, "minutes_away": 0, "primary_zone": "Reception"}
@@ -447,6 +447,9 @@ Return ONLY valid JSON in this exact shape:
       message: a.message,
       worker_name: a.worker_name || null,
       zone_name: a.zone_name || null,
+      duration_minutes: Number.isFinite(a.duration_minutes) ? Math.round(a.duration_minutes) : null,
+      business_impact: Array.isArray(a.business_impact) && a.business_impact.length > 0 ? a.business_impact : null,
+      severity: a.severity || 'low',
       is_resolved: false,
       created_at: nowIso,
     }));

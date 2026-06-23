@@ -1133,18 +1133,43 @@ export default function DashboardPage({ industry }) {
               </div>
             ):(
               <div className="space-y-3">
-                {filteredAlerts.map(alert=>(
-                  <div key={alert.id} className="rounded-xl p-3 border" style={{background:'rgba(239,68,68,0.05)',borderColor:'rgba(239,68,68,0.2)'}}>
+                {filteredAlerts.map(alert=>{
+                  const impacts = Array.isArray(alert.business_impact) ? alert.business_impact : [];
+                  const sevColor = alert.severity === 'high' ? '#ef4444' : alert.severity === 'medium' ? '#f59e0b' : '#94a3b8';
+                  return (
+                  <div key={alert.id} className="rounded-xl p-3 border" style={{background:`${sevColor}0d`,borderColor:`${sevColor}33`}}>
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs font-bold uppercase tracking-wider mb-1" style={{color:'#ef4444'}}>{alert.alert_type?.replace('_',' ')}</div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="text-xs font-bold uppercase tracking-wider" style={{color:sevColor}}>{alert.alert_type?.replace('_',' ')}</div>
+                          {alert.duration_minutes > 0 && (
+                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded" style={{background:'rgba(13,22,49,0.6)',color:'#cbd5e1'}}>{alert.duration_minutes} min</span>
+                          )}
+                          {alert.zone_name && (
+                            <span className="text-[10px] font-mono" style={{color:'#64748b'}}>· {alert.zone_name}</span>
+                          )}
+                        </div>
                         <p className="text-sm text-white">{alert.message}</p>
-                        <p className="text-[10px] mt-1 font-mono" style={{color:S.muted}}>{new Date(alert.created_at).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'})}</p>
+                        {impacts.length > 0 && (
+                          <div className="mt-2 pt-2 border-t" style={{borderColor:'rgba(148,163,184,0.15)'}}>
+                            <div className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{color:'#64748b'}}>Potential Impact</div>
+                            <ul className="space-y-0.5">
+                              {impacts.map((imp, i) => (
+                                <li key={i} className="text-[11px] flex items-start gap-1.5" style={{color:'#94a3b8'}}>
+                                  <span style={{color:sevColor}}>→</span>
+                                  <span>{imp}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        <p className="text-[10px] mt-2 font-mono" style={{color:S.muted}}>{new Date(alert.created_at).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'})}</p>
                       </div>
                       <button onClick={()=>resolveAlert(alert.id)} className="text-xs px-3 py-1 rounded-lg font-medium transition-all shrink-0" style={{background:'rgba(34,197,94,0.12)',color:'#22c55e',border:'1px solid rgba(34,197,94,0.2)'}}>Resolve</button>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -1221,6 +1246,23 @@ export default function DashboardPage({ industry }) {
               })}
             </div>
           )}
+
+          {/* ── Generate Weekly Report button ───────────────────────── */}
+          <div className="flex items-center justify-between mb-1">
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#22d3ee' }}>Workforce Insights</div>
+              <div className="text-base text-white mt-0.5">Last 24 hours · Coverage, compliance & engagement</div>
+            </div>
+            <a
+              href={`/report/weekly${selectedLocation ? `?location=${selectedLocation}` : ''}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0 px-4 py-2 text-xs font-semibold rounded-lg transition-all flex items-center gap-2"
+              style={{ background: 'rgba(34,211,238,0.15)', color: '#22d3ee', border: '1px solid rgba(34,211,238,0.3)' }}
+            >
+              📄 Generate Weekly Report
+            </a>
+          </div>
 
           {/* ── Executive score tiles ─────────────────────────────────── */}
           {(() => {
