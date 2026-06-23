@@ -99,6 +99,19 @@ export async function POST(request) {
     .single();
   if (!clientData) return NextResponse.json({ error: 'Client not found' }, { status: 404 });
 
+  // Pull the location's front-desk camera config (if set). Frames captured
+  // from this channel get extra reception/door-state analysis from Claude.
+  let frontDeskCh = null;
+  if (location_id) {
+    const { data: locRow } = await db
+      .from('locations')
+      .select('front_desk_camera_channel')
+      .eq('id', location_id)
+      .maybeSingle();
+    frontDeskCh = locRow?.front_desk_camera_channel ?? null;
+  }
+  const includesFrontDesk = frontDeskCh && frames.some((f) => f.camera_channel === frontDeskCh);
+
   // Load workers + zones (same as analyze route)
   // Try to also pull face_embeddings — falls back if column doesn't exist yet
   let workersSelect = 'id, full_name, department, photo_path, face_embeddings';
@@ -299,12 +312,19 @@ Return ONLY valid JSON in this exact shape:
         {
           "offset": 0,
           "people": [
-            {"worker_name": "...", "confidence": 0.85, "zone": "...", "activity": "working|idle|on_phone|chatting|on_break|unknown"}
+            {"worker_name": "...", "confidence": 0.85, "zone": "...", "activity": "working|idle|on_phone|chatting|on_break|looking_at_laptop|unknown"}
           ]
         }
       ]
     }
   ],
+  "front_desk": {
+    "_comment": "Only populate for camera_channel that is the entry/reception camera (see FRONT DESK CAMERA hint below). Omit otherwise.",
+    "camera_channel": 5,
+    "minute_states": [
+      {"offset": 0, "person_present": true, "person_name": "...", "activity": "on_phone|looking_at_laptop|chatting|idle|working|away", "door_state": "open|closed|unknown"}
+    ]
+  },
   "summary": "ONE short story-style sentence — see SUMMARY STYLE rules above",
   "alerts": [
     {"alert_type": "staffing|zone_violation|ppe_violation|behaviour|safety|general", "camera_channel": 2, "minute_offset": 3, "worker_name": "...", "zone_name": "...", "message": "Concrete fact + duration when knowable, e.g. 'Cardio floor unattended for 12 minutes' or 'Reception staffed continuously'", "duration_minutes": 12, "business_impact": ["Customer assistance unavailable", "Safety compliance risk"], "severity": "low|medium|high"}
@@ -315,6 +335,19 @@ Return ONLY valid JSON in this exact shape:
   "overall_status": "normal|warning|critical"
 }`,
   });
+
+  // If this batch includes the front-desk camera, tell Claude exactly which
+  // channel it is and ask for the structured front_desk block.
+  if (includesFrontDesk) {
+    content.push({
+      type: 'text',
+      text: `FRONT DESK CAMERA: camera_channel ${frontDeskCh} is the entry / reception area camera.
+For this camera ONLY, also populate the "front_desk" object in your JSON:
+- Per minute, record whether a person is at the desk (person_present), who they are if you can tell, what they are doing (one of: on_phone, looking_at_laptop, chatting, idle, working, away), and whether the entry door is open or closed (door_state: open|closed|unknown).
+- Be honest: if you cannot tell, use "unknown" for activity and "unknown" for door_state.
+- This data drives extended-state alerts (e.g. "receptionist on phone for >5 min", "door open >10 min"). Accuracy of activity classification matters more than guesses.`,
+    });
+  }
 
   // If face-id pre-identified people, append it as authoritative ground truth
   // AFTER the main prompt so Claude uses these names directly.
@@ -514,6 +547,94 @@ Return ONLY valid JSON in this exact shape:
       } catch (e) {
         console.warn('[analyze-sequence] whatsapp alert failed', e.message);
       }
+    }
+  }
+
+  // ── Front-desk extended-state alerts ─────────────────────────────────────
+  // If Claude returned a front_desk block, scan its minute_states for
+  // persistent patterns (on phone >5 min, door open >10 min, no one at
+  // desk >10 min) and insert alerts. Same alerts table — they flow into
+  // the dashboard's Incidents tab and the WhatsApp push above.
+  const frontDesk = analysis.front_desk;
+  if (frontDesk && Array.isArray(frontDesk.minute_states) && frontDesk.minute_states.length > 0) {
+    const states = frontDesk.minute_states;
+
+    // Helper: count longest consecutive run satisfying `predicate`.
+    function longestRun(arr, predicate) {
+      let best = 0, run = 0;
+      for (const s of arr) {
+        if (predicate(s)) { run++; if (run > best) best = run; }
+        else run = 0;
+      }
+      return best;
+    }
+
+    const phoneRun     = longestRun(states, (s) => (s.activity || '').toLowerCase() === 'on_phone');
+    const laptopRun    = longestRun(states, (s) => (s.activity || '').toLowerCase() === 'looking_at_laptop');
+    const idleRun      = longestRun(states, (s) => (s.activity || '').toLowerCase() === 'idle');
+    const awayRun      = longestRun(states, (s) => !s.person_present || (s.activity || '').toLowerCase() === 'away');
+    const doorOpenRun  = longestRun(states, (s) => (s.door_state || '').toLowerCase() === 'open');
+
+    const extra = [];
+    if (phoneRun >= 5) {
+      extra.push({
+        client_id, location_id: location_id || null, alert_type: 'behaviour',
+        message: `Front desk on the phone for ${phoneRun}+ minutes`,
+        zone_name: 'Reception',
+        duration_minutes: phoneRun,
+        business_impact: ['New customer enquiries may go unanswered', 'Walk-in members not greeted'],
+        severity: phoneRun >= 10 ? 'high' : 'medium',
+        is_resolved: false, created_at: nowIso,
+      });
+    }
+    if (laptopRun >= 10) {
+      extra.push({
+        client_id, location_id: location_id || null, alert_type: 'behaviour',
+        message: `Front desk staring at laptop continuously for ${laptopRun}+ minutes (no customer interaction observed)`,
+        zone_name: 'Reception',
+        duration_minutes: laptopRun,
+        business_impact: ['Attention not on the floor', 'Members entering may not be greeted'],
+        severity: 'low',
+        is_resolved: false, created_at: nowIso,
+      });
+    }
+    if (idleRun >= 8) {
+      extra.push({
+        client_id, location_id: location_id || null, alert_type: 'behaviour',
+        message: `Reception idle for ${idleRun}+ minutes`,
+        zone_name: 'Reception',
+        duration_minutes: idleRun,
+        business_impact: ['Productivity below expected level'],
+        severity: 'low',
+        is_resolved: false, created_at: nowIso,
+      });
+    }
+    if (awayRun >= 5) {
+      extra.push({
+        client_id, location_id: location_id || null, alert_type: 'staffing',
+        message: `Front desk unattended for ${awayRun}+ minutes`,
+        zone_name: 'Reception',
+        duration_minutes: awayRun,
+        business_impact: ['Walk-in members not greeted', 'New enquiries may walk away'],
+        severity: awayRun >= 15 ? 'high' : 'medium',
+        is_resolved: false, created_at: nowIso,
+      });
+    }
+    if (doorOpenRun >= 10) {
+      extra.push({
+        client_id, location_id: location_id || null, alert_type: 'safety',
+        message: `Entry door has remained open for ${doorOpenRun}+ minutes`,
+        zone_name: 'Entrance',
+        duration_minutes: doorOpenRun,
+        business_impact: ['Air-conditioning losses', 'Security risk', 'Pests / outside noise'],
+        severity: 'medium',
+        is_resolved: false, created_at: nowIso,
+      });
+    }
+
+    if (extra.length > 0) {
+      const { data: extraIns } = await db.from('alerts').insert(extra).select('id');
+      alertsInserted += extraIns?.length || 0;
     }
   }
 

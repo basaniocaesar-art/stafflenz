@@ -820,6 +820,68 @@ export default function DashboardPage({ industry }) {
             aiActive={(data?.timelines?.length || 0) > 0 || (data?.today_cost_usd || 0) > 0 || alertCount > 0}
           />
 
+          {/* Reception / Front Desk live state — only shows when the location has a front_desk camera configured AND Claude emitted a front_desk block */}
+          {(() => {
+            const fd = (data?.timelines || []).find((t) => t.timeline?.front_desk?.minute_states?.length > 0)?.timeline?.front_desk;
+            if (!fd) return null;
+            const states = fd.minute_states || [];
+            const latest = states[states.length - 1] || {};
+            const activity = (latest.activity || 'unknown').toLowerCase();
+            const door = (latest.door_state || 'unknown').toLowerCase();
+            const person = latest.person_present ? (latest.person_name || 'Someone') : null;
+
+            // Streak length at the END of states (so "on phone for X min")
+            function tailRun(pred) {
+              let n = 0;
+              for (let i = states.length - 1; i >= 0; i--) { if (pred(states[i])) n++; else break; }
+              return n;
+            }
+            const activityRun = tailRun((s) => (s.activity || '').toLowerCase() === activity);
+            const doorRun = tailRun((s) => (s.door_state || '').toLowerCase() === door);
+
+            const actLabel = {
+              on_phone: '📞 On the phone',
+              looking_at_laptop: '💻 Looking at laptop',
+              chatting: '💬 Talking with someone',
+              idle: '😶 Idle',
+              working: '✏️ Working',
+              away: '🚪 Away from desk',
+              unknown: '❔ Unknown',
+            }[activity] || `❔ ${activity}`;
+
+            const actColor = activity === 'on_phone' && activityRun >= 5 ? '#f59e0b'
+                           : activity === 'away' && activityRun >= 5 ? '#ef4444'
+                           : activity === 'working' || activity === 'chatting' ? '#22c55e' : '#94a3b8';
+            const doorColor = door === 'open' && doorRun >= 10 ? '#ef4444' : door === 'open' ? '#f59e0b' : '#22c55e';
+
+            return (
+              <div className="rounded-2xl p-5 border" style={{ background: S.card, borderColor: S.border }}>
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h2 className="text-sm font-bold text-white">Front Desk (CAM {fd.camera_channel})</h2>
+                    <p className="text-[11px]" style={{ color: S.muted }}>Reception activity + entry door — analysed every cycle</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div className="rounded-xl p-3 border" style={{ background: 'rgba(13,22,49,0.6)', borderColor: S.border }}>
+                    <div className="text-[10px] uppercase tracking-wider" style={{ color: S.muted }}>Person at desk</div>
+                    <div className="text-sm font-bold text-white mt-1">{person || 'Empty'}</div>
+                  </div>
+                  <div className="rounded-xl p-3 border" style={{ background: 'rgba(13,22,49,0.6)', borderColor: S.border }}>
+                    <div className="text-[10px] uppercase tracking-wider" style={{ color: S.muted }}>Activity</div>
+                    <div className="text-sm font-bold mt-1" style={{ color: actColor }}>{actLabel}</div>
+                    {activityRun > 1 && <div className="text-[10px] mt-0.5" style={{ color: S.muted }}>continuous for ~{activityRun} min</div>}
+                  </div>
+                  <div className="rounded-xl p-3 border" style={{ background: 'rgba(13,22,49,0.6)', borderColor: S.border }}>
+                    <div className="text-[10px] uppercase tracking-wider" style={{ color: S.muted }}>Entry door</div>
+                    <div className="text-sm font-bold mt-1" style={{ color: doorColor }}>{door === 'open' ? '🚪 Open' : door === 'closed' ? '🔒 Closed' : '❔ Unknown'}</div>
+                    {door === 'open' && doorRun > 1 && <div className="text-[10px] mt-0.5" style={{ color: doorColor }}>open for ~{doorRun} min</div>}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Headcount snapshot — refreshes every 30 min via cron */}
           {(data?.presence_snapshots || []).length > 0 && (
             <div className="rounded-2xl p-5 border" style={{background:S.card,borderColor:S.border}}>
