@@ -60,18 +60,35 @@ export async function GET(request) {
     buckets.get(key).push(f);
   }
 
-  // 2b. Pick ONE bucket per tick — the one with the oldest pending frame —
-  // so each tick stays under Vercel's 60s function timeout. With the cron
-  // running every 2 min and N active locations, each gets analyzed every
-  // ~2N minutes (4 min at 2 locations). This avoids the previous
-  // FUNCTION_INVOCATION_TIMEOUT problem where face-id × 16 frames per tick
-  // would tip the function over the wall clock budget.
-  const bucketList = [...buckets.entries()].map(([k, frames]) => ({
-    key: k,
-    frames,
-    oldest: frames[0].captured_at,
+  // 2b. Pick ONE bucket per tick — the one whose location went the LONGEST
+  // without an analyze-sequence run. This keeps fairness across locations
+  // (the previous "oldest pending frame" heuristic was biased toward
+  // whichever location hct_worker captures first in each pass).
+  const bucketList = [...buckets.entries()].map(([k, frames]) => {
+    const [client_id, locRaw] = k.split('::');
+    return {
+      key: k,
+      frames,
+      client_id,
+      location_id: locRaw || null,
+      last_analyzed_at: '1970-01-01T00:00:00Z',
+    };
+  });
+
+  // Look up each location's most recent activity_timeline window_end
+  await Promise.all(bucketList.map(async (b) => {
+    let q = db.from('activity_timeline')
+      .select('window_end')
+      .eq('client_id', b.client_id)
+      .order('window_end', { ascending: false })
+      .limit(1);
+    q = b.location_id ? q.eq('location_id', b.location_id) : q.is('location_id', null);
+    const { data } = await q;
+    if (data && data[0]?.window_end) b.last_analyzed_at = data[0].window_end;
   }));
-  bucketList.sort((a, b) => a.oldest.localeCompare(b.oldest));
+
+  // Sort: location most-overdue first
+  bucketList.sort((a, b) => a.last_analyzed_at.localeCompare(b.last_analyzed_at));
   const todo = bucketList.slice(0, 1);
 
   const report = [];
