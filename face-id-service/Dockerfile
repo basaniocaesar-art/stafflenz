@@ -1,31 +1,29 @@
 FROM python:3.11-slim
 
-# System deps needed to compile dlib (face_recognition's native backend).
-# build-essential + cmake + the BLAS / image libs are the magic combo that
-# avoids the "CMake not found" / "cannot find -lblas" failures on slim base.
+# InsightFace runs ONNX models (RetinaFace + ArcFace), so we need
+# onnxruntime's system deps + opencv's image-loading libs. No dlib / blas /
+# cmake any more — the old face_recognition tooling chain is gone.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        build-essential \
-        cmake \
-        libopenblas-dev \
-        liblapack-dev \
-        libjpeg-dev \
-        libpng-dev \
-        libx11-dev \
-        gfortran \
+        libgomp1 \
+        libgl1 \
+        libglib2.0-0 \
         wget \
         ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Install Python deps first so they get cached separately from app code
+# Python deps first for caching
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
+# Pre-download the InsightFace model so the container starts fast in production
+# (otherwise cold start downloads ~280MB on first request and times out).
+RUN python -c "from insightface.app import FaceAnalysis; FaceAnalysis(name='buffalo_l', providers=['CPUExecutionProvider']).prepare(ctx_id=0, det_size=(640,640))"
+
 COPY . .
 
-# Railway injects $PORT; default to 8000 for local docker run
 ENV PORT=8000
 EXPOSE 8000
 

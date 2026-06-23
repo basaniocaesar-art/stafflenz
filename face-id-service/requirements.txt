@@ -1,6 +1,8 @@
 fastapi>=0.110
 uvicorn[standard]>=0.27
-face_recognition>=1.3.0
+insightface>=0.7.3
+onnxruntime>=1.16
+opencv-python-headless>=4.9
 numpy>=1.26
 Pillow>=10.0
 requests>=2.31
