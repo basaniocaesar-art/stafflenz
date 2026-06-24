@@ -17,7 +17,7 @@ import { getAdminClient } from '@/lib/supabase';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
-const FRAMES_PER_BATCH = 8;          // max frames per analyze call
+const FRAMES_PER_BATCH = 5;          // max frames per analyze call (5 × ~3s face-id + ~20s Claude ≈ 35s < 60s Vercel limit)
 const MAX_AGE_MINUTES  = 30;         // ignore frames older than this (stale)
 // Use www. explicitly to avoid the apex→www 307 redirect that strips auth
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.stafflenz.com';
