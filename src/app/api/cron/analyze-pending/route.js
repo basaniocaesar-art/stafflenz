@@ -75,15 +75,14 @@ export async function GET(request) {
     };
   });
 
-  // Look up each location's most recent activity_timeline window_end
+  // Look up each location's most recent activity_timeline window_end.
+  // ALL filters must be applied BEFORE .order() + .limit() — chaining .eq()
+  // after .limit() silently drops the filter in supabase-js, which caused
+  // gym to always report a stale (cross-location) timestamp.
   await Promise.all(bucketList.map(async (b) => {
-    let q = db.from('activity_timeline')
-      .select('window_end')
-      .eq('client_id', b.client_id)
-      .order('window_end', { ascending: false })
-      .limit(1);
+    let q = db.from('activity_timeline').select('window_end').eq('client_id', b.client_id);
     q = b.location_id ? q.eq('location_id', b.location_id) : q.is('location_id', null);
-    const { data } = await q;
+    const { data } = await q.order('window_end', { ascending: false }).limit(1);
     if (data && data[0]?.window_end) b.last_analyzed_at = data[0].window_end;
   }));
 
