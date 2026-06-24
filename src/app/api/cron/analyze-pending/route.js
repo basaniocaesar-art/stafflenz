@@ -91,6 +91,13 @@ export async function GET(request) {
   bucketList.sort((a, b) => a.last_analyzed_at.localeCompare(b.last_analyzed_at));
   const todo = bucketList.slice(0, 1);
 
+  // Debug snapshot
+  const _debug_buckets = bucketList.map((b) => ({
+    location_id: b.location_id,
+    last_analyzed_at: b.last_analyzed_at,
+    pending: b.frames.length,
+  }));
+
   const report = [];
 
   for (const { key, frames } of todo) {
@@ -174,5 +181,6 @@ export async function GET(request) {
     clients_processed: buckets.size,
     total_frames: pending.length,
     report,
+    _debug_buckets,
   });
 }
