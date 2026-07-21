@@ -44,6 +44,33 @@ export async function identifyFaces(frameUrl, workers, tolerance = 0.6, aggressi
 }
 
 /**
+ * Compute the 512-dim embedding for a single reference photo URL.
+ * Returns the embedding array, or null if the service is off / no face found.
+ * Used at worker registration so a new worker is immediately identifiable
+ * (otherwise their face_embeddings stay null until a backfill runs).
+ */
+export async function embedPhotoUrl(photoUrl, workerName = null) {
+  if (!FACE_ID_URL || !photoUrl) return null;
+  try {
+    const res = await fetch(`${FACE_ID_URL}/embed`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ photo_url: photoUrl, worker_name: workerName }),
+      signal: AbortSignal.timeout(60000), // cold InsightFace load can be slow
+    });
+    if (!res.ok) {
+      console.warn(`[faceId] embed HTTP ${res.status}`);
+      return null;
+    }
+    const j = await res.json();
+    return j.embedding || null;
+  } catch (e) {
+    console.warn(`[faceId] embed failed: ${e.message}`);
+    return null;
+  }
+}
+
+/**
  * Batch convenience — identify across multiple frames in parallel.
  * `aggressivePredicate` (optional) is called per index — return true to use
  * aggressive mode for that frame (e.g. the front-desk camera). Default off.

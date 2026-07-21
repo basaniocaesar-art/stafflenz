@@ -2,8 +2,12 @@ import { NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth';
 import { canAddWorker } from '@/lib/planLimits';
 import { getAdminClient } from '@/lib/supabase';
+import { faceIdEnabled, embedPhotoUrl } from '@/lib/faceId';
 
 export const dynamic = 'force-dynamic';
+// Registration can embed up to 6 reference photos via the face-id service;
+// give the request room beyond the default so the embed step can finish.
+export const maxDuration = 60;
 
 const BUCKET = 'worker-photos';
 const MAX_PHOTOS = 6;
@@ -198,6 +202,40 @@ export async function POST(request) {
       }
       worker.photo_path = photoPaths[0].path;
       worker.photo_paths = pathsArray;
+
+      // Auto-embed the reference photos so the new worker is identifiable by
+      // the face-id fast path immediately — no manual backfill needed. Photos
+      // are embedded in parallel (wall-clock ≈ slowest single embed). Wholly
+      // best-effort: registration still succeeds if the service is off or no
+      // face is found (embeddings stay null; a later backfill can fill them).
+      if (faceIdEnabled()) {
+        try {
+          const signedUrls = await Promise.all(
+            photoPaths.map(async ({ path }) => {
+              const { data } = await db.storage.from(BUCKET).createSignedUrl(path, 300);
+              return data?.signedUrl || null;
+            }),
+          );
+          const embeddings = (
+            await Promise.all(signedUrls.map((u) => embedPhotoUrl(u, full_name)))
+          ).filter(Boolean);
+          if (embeddings.length > 0) {
+            const embUpd = await db
+              .from('workers')
+              .update({ face_embeddings: embeddings, face_embeddings_updated_at: new Date().toISOString() })
+              .eq('id', worker.id);
+            if (embUpd.error) {
+              console.warn('[workers POST] face_embeddings update failed:', embUpd.error.message);
+            } else {
+              console.log(`[workers POST] embedded ${embeddings.length}/${photoPaths.length} photo(s) for face-id`);
+            }
+          } else {
+            console.warn('[workers POST] no usable faces in uploaded photos — face_embeddings left null');
+          }
+        } catch (e) {
+          console.warn('[workers POST] embedding step failed:', e.message);
+        }
+      }
     }
   }
 
