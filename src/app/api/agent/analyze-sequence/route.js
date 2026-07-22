@@ -99,16 +99,17 @@ export async function POST(request) {
     .single();
   if (!clientData) return NextResponse.json({ error: 'Client not found' }, { status: 404 });
 
-  // Pull the location's front-desk camera config (if set). Frames captured
-  // from this channel get extra reception/door-state analysis from Claude.
+  // Pull location config: front-desk camera + face_id toggle.
   let frontDeskCh = null;
+  let faceIdEnabledForLoc = true;   // default on
   if (location_id) {
     const { data: locRow } = await db
       .from('locations')
-      .select('front_desk_camera_channel')
+      .select('front_desk_camera_channel, face_id_enabled')
       .eq('id', location_id)
       .maybeSingle();
     frontDeskCh = locRow?.front_desk_camera_channel ?? null;
+    if (locRow?.face_id_enabled === false) faceIdEnabledForLoc = false;
   }
   const includesFrontDesk = frontDeskCh && frames.some((f) => f.camera_channel === frontDeskCh);
 
@@ -193,7 +194,7 @@ export async function POST(request) {
   // We need PUBLIC URLs of the frames to call face-id; rebuild signed URLs.
   const embeddingPayload = workersToEmbeddingPayload(workers);
   let faceIdPromptBlock = null;
-  if (faceIdEnabled() && embeddingPayload.length > 0) {
+  if (faceIdEnabled() && faceIdEnabledForLoc && embeddingPayload.length > 0) {
     // Resolve the original frame_urls in input order (face-id needs URLs, not buffers).
     // Also track which flat index belongs to which camera_channel so we can flip on
     // aggressive face detection for front-desk camera frames only.
