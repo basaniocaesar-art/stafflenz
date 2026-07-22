@@ -900,6 +900,61 @@ export default function DashboardPage({ industry }) {
             );
           })()}
 
+          {/* Warehouse activity — today's entries, exits, trucks, loading (warehouse-mode locations only) */}
+          {(data?.warehouse_summary || [])
+            .filter((s) => !selectedLocation || s.location_id === selectedLocation)
+            .map((s) => {
+              const locName = (data.locations || []).find((l) => l.id === s.location_id)?.name || 'Warehouse';
+              return (
+                <div key={s.location_id} className="rounded-2xl p-5 border" style={{background:S.card,borderColor:S.border}}>
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h2 className="text-sm font-bold text-white">Warehouse Activity · {locName}</h2>
+                      <p className="text-[11px]" style={{color:S.muted}}>Today so far · analysed from camera footage</p>
+                    </div>
+                    <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-1 rounded" style={{background:'rgba(168,139,250,0.15)',color:'#c4b5fd',border:'1px solid rgba(168,139,250,0.3)'}}>Warehouse mode</span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                    {[
+                      { label: 'People In',       value: s.entries,          color: '#22c55e' },
+                      { label: 'People Out',      value: s.exits,            color: '#f59e0b' },
+                      { label: 'Trucks Arrived',  value: s.trucks_arrived,   color: '#60a5fa' },
+                      { label: 'Trucks Departed', value: s.trucks_departed,  color: '#a78bfa' },
+                      { label: 'Loading Events',  value: s.loading + s.unloading, color: '#22d3ee' },
+                      { label: 'Unusual',         value: s.unusual,          color: s.unusual > 0 ? '#ef4444' : '#64748b' },
+                    ].map((t) => (
+                      <div key={t.label} className="rounded-xl p-3 border" style={{background:'rgba(13,22,49,0.6)',borderColor:S.border}}>
+                        <div className="text-[10px] uppercase tracking-wider" style={{color:S.muted}}>{t.label}</div>
+                        <div className="text-3xl font-extrabold mt-1" style={{color:t.color, textShadow:`0 0 20px ${t.color}60`}}>{t.value ?? 0}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {(s.recent || []).length > 0 && (
+                    <div className="mt-4 pt-4 border-t" style={{borderColor:S.border}}>
+                      <div className="text-[10px] uppercase tracking-wider mb-2" style={{color:S.muted}}>Recent events</div>
+                      <div className="space-y-1.5 max-h-56 overflow-y-auto">
+                        {s.recent.slice(0, 8).map((e, i) => {
+                          const t = new Date(e.event_time).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+                          const icon = { entry: '🚶', exit: '🚶‍♂️', truck_arrived: '🚛', truck_departed: '🚚', loading: '📦', unloading: '📦', unusual: '⚠️' }[e.event_type] || '•';
+                          const desc = e.event_type === 'unusual' ? (e.details?.description || 'unusual event')
+                                     : e.event_type.startsWith('truck') ? `${e.event_type.replace('_', ' ')}${e.details?.vehicle_desc ? ` — ${e.details.vehicle_desc}` : ''}`
+                                     : e.event_type === 'loading' || e.event_type === 'unloading' ? `${e.event_type}${e.details?.goods_desc ? ` — ${e.details.goods_desc}` : ''}`
+                                     : `${e.event_type} (${e.details?.count || 1}${e.details?.who ? ` ${e.details.who}` : ''})`;
+                          return (
+                            <div key={i} className="flex items-start gap-2 text-xs">
+                              <span className="font-mono text-[10px]" style={{color:S.muted, minWidth:'44px'}}>{t}</span>
+                              <span>{icon}</span>
+                              <span className="text-white">{desc}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
           {/* Live headcount — refreshes every 60 sec, reads freshest activity_timeline */}
           {(liveHead?.locations || []).length > 0 && (
             <div className="rounded-2xl p-5 border" style={{background:S.card,borderColor:S.border}}>

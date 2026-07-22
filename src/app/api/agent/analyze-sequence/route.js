@@ -99,19 +99,22 @@ export async function POST(request) {
     .single();
   if (!clientData) return NextResponse.json({ error: 'Client not found' }, { status: 404 });
 
-  // Pull location config: front-desk camera + face_id toggle.
+  // Pull location config: front-desk camera + face_id toggle + analysis mode.
   let frontDeskCh = null;
   let faceIdEnabledForLoc = true;   // default on
+  let analysisMode = 'workforce';   // 'workforce' | 'warehouse'
   if (location_id) {
     const { data: locRow } = await db
       .from('locations')
-      .select('front_desk_camera_channel, face_id_enabled')
+      .select('front_desk_camera_channel, face_id_enabled, analysis_mode')
       .eq('id', location_id)
       .maybeSingle();
     frontDeskCh = locRow?.front_desk_camera_channel ?? null;
     if (locRow?.face_id_enabled === false) faceIdEnabledForLoc = false;
+    if (locRow?.analysis_mode) analysisMode = locRow.analysis_mode;
   }
   const includesFrontDesk = frontDeskCh && frames.some((f) => f.camera_channel === frontDeskCh);
+  const isWarehouse = analysisMode === 'warehouse';
 
   // Load workers + zones (same as analyze route)
   // Try to also pull face_embeddings — falls back if column doesn't exist yet
@@ -348,6 +351,36 @@ Return ONLY valid JSON in this exact shape:
   "overall_status": "normal|warning|critical"
 }`,
   });
+
+  // Warehouse-mode: ask Claude for structured logistics events on top of the
+  // normal per-minute activity. Post-process below extracts these into the
+  // warehouse_events table for daily counts and dashboard tiles.
+  if (isWarehouse) {
+    content.push({
+      type: 'text',
+      text: `WAREHOUSE / LOGISTICS MODE: this location is analysed as a warehouse or dock, not an office.
+
+Populate a top-level "warehouse" object in your JSON with these arrays. Only include events you can OBSERVE in the frames — do not guess. If nothing happened for a category, use an empty array.
+
+{
+  "warehouse": {
+    "entry_events":   [{"minute": 0, "camera_channel": 2, "count": 1, "who": "worker|visitor|driver|unknown"}],
+    "exit_events":    [{"minute": 0, "camera_channel": 2, "count": 1, "who": "worker|visitor|driver|unknown"}],
+    "truck_events":   [{"minute": 0, "camera_channel": 4, "type": "arrived|departed", "count": 1, "vehicle_desc": "brief text — colour, size, plate if visible"}],
+    "loading_events": [{"minute": 0, "camera_channel": 4, "action": "loading|unloading", "goods_desc": "boxes|pallets|drums|etc."}],
+    "workers_at_stations": [{"minute": 0, "camera_channel": 3, "station_name": "packing|sorting|shipping|receiving|main floor|etc", "worker_count": 2, "activity": "working|idle|absent"}],
+    "unusual_events": [{"minute": 0, "camera_channel": 3, "description": "concise text — spill, argument, unauthorized area entry, etc.", "severity": "low|medium|high"}]
+  }
+}
+
+Rules:
+- Entry/exit: only count when a person clearly crosses a threshold (door, gate, loading bay). Do NOT count someone walking around inside a zone as an entry.
+- Trucks/vehicles: count each unique arrival + each departure. If the same truck sits there across many minutes, that's ONE arrival (at first minute seen) and ONE departure (when it leaves).
+- Loading/unloading: only when you actually see goods being moved to/from a truck or shelf.
+- workers_at_stations: report each minute a snapshot of how many workers are visible at each named station area. Use consistent station names across minutes.
+- Be conservative — false positives are worse than missing an event.`,
+    });
+  }
 
   // If this batch includes the front-desk camera, tell Claude exactly which
   // channel it is and ask for the structured front_desk block.
@@ -648,6 +681,121 @@ For this camera ONLY, also populate the "front_desk" object in your JSON:
     if (extra.length > 0) {
       const { data: extraIns } = await db.from('alerts').insert(extra).select('id');
       alertsInserted += extraIns?.length || 0;
+    }
+  }
+
+  // ── Warehouse-mode post-process ─────────────────────────────────────
+  // Extract structured events from Claude's `warehouse` block into the
+  // warehouse_events table. Also detects "worker station empty >5 min"
+  // and raises an alert for it (uses same alerts table so it flows into
+  // Incidents tab + WhatsApp).
+  let warehouseEventsInserted = 0;
+  if (isWarehouse && analysis.warehouse) {
+    const wh = analysis.warehouse;
+    const eventTimeFor = (minOffset) => {
+      const base = window_start ? new Date(window_start).getTime() : Date.now();
+      return new Date(base + (Number(minOffset) || 0) * 60_000).toISOString();
+    };
+
+    const rows = [];
+
+    // Entries + exits
+    for (const e of (wh.entry_events || [])) {
+      rows.push({
+        client_id, location_id: location_id || null,
+        event_type: 'entry',
+        camera_channel: e.camera_channel ?? null,
+        event_time: eventTimeFor(e.minute),
+        details: { count: e.count || 1, who: e.who || 'unknown' },
+      });
+    }
+    for (const e of (wh.exit_events || [])) {
+      rows.push({
+        client_id, location_id: location_id || null,
+        event_type: 'exit',
+        camera_channel: e.camera_channel ?? null,
+        event_time: eventTimeFor(e.minute),
+        details: { count: e.count || 1, who: e.who || 'unknown' },
+      });
+    }
+    // Trucks (arrivals + departures collapsed into one event_type per row)
+    for (const e of (wh.truck_events || [])) {
+      const t = (e.type || 'arrived').toLowerCase();
+      rows.push({
+        client_id, location_id: location_id || null,
+        event_type: t === 'departed' ? 'truck_departed' : 'truck_arrived',
+        camera_channel: e.camera_channel ?? null,
+        event_time: eventTimeFor(e.minute),
+        details: { count: e.count || 1, vehicle_desc: e.vehicle_desc || null },
+      });
+    }
+    // Loading / unloading
+    for (const e of (wh.loading_events || [])) {
+      const a = (e.action || 'loading').toLowerCase();
+      rows.push({
+        client_id, location_id: location_id || null,
+        event_type: a === 'unloading' ? 'unloading' : 'loading',
+        camera_channel: e.camera_channel ?? null,
+        event_time: eventTimeFor(e.minute),
+        details: { goods_desc: e.goods_desc || null },
+      });
+    }
+    // Unusual events
+    for (const e of (wh.unusual_events || [])) {
+      rows.push({
+        client_id, location_id: location_id || null,
+        event_type: 'unusual',
+        camera_channel: e.camera_channel ?? null,
+        event_time: eventTimeFor(e.minute),
+        details: { description: e.description || null, severity: e.severity || 'low' },
+      });
+    }
+
+    if (rows.length > 0) {
+      const { data: whIns } = await db.from('warehouse_events').insert(rows).select('id');
+      warehouseEventsInserted = whIns?.length || 0;
+    }
+
+    // Detect "station empty >5 min" from workers_at_stations snapshots
+    const stationSeries = {};    // { stationName: [{minute, count}, …] }
+    for (const s of (wh.workers_at_stations || [])) {
+      const name = s.station_name || 'unknown';
+      if (!stationSeries[name]) stationSeries[name] = [];
+      stationSeries[name].push({ minute: Number(s.minute) || 0, count: Number(s.worker_count) || 0, ch: s.camera_channel });
+    }
+    const missingAlerts = [];
+    for (const [station, series] of Object.entries(stationSeries)) {
+      // Consecutive-minutes-with-count-zero streak
+      const sorted = series.sort((a, b) => a.minute - b.minute);
+      let zeroRun = 0;
+      let zeroStartMinute = null;
+      let peakRun = 0;
+      let peakStartMinute = null;
+      for (const s of sorted) {
+        if (s.count === 0) {
+          if (zeroRun === 0) zeroStartMinute = s.minute;
+          zeroRun++;
+          if (zeroRun > peakRun) { peakRun = zeroRun; peakStartMinute = zeroStartMinute; }
+        } else {
+          zeroRun = 0;
+        }
+      }
+      if (peakRun >= 5) {
+        missingAlerts.push({
+          client_id, location_id: location_id || null,
+          alert_type: 'staffing',
+          message: `${station} station unmanned for ${peakRun}+ minutes`,
+          zone_name: station,
+          duration_minutes: peakRun,
+          business_impact: ['Work stopped at this station', 'Throughput dropping'],
+          severity: peakRun >= 15 ? 'high' : 'medium',
+          is_resolved: false, created_at: nowIso,
+        });
+      }
+    }
+    if (missingAlerts.length > 0) {
+      const { data: alIns } = await db.from('alerts').insert(missingAlerts).select('id');
+      alertsInserted += alIns?.length || 0;
     }
   }
 

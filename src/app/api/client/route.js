@@ -147,6 +147,41 @@ export async function GET(request) {
     console.warn('[client API] v2 data fetch failed:', e.message);
   }
 
+  // Warehouse events today (for warehouse-mode locations)
+  let warehouseSummary = null;
+  try {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    let wq = db
+      .from('warehouse_events')
+      .select('event_type, location_id, event_time, details')
+      .eq('client_id', clientId)
+      .gte('event_time', todayStart.toISOString())
+      .order('event_time', { ascending: false })
+      .limit(500);
+    if (locationId) wq = wq.eq('location_id', locationId);
+    const { data: whEvents } = await wq;
+    if (whEvents && whEvents.length > 0) {
+      const byLoc = {};
+      for (const e of whEvents) {
+        const k = e.location_id || 'none';
+        if (!byLoc[k]) byLoc[k] = { entries: 0, exits: 0, trucks_arrived: 0, trucks_departed: 0, loading: 0, unloading: 0, unusual: 0, recent: [] };
+        const b = byLoc[k];
+        if (e.event_type === 'entry')          b.entries += (e.details?.count || 1);
+        else if (e.event_type === 'exit')      b.exits += (e.details?.count || 1);
+        else if (e.event_type === 'truck_arrived')  b.trucks_arrived += (e.details?.count || 1);
+        else if (e.event_type === 'truck_departed') b.trucks_departed += (e.details?.count || 1);
+        else if (e.event_type === 'loading')   b.loading += 1;
+        else if (e.event_type === 'unloading') b.unloading += 1;
+        else if (e.event_type === 'unusual')   b.unusual += 1;
+        if (b.recent.length < 12) b.recent.push({ event_type: e.event_type, event_time: e.event_time, details: e.details });
+      }
+      warehouseSummary = Object.entries(byLoc).map(([location_id, s]) => ({ location_id, ...s }));
+    }
+  } catch (e) {
+    console.warn('[client API] warehouse_events fetch failed:', e.message);
+  }
+
   // Latest presence snapshot(s) — one per location (or filtered by current location)
   let presenceSnapshots = [];
   try {
@@ -185,6 +220,7 @@ export async function GET(request) {
     zones: zonesData || [],
     workers: workersData || [],
     presence_snapshots: presenceSnapshots,
+    warehouse_summary: warehouseSummary,
     onboarding_completed: onboardingCompleted,
     // v2 additions
     timelines: recentTimelines,
