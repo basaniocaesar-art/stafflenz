@@ -99,22 +99,41 @@ export async function POST(request) {
     .single();
   if (!clientData) return NextResponse.json({ error: 'Client not found' }, { status: 404 });
 
-  // Pull location config: front-desk camera + face_id toggle + analysis mode.
+  // Pull location config: front-desk camera + face_id toggle + analysis mode
+  // + operating hours (for after-hours motion-only mode).
   let frontDeskCh = null;
-  let faceIdEnabledForLoc = true;   // default on
+  let faceIdEnabledForLoc = true;
   let analysisMode = 'workforce';   // 'workforce' | 'warehouse'
+  let hoursOpen = null;
+  let hoursClose = null;
+  let tzName = 'Asia/Kolkata';
   if (location_id) {
     const { data: locRow } = await db
       .from('locations')
-      .select('front_desk_camera_channel, face_id_enabled, analysis_mode')
+      .select('front_desk_camera_channel, face_id_enabled, analysis_mode, hours_open, hours_close, timezone')
       .eq('id', location_id)
       .maybeSingle();
     frontDeskCh = locRow?.front_desk_camera_channel ?? null;
     if (locRow?.face_id_enabled === false) faceIdEnabledForLoc = false;
     if (locRow?.analysis_mode) analysisMode = locRow.analysis_mode;
+    hoursOpen  = Number.isFinite(locRow?.hours_open)  ? locRow.hours_open  : null;
+    hoursClose = Number.isFinite(locRow?.hours_close) ? locRow.hours_close : null;
+    if (locRow?.timezone) tzName = locRow.timezone;
   }
-  const includesFrontDesk = frontDeskCh && frames.some((f) => f.camera_channel === frontDeskCh);
-  const isWarehouse = analysisMode === 'warehouse';
+  // After-hours mode overrides everything — no face-id, no warehouse block,
+  // no front-desk block. Just a "did anything move?" question to Claude.
+  const includesFrontDesk = !afterHours && frontDeskCh && frames.some((f) => f.camera_channel === frontDeskCh);
+  const isWarehouse       = !afterHours && analysisMode === 'warehouse';
+
+  // After-hours check: read local hour in the location's timezone
+  let afterHours = false;
+  if (hoursOpen !== null && hoursClose !== null) {
+    const localHourStr = new Intl.DateTimeFormat('en-GB', { hour: 'numeric', hour12: false, timeZone: tzName }).format(new Date());
+    const h = parseInt(localHourStr, 10);
+    // Handles simple daytime windows (open=8, close=19) → after-hours is h<open || h>=close
+    // (Doesn't handle windows that cross midnight; add if needed.)
+    afterHours = Number.isFinite(h) && (h < hoursOpen || h >= hoursClose);
+  }
 
   // Load workers + zones (same as analyze route)
   // Try to also pull face_embeddings — falls back if column doesn't exist yet
@@ -197,7 +216,7 @@ export async function POST(request) {
   // We need PUBLIC URLs of the frames to call face-id; rebuild signed URLs.
   const embeddingPayload = workersToEmbeddingPayload(workers);
   let faceIdPromptBlock = null;
-  if (faceIdEnabled() && faceIdEnabledForLoc && embeddingPayload.length > 0) {
+  if (faceIdEnabled() && faceIdEnabledForLoc && !afterHours && embeddingPayload.length > 0) {
     // Resolve the original frame_urls in input order (face-id needs URLs, not buffers).
     // Also track which flat index belongs to which camera_channel so we can flip on
     // aggressive face detection for front-desk camera frames only.
@@ -351,6 +370,39 @@ Return ONLY valid JSON in this exact shape:
   "overall_status": "normal|warning|critical"
 }`,
   });
+
+  // After-hours motion-only mode. Skip all the detailed workforce/warehouse
+  // analysis and just have Claude answer "did anything move?". Every field
+  // in the normal JSON schema still exists — return them empty. The
+  // "after_hours" block is what the post-process actually cares about.
+  if (afterHours) {
+    content.push({
+      type: 'text',
+      text: `AFTER-HOURS / CLOSED MODE: this location is closed right now (local time is outside its operating hours ${hoursOpen}:00 – ${hoursClose}:00 ${tzName}).
+
+Do NOT do the detailed workforce/warehouse analysis. Ignore any earlier instructions asking for zones, activities, worker states, warehouse events, or front-desk states — return those as empty arrays.
+
+Instead, populate ONLY this top-level object:
+
+{
+  "after_hours": {
+    "motion_detected": true|false,
+    "motion_type":     "person|vehicle|animal|light_change|shadow|reflection|unknown",
+    "camera_channel":  <int of the camera where you saw it, or null>,
+    "minute_offset":   <int minute where you saw it, or null>,
+    "description":     "one short sentence — what moved, where, roughly when. Be specific.",
+    "confidence":      0.0 to 1.0
+  }
+}
+
+Guidance:
+- The place is supposed to be empty. Anything moving is potentially significant.
+- Distinguish real motion (a person walking, a vehicle passing, a door opening) from artifacts (a passing shadow, a light flicker, a reflection off a window, a bug near the lens).
+- If you're not sure whether something moved, err on the side of "false" and note it in the description.
+- Ignore ceiling fans, HVAC vibration, or displayed screens/clocks changing text — those don't count as motion.
+- Also return the normal fields (timeline, alerts, summary, worker_states, overall_status) but keep them all empty / minimal.`,
+    });
+  }
 
   // Warehouse-mode: ask Claude for structured logistics events on top of the
   // normal per-minute activity. Post-process below extracts these into the
@@ -796,6 +848,55 @@ For this camera ONLY, also populate the "front_desk" object in your JSON:
     if (missingAlerts.length > 0) {
       const { data: alIns } = await db.from('alerts').insert(missingAlerts).select('id');
       alertsInserted += alIns?.length || 0;
+    }
+  }
+
+  // ── After-hours post-process ────────────────────────────────────────
+  // If Claude flagged real motion during closed hours, insert a
+  // high-severity alert that fires WhatsApp + shows in Incidents. Also
+  // dedupes across the last 10 min so a single incident doesn't spam.
+  if (afterHours && analysis.after_hours) {
+    const ah = analysis.after_hours;
+    const motion = ah.motion_detected === true;
+    const conf = Number(ah.confidence) || 0;
+    if (motion && conf >= 0.5) {
+      // Only alert if we haven't already alerted this location in the last 10 min
+      const TEN_MIN_AGO = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+      let dedupeQ = db.from('alerts')
+        .select('id')
+        .eq('client_id', client_id)
+        .eq('alert_type', 'safety')
+        .gte('created_at', TEN_MIN_AGO)
+        .limit(1);
+      dedupeQ = location_id ? dedupeQ.eq('location_id', location_id) : dedupeQ.is('location_id', null);
+      const { data: recentAh } = await dedupeQ;
+      // Look at message for "After-hours motion" to specifically dedupe our type
+      let alreadyAlerted = false;
+      if (recentAh && recentAh.length > 0) alreadyAlerted = true;
+
+      if (!alreadyAlerted) {
+        const desc = ah.description || 'Motion detected while location is closed';
+        const type = ah.motion_type || 'unknown';
+        const ch = Number.isFinite(ah.camera_channel) ? ` on CAM ${ah.camera_channel}` : '';
+        const alertRow = {
+          client_id,
+          location_id: location_id || null,
+          alert_type: 'safety',
+          message: `After-hours motion${ch}: ${desc}`,
+          worker_name: null,
+          zone_name: 'After-hours',
+          duration_minutes: null,
+          business_impact: [
+            'Location should be empty right now',
+            type === 'person' ? 'Possible unauthorized entry' : type === 'vehicle' ? 'Possible unauthorized vehicle' : 'Unexpected activity',
+          ],
+          severity: type === 'person' || type === 'vehicle' ? 'high' : 'medium',
+          is_resolved: false,
+          created_at: nowIso,
+        };
+        const { data: ahIns } = await db.from('alerts').insert([alertRow]).select('id');
+        alertsInserted += ahIns?.length || 0;
+      }
     }
   }
 
