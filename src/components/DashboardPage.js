@@ -569,6 +569,24 @@ export default function DashboardPage({ industry }) {
   const [selectedZone, setSelectedZone] = useState(null); // null = all cameras
   const [waStatus,     setWaStatus]     = useState(null);
   const [time,         setTime]         = useState(new Date());
+  const [liveHead,     setLiveHead]     = useState(null);
+
+  // Poll /api/live-headcount every 60s — cheap, one row per location
+  useEffect(() => {
+    let mounted = true;
+    async function tick() {
+      try {
+        const r = await fetch('/api/live-headcount');
+        if (r.ok) {
+          const j = await r.json();
+          if (mounted) setLiveHead(j);
+        }
+      } catch {}
+    }
+    tick();
+    const iv = setInterval(tick, 60000);
+    return () => { mounted = false; clearInterval(iv); };
+  }, []);
 
   useEffect(()=>{ const iv=setInterval(()=>setTime(new Date()),1000); return ()=>clearInterval(iv); },[]);
 
@@ -881,6 +899,48 @@ export default function DashboardPage({ industry }) {
               </div>
             );
           })()}
+
+          {/* Live headcount — refreshes every 60 sec, reads freshest activity_timeline */}
+          {(liveHead?.locations || []).length > 0 && (
+            <div className="rounded-2xl p-5 border" style={{background:S.card,borderColor:S.border}}>
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h2 className="text-sm font-bold text-white">People Present · Live</h2>
+                  <p className="text-[11px]" style={{color:S.muted}}>Updated every 60 sec · reads the last 5 min of camera analysis</p>
+                </div>
+                <span className="text-[10px] flex items-center gap-1.5" style={{color:'#22c55e'}}>
+                  <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{background:'#22c55e'}}/>Live
+                </span>
+              </div>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {liveHead.locations
+                  .filter((l) => !selectedLocation || l.location_id === selectedLocation)
+                  .map((l) => {
+                    const cams = Array.isArray(l.cameras) && l.cameras.length > 0
+                      ? `from CAM ${l.cameras.join(', ')}`
+                      : 'all cameras';
+                    const count = l.paused ? '⏸' : (l.present ?? 0);
+                    const color = l.paused ? '#94a3b8' : (l.present > 0 ? '#22c55e' : '#64748b');
+                    return (
+                      <div key={l.location_id} className="rounded-xl p-4 border" style={{background:'rgba(13,22,49,0.6)',borderColor:S.border}}>
+                        <div className="text-xs font-bold text-white truncate">{l.name}</div>
+                        <div className="text-4xl font-extrabold mt-1" style={{color, textShadow:`0 0 20px ${color}60`}}>{count}</div>
+                        <div className="text-[10px] mt-1" style={{color:S.muted}}>
+                          {l.paused ? 'paused' : `people · ${cams}`}
+                        </div>
+                        {!l.paused && l.worker_names?.length > 0 && (
+                          <div className="text-[10px] mt-2 flex flex-wrap gap-1">
+                            {l.worker_names.slice(0, 4).map((n) => (
+                              <span key={n} className="px-1.5 py-0.5 rounded" style={{background:'rgba(34,197,94,0.15)',color:'#4ade80'}}>{n}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
 
           {/* Headcount snapshot — refreshes every 30 min via cron */}
           {(data?.presence_snapshots || []).length > 0 && (

@@ -31,25 +31,37 @@ const isReal = (n) => {
  * Walk timeline rows and return:
  *   names: Set<string> of distinct named workers seen
  *   visitorPeak: max # of unmatched observations in any single minute
+ *   peopleAtPeakMinute: max total # of people (named + unknown) seen in any single
+ *                       minute — this is the "workers/people present" headcount when
+ *                       face-id isn't reliable enough to name everyone
+ *   filterChannels: if set, ONLY consider frames whose camera_channel is in this list
  */
-function aggregate(timelines) {
+function aggregate(timelines, filterChannels = null) {
   const names = new Set();
   let visitorPeak = 0;
+  let peopleAtPeakMinute = 0;
+  const filter = Array.isArray(filterChannels) && filterChannels.length > 0
+    ? new Set(filterChannels.map(Number))
+    : null;
 
   for (const tl of (timelines || [])) {
     const body = tl.timeline || tl;
     for (const camWindow of (body?.timeline || [])) {
+      if (filter && !filter.has(camWindow.camera_channel)) continue;
       for (const minute of (camWindow.minutes || [])) {
+        let peopleThisMinute = 0;
         let unknownsThisMinute = 0;
         for (const p of (minute.people || [])) {
+          peopleThisMinute++;
           if (isReal(p.worker_name)) names.add(p.worker_name);
           else unknownsThisMinute++;
         }
         if (unknownsThisMinute > visitorPeak) visitorPeak = unknownsThisMinute;
+        if (peopleThisMinute > peopleAtPeakMinute) peopleAtPeakMinute = peopleThisMinute;
       }
     }
   }
-  return { names, visitorPeak };
+  return { names, visitorPeak, peopleAtPeakMinute };
 }
 
 export async function GET(request) {
@@ -60,10 +72,10 @@ export async function GET(request) {
   const FIVE_MIN_AGO = new Date(now.getTime() - 5 * 60 * 1000).toISOString();
   const TODAY_START  = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
 
-  // Get every active (non-paused) location
+  // Get every active (non-paused) location + its headcount_cameras config
   const { data: locations } = await db
     .from('locations')
-    .select('id, client_id, name, monitoring_paused')
+    .select('id, client_id, name, monitoring_paused, headcount_cameras')
     .eq('is_active', true);
 
   const results = [];
@@ -74,13 +86,20 @@ export async function GET(request) {
       continue;
     }
 
+    // Optional per-location filter — e.g. Pronatrix counts only CAMs 4, 7, 8
+    // because those are the cameras that actually see people at the desks.
+    // If unset, all cameras contribute (previous behavior).
+    const filterCh = Array.isArray(loc.headcount_cameras) && loc.headcount_cameras.length > 0
+      ? loc.headcount_cameras
+      : null;
+
     // Last 5 min — who's on camera now
     const { data: recent } = await db
       .from('activity_timeline')
       .select('timeline')
       .eq('location_id', loc.id)
       .gte('window_end', FIVE_MIN_AGO);
-    const recentAgg = aggregate(recent);
+    const recentAgg = aggregate(recent, filterCh);
 
     // Today so far — who was seen at any point
     const { data: today } = await db
@@ -88,7 +107,7 @@ export async function GET(request) {
       .select('timeline')
       .eq('location_id', loc.id)
       .gte('window_end', TODAY_START);
-    const todayAgg = aggregate(today);
+    const todayAgg = aggregate(today, filterCh);
 
     const presentNames = [...recentAgg.names].sort();
     const seenTodayNames = [...todayAgg.names].sort();
@@ -104,6 +123,7 @@ export async function GET(request) {
       workers_left: leftNames.length,
       workers_left_names: leftNames,
       visitors_visible: recentAgg.visitorPeak,
+      people_present: recentAgg.peopleAtPeakMinute,
     };
 
     const { error } = await db.from('presence_snapshots').insert(row);
