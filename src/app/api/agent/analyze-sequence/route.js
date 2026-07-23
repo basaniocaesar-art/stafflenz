@@ -120,12 +120,9 @@ export async function POST(request) {
     hoursClose = Number.isFinite(locRow?.hours_close) ? locRow.hours_close : null;
     if (locRow?.timezone) tzName = locRow.timezone;
   }
-  // After-hours mode overrides everything — no face-id, no warehouse block,
-  // no front-desk block. Just a "did anything move?" question to Claude.
-  const includesFrontDesk = !afterHours && frontDeskCh && frames.some((f) => f.camera_channel === frontDeskCh);
-  const isWarehouse       = !afterHours && analysisMode === 'warehouse';
-
-  // After-hours check: read local hour in the location's timezone
+  // After-hours check: read local hour in the location's timezone. Must be
+  // computed BEFORE the includesFrontDesk / isWarehouse consts because they
+  // depend on afterHours.
   let afterHours = false;
   if (hoursOpen !== null && hoursClose !== null) {
     const localHourStr = new Intl.DateTimeFormat('en-GB', { hour: 'numeric', hour12: false, timeZone: tzName }).format(new Date());
@@ -134,6 +131,11 @@ export async function POST(request) {
     // (Doesn't handle windows that cross midnight; add if needed.)
     afterHours = Number.isFinite(h) && (h < hoursOpen || h >= hoursClose);
   }
+
+  // After-hours mode overrides everything — no face-id, no warehouse block,
+  // no front-desk block. Just a "did anything move?" question to Claude.
+  const includesFrontDesk = !afterHours && frontDeskCh && frames.some((f) => f.camera_channel === frontDeskCh);
+  const isWarehouse       = !afterHours && analysisMode === 'warehouse';
 
   // Load workers + zones (same as analyze route)
   // Try to also pull face_embeddings — falls back if column doesn't exist yet
