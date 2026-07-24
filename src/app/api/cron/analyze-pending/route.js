@@ -75,15 +75,16 @@ export async function GET(request) {
     };
   });
 
-  // Look up each location's most recent activity_timeline window_end.
-  // ALL filters must be applied BEFORE .order() + .limit() — chaining .eq()
-  // after .limit() silently drops the filter in supabase-js, which caused
-  // gym to always report a stale (cross-location) timestamp.
+  // Look up when each location was LAST ACTUALLY ANALYZED (i.e. when we
+  // inserted the row), NOT when the frames within that row were captured.
+  // Using window_end trapped us in a loop where a location processing old
+  // frames would forever look "most overdue" because window_end reflects
+  // the age of the frame batch, not the analyze time.
   await Promise.all(bucketList.map(async (b) => {
-    let q = db.from('activity_timeline').select('window_end').eq('client_id', b.client_id);
+    let q = db.from('activity_timeline').select('created_at').eq('client_id', b.client_id);
     q = b.location_id ? q.eq('location_id', b.location_id) : q.is('location_id', null);
-    const { data } = await q.order('window_end', { ascending: false }).limit(1);
-    if (data && data[0]?.window_end) b.last_analyzed_at = data[0].window_end;
+    const { data } = await q.order('created_at', { ascending: false }).limit(1);
+    if (data && data[0]?.created_at) b.last_analyzed_at = data[0].created_at;
   }));
 
   // Sort: location most-overdue first
