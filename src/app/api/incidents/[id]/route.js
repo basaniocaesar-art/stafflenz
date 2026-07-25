@@ -55,13 +55,18 @@ export async function GET(_request, { params }) {
   const from = new Date(eventTime.getTime() - CONTEXT_SECONDS * 1000).toISOString();
   const to = new Date(eventTime.getTime() + CONTEXT_SECONDS * 1000).toISOString();
 
-  const { data: contextRows } = await db
+  // Scope to the incident's location — otherwise two sites with the same
+  // camera_channel number get mixed into one context window.
+  let ctxQ = db
     .from('frame_buffer')
     .select('id, frame_path, captured_at, has_motion')
     .eq('client_id', session.client.id)
     .eq('camera_channel', incident.camera_channel)
     .gte('captured_at', from)
-    .lte('captured_at', to)
+    .lte('captured_at', to);
+  if (incident.location_id) ctxQ = ctxQ.eq('location_id', incident.location_id);
+  else ctxQ = ctxQ.is('location_id', null);
+  const { data: contextRows } = await ctxQ
     .order('captured_at', { ascending: true })
     .limit(MAX_CONTEXT_FRAMES);
 

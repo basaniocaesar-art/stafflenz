@@ -118,30 +118,37 @@ export async function GET(request) {
       .gte('window_start', todayStart);
     todayCost = (costData || []).reduce((s, r) => s + (r.cost_usd || 0), 0);
 
-    // Latest snapshot per camera from frame_buffer (for the camera grid)
-    // When a location is selected, only show that location's frames.
+    // Latest snapshot per camera from frame_buffer (for the camera grid).
+    // MUST be scoped to a specific location — without it, "latest cam 1"
+    // could be from site A and "latest cam 2" from site B, producing a
+    // mishmash grid that misrepresents any single site. When no location
+    // is selected (rollup view), return an empty grid so the UI prompts
+    // the user to pick a site.
     const cameraChannels = [1, 2, 3, 4, 5, 6, 7, 8];
-    const snapPromises = cameraChannels.map(async (ch) => {
-      let q = db
-        .from('frame_buffer')
-        .select('frame_path, captured_at, has_motion')
-        .eq('client_id', clientId)
-        .eq('camera_channel', ch);
-      if (locationId) q = q.eq('location_id', locationId);
-      const { data: latest } = await q
-        .order('captured_at', { ascending: false })
-        .limit(1)
-        .single();
-      if (!latest) return { channel: ch, url: null, captured_at: null };
-      const { data: signed } = await db.storage.from('frames').createSignedUrl(latest.frame_path, 300);
-      return {
-        channel: ch,
-        url: signed?.signedUrl || null,
-        captured_at: latest.captured_at,
-        has_motion: latest.has_motion,
-      };
-    });
-    latestSnapshots = await Promise.all(snapPromises);
+    if (locationId) {
+      const snapPromises = cameraChannels.map(async (ch) => {
+        const { data: latest } = await db
+          .from('frame_buffer')
+          .select('frame_path, captured_at, has_motion')
+          .eq('client_id', clientId)
+          .eq('camera_channel', ch)
+          .eq('location_id', locationId)
+          .order('captured_at', { ascending: false })
+          .limit(1)
+          .single();
+        if (!latest) return { channel: ch, url: null, captured_at: null };
+        const { data: signed } = await db.storage.from('frames').createSignedUrl(latest.frame_path, 300);
+        return {
+          channel: ch,
+          url: signed?.signedUrl || null,
+          captured_at: latest.captured_at,
+          has_motion: latest.has_motion,
+        };
+      });
+      latestSnapshots = await Promise.all(snapPromises);
+    } else {
+      latestSnapshots = [];
+    }
   } catch (e) {
     // v2 tables might not exist yet — degrade gracefully
     console.warn('[client API] v2 data fetch failed:', e.message);

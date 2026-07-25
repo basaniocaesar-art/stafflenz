@@ -24,20 +24,24 @@ export async function GET(request) {
   // Fetch the timeline entry
   const { data: tl, error: tlErr } = await db
     .from('activity_timeline')
-    .select('id, window_start, window_end, timeline, summary, workers_detected, alerts_created')
+    .select('id, window_start, window_end, timeline, summary, workers_detected, alerts_created, location_id')
     .eq('id', timelineId)
     .eq('client_id', clientId)
     .single();
 
   if (tlErr || !tl) return NextResponse.json({ error: 'Timeline entry not found' }, { status: 404 });
 
-  // Fetch frames from frame_buffer during this window
-  const { data: frames } = await db
+  // Fetch frames from frame_buffer during this window — MUST scope to the
+  // same location as the timeline entry, otherwise the popup mixes frames
+  // from unrelated sites captured in the same time window.
+  let fq = db
     .from('frame_buffer')
     .select('id, camera_channel, frame_path, captured_at, has_motion')
     .eq('client_id', clientId)
     .gte('captured_at', tl.window_start)
-    .lte('captured_at', tl.window_end)
+    .lte('captured_at', tl.window_end);
+  fq = tl.location_id ? fq.eq('location_id', tl.location_id) : fq.is('location_id', null);
+  const { data: frames } = await fq
     .order('captured_at', { ascending: true })
     .limit(40);
 
