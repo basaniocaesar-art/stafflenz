@@ -166,6 +166,24 @@ export async function GET(request) {
       .in('frame_path', frame_paths);
     if (updErr) report.push({ client_id, location_id, mark_error: updErr.message });
 
+    // RETENTION — delete the image now that it has been read.
+    //
+    // A frame exists to be looked at once by the vision call. After that it is
+    // dead weight, and nothing ever deleted one: the worker wrote ~17,700 a
+    // day, ~2.9 GB, and in seven weeks that reached 143 GB of storage and
+    // 345 GB of egress. It did not arrive as a bill — the Pro spend cap is on
+    // by default — it arrived as the whole org being restricted, which took
+    // every project down with it.
+    //
+    // Deleted only after the row is marked analyzed, so a failure here leaves
+    // an orphaned file rather than a frame the pipeline never reads. The index
+    // row stays: it is tiny, and it is the record of what was seen.
+    if (!updErr && frame_paths.length) {
+      const { error: rmErr } = await db.storage.from('frames').remove(frame_paths);
+      if (rmErr) report.push({ client_id, location_id, purge_error: rmErr.message });
+      else report.push({ client_id, location_id, frames_purged: frame_paths.length });
+    }
+
     report.push({
       client_id,
       location_id,
