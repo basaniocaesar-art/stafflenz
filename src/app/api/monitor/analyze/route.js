@@ -259,11 +259,12 @@ export async function POST(request) {
   // ── Call Claude Vision ────────────────────────────────────────────────────
   const analysisStart = Date.now();
   let analysis, inputTokens = 0, outputTokens = 0;
-  const model = 'claude-haiku-4-5-20251001';
+  const model = 'claude-haiku-5-5';
   try {
     const response = await anthropic.messages.create({
       model,
-      max_tokens: 2000,
+      max_tokens: 3000, // Haiku 5.5 thinks by default; headroom so the JSON isn't cut off
+      output_config: { effort: 'low' },
       messages: [{ role: 'user', content }],
     });
 

@@ -321,19 +321,21 @@ Return ONLY valid JSON — no markdown, no explanation, no code fences. Use exac
 // ─── Get the right model based on initial analysis ───────────────────────────
 export function getAnalysisModel(quickResult) {
   // Use Haiku for routine scans, escalate to Sonnet if violations detected
-  if (!quickResult) return 'claude-haiku-4-5-20251001';
+  if (!quickResult) return 'claude-haiku-5-5';
   const hasHighSeverity = (quickResult.violations || []).some(v => v.severity === 'high');
   const hasAlerts = (quickResult.alerts || []).length > 0;
-  if (hasHighSeverity) return 'claude-sonnet-4-6-20250514';
-  return 'claude-haiku-4-5-20251001';
+  if (hasHighSeverity) return 'claude-sonnet-5-5';
+  return 'claude-haiku-5-5';
 }
 
 // ─── Calculate cost from token usage ─────────────────────────────────────────
+// Haiku 5.5 rate is the <=100K-token-prompt card (frames are well under that).
 export function calculateCost(model, inputTokens, outputTokens) {
   const pricing = {
+    'claude-haiku-5-5': { input: 0.10 / 1_000_000, output: 0.50 / 1_000_000 },
+    'claude-sonnet-5-5': { input: 2.00 / 1_000_000, output: 10.00 / 1_000_000 },
     'claude-haiku-4-5-20251001': { input: 1.00 / 1_000_000, output: 5.00 / 1_000_000 },
-    'claude-sonnet-4-6-20250514': { input: 3.00 / 1_000_000, output: 15.00 / 1_000_000 },
   };
-  const p = pricing[model] || pricing['claude-haiku-4-5-20251001'];
+  const p = pricing[model] || pricing['claude-haiku-5-5'];
   return (inputTokens * p.input) + (outputTokens * p.output);
 }

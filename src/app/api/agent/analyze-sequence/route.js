@@ -457,7 +457,7 @@ For this camera ONLY, also populate the "front_desk" object in your JSON:
 
   // ── Call Claude ──────────────────────────────────────────────────
   const startMs = Date.now();
-  const model = 'claude-haiku-4-5-20251001';
+  const model = 'claude-haiku-5-5';
   let analysis, inputTokens = 0, outputTokens = 0;
 
   try {
@@ -466,7 +466,8 @@ For this camera ONLY, also populate the "front_desk" object in your JSON:
       // Sequence output has 8 cameras × N minutes of timeline rows + alerts +
       // worker_states. 3000 was getting truncated mid-array; 8000 gives
       // comfortable headroom while staying inside Haiku's per-call budget.
-      max_tokens: 8000,
+      max_tokens: 10000, // Haiku 5.5 thinks by default; headroom so the JSON isn't cut off
+      output_config: { effort: 'low' },
       messages: [{ role: 'user', content }],
     });
     inputTokens = response.usage?.input_tokens || 0;
