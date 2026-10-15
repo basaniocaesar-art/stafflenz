@@ -1,10 +1,6 @@
 {
   "crons": [
     {
-      "path": "/api/cron/analyze-pending",
-      "schedule": "*/2 * * * *"
-    },
-    {
       "path": "/api/monitor/email-receiver",
       "schedule": "0 6 * * *"
     },
@@ -19,10 +15,6 @@
     {
       "path": "/api/cron/weekly-report",
       "schedule": "30 15 * * 0"
-    },
-    {
-      "path": "/api/cron/presence-snapshot",
-      "schedule": "*/30 * * * *"
     }
   ]
 }
